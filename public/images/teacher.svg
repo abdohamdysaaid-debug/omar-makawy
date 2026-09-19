@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
+  <defs>
+    <linearGradient id="teacherBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1B7A4B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#145A38;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="500" rx="20" fill="url(#teacherBg)"/>
+  <circle cx="200" cy="180" r="70" fill="rgba(255,255,255,0.2)"/>
+  <rect x="140" y="280" width="120" height="4" rx="2" fill="rgba(255,255,255,0.3)"/>
+  <text x="200" y="350" text-anchor="middle" font-family="Cairo, sans-serif" font-size="18" fill="rgba(255,255,255,0.5)">Omar Makawi</text>
+</svg>
