@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'Omar Makawi - English Made Simple',
+  title: 'Omar Meckawy - English Made Simple',
   description: 'منصة مستر عمر مكاوي التعليمية - تعلم اللغة الإنجليزية بأسلوب بسيط وممتع',
 };
 

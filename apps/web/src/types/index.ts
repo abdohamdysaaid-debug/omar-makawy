@@ -1,5 +1,5 @@
 // ============================================================
-// TYPE DEFINITIONS — Omar Makawy Educational Platform
+// TYPE DEFINITIONS — Omar Meckawy Educational Platform
 // ============================================================
 
 export interface AcademicYear {

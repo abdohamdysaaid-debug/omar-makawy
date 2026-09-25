@@ -109,7 +109,7 @@ export default function LoginClient() {
       <main className="flex flex-1 items-center justify-center p-4 py-12">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl dark:bg-surface-dark">
           <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-brand-500 font-cairo">Omar Makawi</h1>
+            <h1 className="mb-2 text-3xl font-bold text-brand-500 font-cairo">Omar Meckawy</h1>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white font-cairo">تسجيل الدخول</h2>
           </div>
           <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800"></div>}>

@@ -51,7 +51,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex flex-col items-start">
           <span className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1" style={{ fontStyle: 'italic' }}>
-            Omar Makawi
+            Omar Meckawy
           </span>
           <span className="text-xs md:text-sm text-brand-500 font-medium leading-none">
             English Made Simple
@@ -145,7 +145,7 @@ export default function Navbar() {
           <div className="relative w-72 max-w-sm bg-white dark:bg-gray-900 h-full shadow-xl flex flex-col start-0">
             <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col">
-                <span className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontStyle: 'italic' }}>Omar Makawi</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontStyle: 'italic' }}>Omar Meckawy</span>
                 <span className="text-xs text-brand-500">English Made Simple</span>
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500">

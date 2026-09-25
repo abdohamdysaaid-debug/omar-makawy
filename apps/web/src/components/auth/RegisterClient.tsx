@@ -216,7 +216,7 @@ export default function RegisterClient() {
       <main className="flex flex-1 items-center justify-center p-4 py-12">
         <div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-xl dark:bg-surface-dark">
           <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-brand-500 font-cairo">Omar Makawi</h1>
+            <h1 className="mb-2 text-3xl font-bold text-brand-500 font-cairo">Omar Meckawy</h1>
             <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white font-cairo">إنشاء حساب جديد</h2>
             <p className="text-gray-600 dark:text-gray-400 font-cairo">
               أنشئ حسابك للوصول إلى جميع الكورسات والمحتوى التعليمي

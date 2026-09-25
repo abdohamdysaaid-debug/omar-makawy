@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-2xl font-bold mb-2">Omar Makawi</h3>
+            <h3 className="text-2xl font-bold mb-2">Omar Meckawy</h3>
             <p className="text-brand-200 text-sm mb-6">English Made Simple</p>
             <p className="text-gray-300 dark:text-gray-400 mb-6 max-w-sm">
               منصة تعليمية متكاملة تهدف إلى تبسيط اللغة الإنجليزية وجعلها في متناول الجميع بطرق حديثة وتفاعلية.
@@ -52,7 +52,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-2 space-x-reverse text-gray-300">
                 <Mail className="w-4 h-4" />
-                <span>info@omarmakawi.com</span>
+                <span>info@omarmeckawy.com</span>
               </div>
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-white/10 mt-12 pt-8 text-center text-sm text-gray-400">
-          <p>© {new Date().getFullYear()} Omar Makawi. جميع الحقوق محفوظة</p>
+          <p>© {new Date().getFullYear()} Omar Meckawy. جميع الحقوق محفوظة</p>
         </div>
       </div>
     </footer>
