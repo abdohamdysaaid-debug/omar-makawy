@@ -42,15 +42,6 @@ const config: Config = {
       fontFamily: {
         cairo: ['Cairo', 'sans-serif'],
       },
-      container: {
-        center: true,
-        padding: {
-          DEFAULT: '1rem',
-          sm: '1.5rem',
-          lg: '2rem',
-          xl: '3rem',
-        },
-      },
     },
   },
   plugins: [],
