@@ -2,11 +2,20 @@
   "name": "omar-makawy-frontend-monorepo",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.8.2",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
+    "start": "npm run start:web",
+    "start:web": "npm run start --workspace=@omar-makawy/web",
+    "start:admin": "npm run start --workspace=@omar-makawy/admin",
+    "start:supervisor": "npm run start --workspace=@omar-makawy/supervisor",
     "dev:web": "npm run dev --workspace=@omar-makawy/web",
     "dev:admin": "npm run dev --workspace=@omar-makawy/admin",
     "dev:supervisor": "npm run dev --workspace=@omar-makawy/supervisor",
