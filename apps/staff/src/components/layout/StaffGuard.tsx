@@ -10,19 +10,22 @@ export function StaffGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const normalizedPath = pathname?.replace(/\/$/, '') || '';
+  const isLoginPage = normalizedPath === '/staff/login';
+
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        if (pathname !== '/staff/login') {
+        if (!isLoginPage) {
           router.replace('/staff/login');
         }
       } else if (user?.role === 'STUDENT') {
         router.replace('/staff/login');
-      } else if (pathname === '/staff/login' || pathname === '/staff') {
+      } else if (isLoginPage || normalizedPath === '/staff') {
         router.replace('/staff/dashboard');
       }
     }
-  }, [isLoading, isAuthenticated, user, pathname, router]);
+  }, [isLoading, isAuthenticated, user, isLoginPage, normalizedPath, router]);
 
   if (isLoading || authState === 'UNINITIALIZED' || authState === 'HYDRATING') {
     return (
@@ -32,7 +35,7 @@ export function StaffGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated && pathname !== '/staff/login') {
+  if (!isAuthenticated && !isLoginPage) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background-light dark:bg-background-dark">
         <LoadingState message="جاري التحويل إلى صفحة الدخول..." />

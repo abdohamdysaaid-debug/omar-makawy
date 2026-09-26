@@ -1,11 +1,20 @@
 'use client';
 
 import React, { useState, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { StaffHeader } from './StaffHeader';
 import { StaffSidebar } from './StaffSidebar';
 
 export function StaffLayout({ children }: { children: ReactNode }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  const normalizedPath = pathname?.replace(/\/$/, '') || '';
+  const isLoginPage = normalizedPath === '/staff/login';
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex min-h-screen bg-background-light dark:bg-background-dark font-cairo">
