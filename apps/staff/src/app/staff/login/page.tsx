@@ -107,36 +107,9 @@ export default function StaffLoginPage() {
       dir={dir}
       className="min-h-screen w-full bg-[#f4f7f5] dark:bg-[#0c1311] flex flex-col lg:flex-row items-stretch overflow-x-hidden font-cairo transition-colors duration-300"
     >
-      {/* Visual / Photo Area (Desktop: 55% Left Panel | Mobile: Top 32vh Banner) */}
-      <section className="relative w-full lg:w-[55%] h-[32vh] sm:h-[38vh] lg:h-auto lg:min-h-screen flex-shrink-0 overflow-hidden bg-neutral-900">
-        <Image
-          src="/images/mr-omar-hero.jpg"
-          alt="Mr. Omar Makawy - English Platform"
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 55vw"
-          className="object-cover object-top lg:object-center select-none"
-        />
-
-        {/* Soft atmospheric gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/15 lg:bg-gradient-to-r lg:from-transparent lg:to-black/30 pointer-events-none" />
-
-        {/* Floating subtle mobile badge */}
-        <div className="absolute top-4 start-4 lg:hidden z-10">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 text-white shadow-lg">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#064e3b] text-white font-bold text-xs">
-              OM
-            </span>
-            <span className="text-xs font-bold tracking-tight">
-              {isAr ? 'منصة مستر عمر مكاوي' : 'Mr. Omar Makawy'}
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Right / Login Form Area (Desktop: 45% Right Panel | Mobile: Scrollable Bottom Section) */}
-      <section className="relative w-full lg:w-[45%] flex-1 flex flex-col justify-center items-center px-4 py-8 sm:px-8 lg:px-12 xl:px-16 overflow-hidden">
-        {/* Soft Organic Background Accents (Light Emerald/Mint) */}
+      {/* Left / Login Form Area (Desktop: Left | Mobile: Bottom) */}
+      <section className="order-2 lg:order-1 relative w-full lg:w-[48%] xl:w-[45%] flex-1 flex flex-col justify-center items-center px-4 py-8 sm:px-8 lg:px-10 xl:px-14 overflow-hidden">
+        {/* Soft Organic Background Accents (Emerald / Mint) */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-16 -left-16 h-72 w-72 rounded-full bg-emerald-200/35 dark:bg-emerald-950/20 blur-3xl"
@@ -145,20 +118,6 @@ export default function StaffLoginPage() {
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-emerald-300/25 dark:bg-emerald-900/15 blur-3xl"
         />
-
-        {/* Decorative corner curve for authentic reference feel */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 start-0 w-32 h-32 opacity-40 dark:opacity-10 overflow-hidden"
-        >
-          <div className="w-48 h-48 rounded-full bg-gradient-to-br from-emerald-100 to-transparent -translate-x-16 -translate-y-16" />
-        </div>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 start-0 w-36 h-36 opacity-40 dark:opacity-10 overflow-hidden"
-        >
-          <div className="w-56 h-56 rounded-full bg-gradient-to-tr from-emerald-100 to-transparent -translate-x-20 translate-y-20" />
-        </div>
 
         {/* Main Authentication Card */}
         <div className="relative z-10 w-full max-w-md mx-auto rounded-3xl bg-white/95 dark:bg-[#141d1a]/95 backdrop-blur-md border border-neutral-200/80 dark:border-emerald-950/60 shadow-xl shadow-emerald-950/5 dark:shadow-black/40 p-6 sm:p-9 transition-all">
@@ -322,6 +281,43 @@ export default function StaffLoginPage() {
           <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500 font-medium">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-500" />
             <span>{isAr ? 'نظام تشفير موحد للكادر الإداري' : 'Encrypted Administrative Session'}</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Right / Teacher Visual Hero Area (Desktop: Right | Mobile: Top) */}
+      <section className="order-1 lg:order-2 relative w-full lg:w-[52%] xl:w-[55%] min-h-[38vh] sm:min-h-[44vh] lg:min-h-screen flex items-center justify-center bg-gradient-to-b from-[#091f18] via-[#0c2e24] to-[#061813] p-4 sm:p-6 lg:p-8 overflow-hidden select-none">
+        {/* Subtle Atmospheric Backdrop Glows */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-600/15 via-transparent to-transparent blur-2xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/4 -right-16 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl"
+        />
+
+        {/* Authentic Teacher Photo — Clean Full Presentation */}
+        <div className="relative z-10 w-full h-[36vh] sm:h-[42vh] lg:h-[88vh] max-h-[960px] flex items-center justify-center">
+          <Image
+            src="/images/mr-omar-hero.jpg"
+            alt="Mr. Omar Makawy"
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 55vw"
+            className="object-contain object-center drop-shadow-2xl"
+          />
+        </div>
+
+        {/* Floating Brand Badge (Top-Corner) */}
+        <div className="absolute top-4 start-4 z-20">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/45 backdrop-blur-md border border-white/10 text-white shadow-lg">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#064e3b] text-white font-bold text-xs">
+              OM
+            </span>
+            <span className="text-xs font-bold tracking-tight">
+              {isAr ? 'منصة مستر عمر مكاوي' : 'Mr. Omar Makawy Platform'}
+            </span>
           </div>
         </div>
       </section>
