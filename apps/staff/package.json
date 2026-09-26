@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3004",
     "build": "next build",
-    "start": "serve out",
+    "start": "serve out -l $PORT",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/**/*.spec.js"

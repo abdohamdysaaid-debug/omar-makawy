@@ -14,9 +14,9 @@
   "scripts": {
     "start": "npm run start:web",
     "start:web": "npm run start --workspace=@omar-makawy/web",
-    "start:admin": "npm run start --workspace=@omar-makawy/staff",
+    "start:admin": "serve apps/staff/out -l $PORT",
     "start:supervisor": "npm run start --workspace=@omar-makawy/supervisor",
-    "start:staff": "npm run start --workspace=@omar-makawy/staff",
+    "start:staff": "serve apps/staff/out -l $PORT",
     "dev:web": "npm run dev --workspace=@omar-makawy/web",
     "dev:admin": "npm run dev --workspace=@omar-makawy/admin",
     "dev:supervisor": "npm run dev --workspace=@omar-makawy/supervisor",
