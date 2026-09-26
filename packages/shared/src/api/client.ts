@@ -1,10 +1,27 @@
 import { ApiError, Tokens } from '../types';
 
-export const API_BASE_URL =
+export const DEFAULT_API_BASE_URL =
   (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_BASE_URL) ||
-  'http://localhost:3000/api/v1';
+  (typeof window !== 'undefined' && window.location.hostname.includes('omarmeckawy.com')
+    ? 'https://api.omarmeckawy.com/api/v1'
+    : 'http://localhost:3000/api/v1');
 
-export function getOrCreateDeviceUuid(storageKey = 'omar_device_uuid'): string {
+export interface ApiClientConfig {
+  baseUrl?: string;
+  tokenKey?: string;
+  refreshKey?: string;
+  deviceUuidKey?: string;
+  userKey?: string;
+}
+
+export const DEFAULT_STORAGE_KEYS = {
+  ACCESS_TOKEN: 'omar_staff_access_token',
+  REFRESH_TOKEN: 'omar_staff_refresh_token',
+  DEVICE_UUID: 'omar_device_uuid',
+  USER: 'omar_staff_user',
+};
+
+export function getOrCreateDeviceUuid(storageKey = DEFAULT_STORAGE_KEYS.DEVICE_UUID): string {
   if (typeof window === 'undefined') {
     return '00000000-0000-0000-0000-000000000001';
   }
@@ -20,48 +37,102 @@ export function getOrCreateDeviceUuid(storageKey = 'omar_device_uuid'): string {
   return uuid;
 }
 
-export function createApiClient(tokenStorageKey: string, refreshStorageKey: string) {
+export interface RequestOptions extends RequestInit {
+  academicYearId?: string; // Explicit tenancy scope (optional)
+  skipAuth?: boolean;
+}
+
+export function createApiClient(
+  configOrTokenKey?: ApiClientConfig | string,
+  legacyRefreshKey?: string
+) {
+  const config: ApiClientConfig =
+    typeof configOrTokenKey === 'string'
+      ? { tokenKey: configOrTokenKey, refreshKey: legacyRefreshKey }
+      : configOrTokenKey || {};
+
+  const baseUrl = config.baseUrl || DEFAULT_API_BASE_URL;
+  const tokenKey = config.tokenKey || DEFAULT_STORAGE_KEYS.ACCESS_TOKEN;
+  const refreshKey = config.refreshKey || DEFAULT_STORAGE_KEYS.REFRESH_TOKEN;
+  const deviceUuidKey = config.deviceUuidKey || DEFAULT_STORAGE_KEYS.DEVICE_UUID;
+  const userKey = config.userKey || DEFAULT_STORAGE_KEYS.USER;
+
   function getAccessToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem(tokenStorageKey);
+    return localStorage.getItem(tokenKey);
   }
 
   function getRefreshToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem(refreshStorageKey);
+    return localStorage.getItem(refreshKey);
   }
 
   function storeTokens(tokens: Tokens): void {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(tokenStorageKey, tokens.access_token);
-    localStorage.setItem(refreshStorageKey, tokens.refresh_token);
+    localStorage.setItem(tokenKey, tokens.access_token);
+    localStorage.setItem(refreshKey, tokens.refresh_token);
   }
 
   function clearTokens(): void {
     if (typeof window === 'undefined') return;
-    localStorage.removeItem(tokenStorageKey);
-    localStorage.removeItem(refreshStorageKey);
+    localStorage.removeItem(tokenKey);
+    localStorage.removeItem(refreshKey);
   }
 
-  let isRefreshing = false;
-  let refreshSubscribers: Array<(token: string) => void> = [];
+  function getStoredUser(): any | null {
+    if (typeof window === 'undefined') return null;
+    const raw = localStorage.getItem(userKey);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
 
-  function subscribeTokenRefresh(cb: (token: string) => void) {
-    refreshSubscribers.push(cb);
+  function storeUser(user: any): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(userKey, JSON.stringify(user));
+  }
+
+  function clearStoredAuth(): void {
+    clearTokens();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(userKey);
+    }
+  }
+
+  // Concurrency-safe single-flight refresh queue
+  let isRefreshing = false;
+  let refreshSubscribers: Array<{
+    resolve: (token: string) => void;
+    reject: (err: any) => void;
+  }> = [];
+
+  function subscribeTokenRefresh(
+    resolve: (token: string) => void,
+    reject: (err: any) => void
+  ) {
+    refreshSubscribers.push({ resolve, reject });
   }
 
   function onRefreshed(newToken: string) {
-    refreshSubscribers.map((cb) => cb(newToken));
+    refreshSubscribers.forEach(({ resolve }) => resolve(newToken));
+    refreshSubscribers = [];
+  }
+
+  function onRefreshFailed(err: any) {
+    refreshSubscribers.forEach(({ reject }) => reject(err));
     refreshSubscribers = [];
   }
 
   async function request<T>(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestOptions = {},
     retry = true
   ): Promise<T> {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = `${API_BASE_URL}${cleanEndpoint}`;
+    const url = `${baseUrl}${cleanEndpoint}`;
 
     const headers = new Headers(options.headers || {});
     if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
@@ -71,14 +142,21 @@ export function createApiClient(tokenStorageKey: string, refreshStorageKey: stri
       headers.set('Accept', 'application/json');
     }
 
-    const token = getAccessToken();
-    if (token && !headers.has('Authorization')) {
-      headers.set('Authorization', `Bearer ${token}`);
+    if (!options.skipAuth) {
+      const token = getAccessToken();
+      if (token && !headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
     }
 
-    const deviceUuid = getOrCreateDeviceUuid();
+    const deviceUuid = getOrCreateDeviceUuid(deviceUuidKey);
     if (!headers.has('x-device-id')) {
       headers.set('x-device-id', deviceUuid);
+    }
+
+    // Explicit Tenancy Scope (Only set if specifically provided)
+    if (options.academicYearId && !headers.has('x-academic-year-id')) {
+      headers.set('x-academic-year-id', options.academicYearId);
     }
 
     try {
@@ -87,48 +165,67 @@ export function createApiClient(tokenStorageKey: string, refreshStorageKey: stri
         headers,
       });
 
-      if (res.status === 401 && retry) {
+      // Handle 401 Unauthorized with token refresh rotation
+      if (res.status === 401 && retry && !options.skipAuth) {
         const refreshToken = getRefreshToken();
         if (refreshToken) {
           if (!isRefreshing) {
             isRefreshing = true;
             try {
-              const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+              const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   Accept: 'application/json',
                   'x-device-id': deviceUuid,
                 },
-                body: JSON.stringify({ refresh_token: refreshToken }),
+                body: JSON.stringify({
+                  refresh_token: refreshToken,
+                  device_uuid: deviceUuid,
+                }),
               });
 
               if (refreshRes.ok) {
-                const data = await refreshRes.json();
-                const newTokens: Tokens = data.data?.tokens || data.tokens;
-                if (newTokens) {
+                const rawRefreshData = await refreshRes.json();
+                const newTokens: Tokens =
+                  rawRefreshData.data?.tokens || rawRefreshData.data || rawRefreshData.tokens;
+
+                if (newTokens && newTokens.access_token) {
                   storeTokens(newTokens);
                   isRefreshing = false;
                   onRefreshed(newTokens.access_token);
+
                   headers.set('Authorization', `Bearer ${newTokens.access_token}`);
                   return request<T>(endpoint, { ...options, headers }, false);
                 }
-              } else {
-                clearTokens();
-                isRefreshing = false;
               }
-            } catch {
-              clearTokens();
+
+              // Refresh failed or returned invalid tokens
+              clearStoredAuth();
               isRefreshing = false;
+              const refreshError: ApiError = {
+                message: 'Session expired. Please sign in again.',
+                error_code: 'SESSION_EXPIRED',
+                statusCode: 401,
+              };
+              onRefreshFailed(refreshError);
+            } catch (refreshErr) {
+              clearStoredAuth();
+              isRefreshing = false;
+              onRefreshFailed(refreshErr);
             }
           } else {
+            // Queue ongoing concurrent request to wait for in-flight refresh
             return new Promise<T>((resolve, reject) => {
-              subscribeTokenRefresh((newToken) => {
-                headers.set('Authorization', `Bearer ${newToken}`);
-                request<T>(endpoint, { ...options, headers }, false)
-                  .then(resolve)
-                  .catch(reject);
-              });
+              subscribeTokenRefresh(
+                (newToken) => {
+                  headers.set('Authorization', `Bearer ${newToken}`);
+                  request<T>(endpoint, { ...options, headers }, false)
+                    .then(resolve)
+                    .catch(reject);
+                },
+                (err) => reject(err)
+              );
             });
           }
         }
@@ -138,15 +235,28 @@ export function createApiClient(tokenStorageKey: string, refreshStorageKey: stri
 
       if (!res.ok) {
         const error: ApiError = {
-          message: rawData?.message || rawData?.error || `Request failed with status ${res.status}`,
-          error_code: rawData?.error_code || rawData?.statusCode?.toString(),
+          message:
+            rawData?.message ||
+            rawData?.error ||
+            `Request failed with status ${res.status}`,
+          error_code:
+            rawData?.error_code ||
+            (rawData?.statusCode ? `HTTP_${rawData.statusCode}` : `HTTP_${res.status}`),
           statusCode: res.status,
-          details: rawData,
+          timestamp: rawData?.timestamp,
+          path: rawData?.path,
+          details: rawData?.details || rawData,
         };
         throw error;
       }
 
-      if (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data !== undefined) {
+      // Unpack NestJS response envelope if present { success: true, data: T }
+      if (
+        rawData &&
+        typeof rawData === 'object' &&
+        'data' in rawData &&
+        rawData.data !== undefined
+      ) {
         return rawData.data as T;
       }
 
@@ -156,7 +266,8 @@ export function createApiClient(tokenStorageKey: string, refreshStorageKey: stri
         throw err;
       }
       const networkError: ApiError = {
-        message: err.message || 'Network connection failed. Please check backend server status.',
+        message:
+          err.message || 'Network connection failed. Please check backend server status.',
         error_code: 'NETWORK_ERROR',
         statusCode: 0,
         details: err,
@@ -169,29 +280,34 @@ export function createApiClient(tokenStorageKey: string, refreshStorageKey: stri
     request,
     getAccessToken,
     getRefreshToken,
+    getStoredUser,
     storeTokens,
+    storeUser,
     clearTokens,
-    get: <T>(endpoint: string, headers?: HeadersInit) =>
-      request<T>(endpoint, { method: 'GET', headers }),
-    post: <T>(endpoint: string, body?: any, headers?: HeadersInit) =>
+    clearStoredAuth,
+    get: <T>(endpoint: string, options?: RequestOptions) =>
+      request<T>(endpoint, { ...options, method: 'GET' }),
+    post: <T>(endpoint: string, body?: any, options?: RequestOptions) =>
       request<T>(endpoint, {
+        ...options,
         method: 'POST',
         body: body instanceof FormData ? body : JSON.stringify(body),
-        headers,
       }),
-    put: <T>(endpoint: string, body?: any, headers?: HeadersInit) =>
+    put: <T>(endpoint: string, body?: any, options?: RequestOptions) =>
       request<T>(endpoint, {
+        ...options,
         method: 'PUT',
         body: body instanceof FormData ? body : JSON.stringify(body),
-        headers,
       }),
-    patch: <T>(endpoint: string, body?: any, headers?: HeadersInit) =>
+    patch: <T>(endpoint: string, body?: any, options?: RequestOptions) =>
       request<T>(endpoint, {
+        ...options,
         method: 'PATCH',
         body: body instanceof FormData ? body : JSON.stringify(body),
-        headers,
       }),
-    delete: <T>(endpoint: string, headers?: HeadersInit) =>
-      request<T>(endpoint, { method: 'DELETE', headers }),
+    delete: <T>(endpoint: string, options?: RequestOptions) =>
+      request<T>(endpoint, { ...options, method: 'DELETE' }),
   };
 }
+
+export const defaultApiClient = createApiClient();

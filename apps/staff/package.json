@@ -1,0 +1,30 @@
+{
+  "name": "@omar-makawy/staff",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3004",
+    "build": "next build",
+    "start": "serve out",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/**/*.spec.js"
+  },
+  "dependencies": {
+    "@omar-makawy/shared": "*",
+    "lucide-react": "^0.454.0",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "serve": "^14.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.4.5"
+  }
+}

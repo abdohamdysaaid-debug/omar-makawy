@@ -1,0 +1,33 @@
+export interface ApiError {
+  message: string;
+  error_code?: string;
+  statusCode?: number;
+  timestamp?: string;
+  path?: string;
+  details?: any;
+}
+
+export type CommonErrorCode =
+  | 'INVALID_CREDENTIALS'
+  | 'ACCOUNT_LOCKED_BRUTE_FORCE'
+  | 'ACCOUNT_BLOCKED'
+  | 'ACCOUNT_SUSPENDED'
+  | 'ACCOUNT_INACTIVE'
+  | 'AUTHENTICATION_REQUIRED'
+  | 'TOKEN_EXPIRED'
+  | 'INVALID_TOKEN'
+  | 'REFRESH_TOKEN_REPLAY'
+  | 'INVALID_TWO_FACTOR_CODE'
+  | 'TOO_MANY_2FA_ATTEMPTS'
+  | 'TWO_FACTOR_SETUP_EXPIRED'
+  | 'INSUFFICIENT_PERMISSIONS'
+  | 'ACADEMIC_YEAR_SCOPE_DENIED'
+  | 'SUPERVISOR_YEAR_FORBIDDEN'
+  | 'ACADEMIC_YEAR_MISMATCH'
+  | 'NO_ACADEMIC_YEAR'
+  | 'DEVICE_LIMIT_EXCEEDED'
+  | 'DEVICE_COOLDOWN_ACTIVE'
+  | 'DEVICE_NOT_FOUND'
+  | 'VALIDATION_ERROR'
+  | 'NETWORK_ERROR'
+  | 'UNKNOWN_ERROR';

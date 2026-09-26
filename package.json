@@ -16,15 +16,19 @@
     "start:web": "npm run start --workspace=@omar-makawy/web",
     "start:admin": "npm run start --workspace=@omar-makawy/admin",
     "start:supervisor": "npm run start --workspace=@omar-makawy/supervisor",
+    "start:staff": "npm run start --workspace=@omar-makawy/staff",
     "dev:web": "npm run dev --workspace=@omar-makawy/web",
     "dev:admin": "npm run dev --workspace=@omar-makawy/admin",
     "dev:supervisor": "npm run dev --workspace=@omar-makawy/supervisor",
+    "dev:staff": "npm run dev --workspace=@omar-makawy/staff",
     "build": "npm run build --workspaces",
     "build:web": "npm run build --workspace=@omar-makawy/web",
     "build:admin": "npm run build --workspace=@omar-makawy/admin",
     "build:supervisor": "npm run build --workspace=@omar-makawy/supervisor",
+    "build:staff": "npm run build --workspace=@omar-makawy/staff",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm test --workspaces --if-present"
   },
   "dependencies": {
     "lucide-react": "^0.454.0",

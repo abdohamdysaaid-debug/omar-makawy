@@ -8,6 +8,10 @@ node_modules/
 out/
 dist/
 build/
+**/.next/
+**/out/
+**/dist/
+**/build/
 
 # Environment Files
 .env
