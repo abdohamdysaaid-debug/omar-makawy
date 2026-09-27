@@ -30,7 +30,7 @@ export function StaffGuard({ children }: { children: React.ReactNode }) {
   if (isLoading || authState === 'UNINITIALIZED' || authState === 'HYDRATING') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background-light dark:bg-background-dark">
-        <LoadingState message="جاري التحقق من هوية وصلاحيات الكادر التعليمي..." />
+        <LoadingState message="جاري التحقق من الهوية والصلاحيات..." />
       </div>
     );
   }

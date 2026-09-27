@@ -110,7 +110,7 @@ export default function StaffDashboardPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                {user?.full_name || (isAr ? 'عضو الكادر التعليمي' : 'Staff Member')}
+                {user?.full_name || (isAr ? 'عضو فريق العمل' : 'Staff Member')}
               </h2>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 font-mono">
                 {user?.phone} &bull; {user?.email || (isAr ? 'بدون بريد مسجل' : 'No email registered')}

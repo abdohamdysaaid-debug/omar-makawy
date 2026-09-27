@@ -24,9 +24,10 @@ export function StaffSidebar({
   setIsCollapsed,
 }: StaffSidebarProps) {
   const pathname = usePathname();
-  const { t, dir } = useLanguage();
+  const { t, dir, language } = useLanguage();
   const { user, role } = useStaffAuth();
   const { hasPermission, isTeacher } = usePermissions();
+  const isAr = language === 'ar';
 
   // Accordion state for navigation groups
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
@@ -168,34 +169,41 @@ export function StaffSidebar({
 
       {/* Footer Identity Card */}
       <div className="p-3 border-t border-neutral-100 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/80">
-        {!isCollapsed ? (
-          <div>
-            <div className="flex items-center gap-2.5 mb-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
-                {user?.full_name?.charAt(0) || 'S'}
+        <Link
+          href="/staff/profile"
+          onClick={() => setIsMobileOpen(false)}
+          title={isAr ? 'الملف الشخصي وإعدادات الحساب' : 'Profile & Settings'}
+          className="block rounded-xl p-1.5 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 transition-colors group"
+        >
+          {!isCollapsed ? (
+            <div>
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800 group-hover:ring-2 group-hover:ring-brand-500/30 transition-all">
+                  {user?.full_name?.charAt(0) || 'OM'}
+                </div>
+                <div className="truncate">
+                  <p className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate transition-colors">
+                    {user?.full_name || (isAr ? 'مستر عمر مكاوي' : 'Mr. Omar Meckawy')}
+                  </p>
+                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
+                    {user?.phone}
+                  </p>
+                </div>
               </div>
-              <div className="truncate">
-                <p className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">
-                  {user?.full_name || 'Staff Member'}
-                </p>
-                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
-                  {user?.phone}
-                </p>
+              {role && (
+                <div className="pt-0.5">
+                  <RoleBadge role={role} size="sm" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 group-hover:ring-2 group-hover:ring-brand-500/30 transition-all">
+                {user?.full_name?.charAt(0) || 'OM'}
               </div>
             </div>
-            {role && (
-              <div className="pt-0.5">
-                <RoleBadge role={role} size="sm" />
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex justify-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300">
-              {user?.full_name?.charAt(0) || 'S'}
-            </div>
-          </div>
-        )}
+          )}
+        </Link>
       </div>
     </div>
   );

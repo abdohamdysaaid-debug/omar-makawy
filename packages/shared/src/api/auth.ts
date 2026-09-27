@@ -76,6 +76,10 @@ export function createAuthApi(apiClient = createApiClient()) {
     async disableTwoFactor(dto: TwoFactorDisablePayload): Promise<{ success: boolean; message: string }> {
       return apiClient.post<{ success: boolean; message: string }>('/auth/2fa/disable', dto);
     },
+
+    async changePassword(dto: { current_password: string; new_password: string }): Promise<{ success: boolean; message: string }> {
+      return apiClient.post<{ success: boolean; message: string }>('/auth/change-password', dto);
+    },
   };
 }
 

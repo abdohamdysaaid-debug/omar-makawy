@@ -21,6 +21,7 @@ import {
   ClipboardList,
   Shield,
   Settings,
+  User,
 } from 'lucide-react';
 import { SystemPermissions, SystemPermissionCode, UserRole } from '@omar-makawy/shared';
 
@@ -90,6 +91,7 @@ export const STAFF_NAVIGATION_GROUPS: NavGroupConfig[] = [
   {
     groupKey: 'nav.administration',
     items: [
+      { key: 'nav.profile', href: '/staff/profile', icon: User },
       { key: 'nav.supervisors', href: '/staff/supervisors', icon: UserCog, isTeacherOnly: true, role: 'TEACHER' },
       { key: 'nav.audit_logs', href: '/staff/audit-logs', icon: ClipboardList, permission: SystemPermissions.AUDIT_LOGS_READ },
       { key: 'nav.security_events', href: '/staff/security-events', icon: Shield, permission: SystemPermissions.SECURITY_EVENTS_READ },

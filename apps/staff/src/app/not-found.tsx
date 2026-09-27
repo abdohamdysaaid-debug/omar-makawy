@@ -17,7 +17,7 @@ export default function NotFoundPage() {
         الصفحة غير موجودة
       </h1>
       <p className="text-xs text-neutral-500 dark:text-neutral-400 max-w-sm mb-6 leading-relaxed">
-        عذراً، لم نتمكن من العثور على المسار المطلوب في بوابة الكادر التعليمي.
+        عذراً، لم نتمكن من العثور على المسار المطلوب في لوحة التحكم.
       </p>
       <Link
         href="/staff/dashboard"

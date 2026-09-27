@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { LogOut, Globe, Moon, Sun, Menu } from 'lucide-react';
+import Link from 'next/link';
+import { LogOut, Globe, Moon, Sun, Menu, User } from 'lucide-react';
 import { useStaffAuth } from '@/context/StaffAuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -16,6 +17,7 @@ export function StaffHeader({ onMenuToggle }: StaffHeaderProps) {
   const { user, role, logout } = useStaffAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
+  const isAr = language === 'ar';
 
   return (
     <header className="sticky top-0 z-20 flex h-16 w-full items-center justify-between border-b border-neutral-200 bg-white/90 px-4 backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90 sm:px-6">
@@ -61,20 +63,24 @@ export function StaffHeader({ onMenuToggle }: StaffHeaderProps) {
 
         <div className="h-5 w-px bg-neutral-200 dark:bg-neutral-800" />
 
-        {/* User Profile Pill */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 font-bold text-xs text-brand-800 dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
-            {user?.full_name?.charAt(0) || 'S'}
+        {/* User Profile Pill (Clickable -> /staff/profile) */}
+        <Link
+          href="/staff/profile"
+          title={isAr ? 'الملف الشخصي وإعدادات الحساب' : 'Profile & Settings'}
+          className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all group"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 font-bold text-xs text-brand-800 dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800 group-hover:ring-2 group-hover:ring-brand-500/30 transition-all">
+            {user?.full_name?.charAt(0) || 'OM'}
           </div>
           <div className="hidden md:flex flex-col text-start">
-            <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100 leading-tight">
-              {user?.full_name || 'Staff User'}
+            <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 leading-tight transition-colors">
+              {user?.full_name || (isAr ? 'مستر عمر مكاوي' : 'Mr. Omar Meckawy')}
             </span>
             <span className="text-[10px] text-neutral-500 dark:text-neutral-400">
               {user?.phone}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Logout Button */}
         <button

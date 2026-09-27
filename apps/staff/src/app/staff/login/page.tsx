@@ -303,7 +303,7 @@ export default function StaffLoginPage() {
             {/* Secure Platform Footer Note */}
             <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-center gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500 font-medium">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-500" />
-              <span>{isAr ? 'نظام تشفير موحد لكادر منصة مستر عمر مكاوي' : 'Encrypted Administrative Session'}</span>
+              <span>{isAr ? 'نظام تشفير موحد لإدارة منصة مستر عمر مكاوي' : 'Encrypted Administrative Session'}</span>
             </div>
           </div>
         </div>

@@ -84,3 +84,8 @@ export interface RefreshTokenPayload {
   refresh_token: string;
   device_uuid: string;
 }
+
+export interface ChangePasswordPayload {
+  current_password: string;
+  new_password: string;
+}

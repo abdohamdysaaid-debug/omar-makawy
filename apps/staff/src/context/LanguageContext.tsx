@@ -44,7 +44,7 @@ export const translations: Translations = {
   'nav.settings': { ar: 'إعدادات المنصة', en: 'Settings' },
 
   // Brand & Header
-  'brand.title': { ar: 'بوابة الكادر التعليمي', en: 'Staff Portal' },
+  'brand.title': { ar: 'لوحة تحكم الإدارة', en: 'Admin Portal' },
   'brand.subtitle': { ar: 'منصة مستر عمر مكاوي للغة الإنجليزية', en: 'Mr. Omar Meckawy English Platform' },
   'brand.teacher_name': { ar: 'مستر عمر مكاوي', en: 'Mr. Omar Meckawy' },
 
@@ -67,9 +67,20 @@ export const translations: Translations = {
   'auth.2fa_code': { ar: 'رمز التحقق (TOTP)', en: 'Verification Code (TOTP)' },
   'auth.2fa_verify': { ar: 'تأكيد الرمز والمتابعة', en: 'Verify & Continue' },
 
+  // Profile & Security
+  'nav.profile': { ar: 'الملف الشخصي', en: 'Profile' },
+  'profile.title': { ar: 'الملف الشخصي والأمان', en: 'Profile & Security' },
+  'profile.change_password': { ar: 'تغيير كلمة المرور', en: 'Change Password' },
+  'profile.current_password': { ar: 'كلمة المرور الحالية', en: 'Current Password' },
+  'profile.new_password': { ar: 'كلمة المرور الجديدة', en: 'New Password' },
+  'profile.confirm_password': { ar: 'تأكيد كلمة المرور الجديدة', en: 'Confirm New Password' },
+  'profile.save_password': { ar: 'حفظ كلمة المرور الجديدة', en: 'Save New Password' },
+  'profile.password_changed_success': { ar: 'تم تحديث كلمة المرور بنجاح', en: 'Password updated successfully' },
+  'profile.two_factor_title': { ar: 'المصادقة الثنائية (2FA)', en: 'Two-Factor Authentication' },
+
   // Dashboard Landing
   'dashboard.title': { ar: 'لوحة القيادة الرئيسية', en: 'Staff Workspace' },
-  'dashboard.welcome': { ar: 'مرحباً بك في بوابة الكادر التعليمي', en: 'Welcome to the Staff Portal' },
+  'dashboard.welcome': { ar: 'مرحباً بك في لوحة تحكم المنصة', en: 'Welcome to Admin Dashboard' },
   'dashboard.role_banner': { ar: 'نوع الحساب والصلاحيات:', en: 'Account Role & Scope:' },
   'dashboard.assigned_years': { ar: 'المراحل الدراسية المصرح بها:', en: 'Assigned Academic Years:' },
   'dashboard.granted_permissions': { ar: 'الصلاحيات الإدارية الممنوحة:', en: 'Granted Permissions:' },
@@ -78,7 +89,7 @@ export const translations: Translations = {
 
   // Common UI
   'common.loading': { ar: 'جاري التحميل...', en: 'Loading...' },
-  'common.verifying_auth': { ar: 'جاري التحقق من هوية الكادر التعليمي...', en: 'Verifying staff credentials...' },
+  'common.verifying_auth': { ar: 'جاري التحقق من بيانات الدخول...', en: 'Verifying credentials...' },
   'common.redirecting': { ar: 'جاري التحويل إلى صفحة الدخول...', en: 'Redirecting to login...' },
   'common.cancel': { ar: 'إلغاء', en: 'Cancel' },
   'common.back': { ar: 'رجوع', en: 'Back' },

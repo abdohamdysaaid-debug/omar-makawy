@@ -34,6 +34,7 @@ export interface StaffAuthContextType {
   assignedAcademicYears: string[];
   login: (phone: string, password: string) => Promise<LoginResponse>;
   verifyTwoFactor: (challengeToken: string, code: string) => Promise<AuthSuccessResponse>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -138,7 +139,7 @@ export function StaffAuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setAuthState('UNAUTHENTICATED');
         const error: ApiError = {
-          message: 'هذا الحساب غير مصرح له بالدخول إلى بوابة الكادر التعليمي.',
+          message: 'هذا الحساب غير مصرح له بالدخول إلى لوحة تحكم الإدارة.',
           error_code: 'INSUFFICIENT_PERMISSIONS',
           statusCode: 403,
         };
@@ -180,7 +181,7 @@ export function StaffAuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setAuthState('UNAUTHENTICATED');
         const error: ApiError = {
-          message: 'هذا الحساب غير مصرح له بالدخول إلى بوابة الكادر التعليمي.',
+          message: 'هذا الحساب غير مصرح له بالدخول إلى لوحة تحكم الإدارة.',
           error_code: 'INSUFFICIENT_PERMISSIONS',
           statusCode: 403,
         };
@@ -204,6 +205,13 @@ export function StaffAuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       throw err;
     }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    return staffAuthApi.changePassword({
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
   };
 
   const logout = useCallback(async (): Promise<void> => {
@@ -253,6 +261,7 @@ export function StaffAuthProvider({ children }: { children: ReactNode }) {
         assignedAcademicYears,
         login,
         verifyTwoFactor,
+        changePassword,
         logout,
         refreshProfile,
       }}
