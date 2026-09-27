@@ -38,7 +38,7 @@ export const translations: Translations = {
   'nav.notifications': { ar: 'الإشعارات والتنبيهات', en: 'Notifications' },
   'nav.analytics': { ar: 'التقارير والإحصائيات', en: 'Analytics' },
   'nav.administration': { ar: 'الإدارة والنظام', en: 'Administration' },
-  'nav.supervisors': { ar: 'المشرفين الأكاديميين', en: 'Supervisors' },
+  'nav.supervisors': { ar: 'المشرفين والإدارة', en: 'Admins & Supervisors' },
   'nav.audit_logs': { ar: 'سجل العمليات والتدقيق', en: 'Audit Logs' },
   'nav.security_events': { ar: 'أحداث الأمان والتحذيرات', en: 'Security Events' },
   'nav.settings': { ar: 'إعدادات المنصة', en: 'Settings' },

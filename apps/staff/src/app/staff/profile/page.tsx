@@ -219,7 +219,7 @@ export default function StaffProfilePage() {
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-neutral-900 dark:text-neutral-50">
-                  {isAr ? 'تغيير كلمة مرور الإدارة' : 'Change Administrator Password'}
+                  {isAr ? 'تغيير كلمة المرور' : 'Change Password'}
                 </h2>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                   {isAr

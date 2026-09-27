@@ -6,3 +6,4 @@ export * from './lectures';
 export * from './videos';
 export * from './attachments';
 export * from './books';
+export * from './supervisors';

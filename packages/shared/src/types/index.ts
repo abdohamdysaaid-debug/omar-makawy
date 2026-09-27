@@ -9,3 +9,4 @@ export * from './video';
 export * from './lectureChapter';
 export * from './attachment';
 export * from './book';
+export * from './supervisor';
