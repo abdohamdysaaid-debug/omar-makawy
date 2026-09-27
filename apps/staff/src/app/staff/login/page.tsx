@@ -105,9 +105,9 @@ export default function StaffLoginPage() {
   return (
     <main
       dir={dir}
-      className="relative min-h-screen w-full bg-[#0a1813] flex flex-col lg:flex-row items-center justify-center lg:justify-end overflow-x-hidden font-cairo select-none"
+      className="relative min-h-screen w-full bg-[#0a1813] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 overflow-x-hidden font-cairo select-none"
     >
-      {/* Background Image Layer (Desktop: Full-screen background | Mobile: Top section) */}
+      {/* Background Image Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <Image
           src="/images/mr-omar-study-bg.jpg"
@@ -115,19 +115,16 @@ export default function StaffLoginPage() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[18%_center] sm:object-[28%_center] lg:object-[32%_center] xl:object-center brightness-[0.98] lg:brightness-100"
+          className="object-cover object-center brightness-[0.88] sm:brightness-[0.92] lg:brightness-95 contrast-[1.05]"
         />
 
-        {/* Ambient Overlay for contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 lg:bg-gradient-to-r lg:from-black/10 lg:via-transparent lg:to-black/20" />
+        {/* Ambient Dark & Emerald Glass Overlay for optimal contrast and centered card focus */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 backdrop-blur-[2px]" />
       </div>
 
-      {/* Mobile Top Header Spacer / Hero (Mobile only) */}
-      <div className="lg:hidden relative z-10 w-full h-[36vh] sm:h-[42vh] flex-shrink-0" />
-
-      {/* Login Card Section (Desktop: Floating Right Card | Mobile: Rounded Bottom Sheet) */}
-      <section className="relative z-10 w-full lg:w-auto flex justify-center lg:justify-end items-center px-3 sm:px-6 lg:px-12 xl:px-20 py-4 sm:py-8 lg:py-12">
-        <div className="relative w-full max-w-[480px] rounded-t-[2.5rem] sm:rounded-[2.5rem] bg-white/95 dark:bg-[#121c18]/95 backdrop-blur-md border border-white/80 dark:border-emerald-950/60 shadow-2xl shadow-black/30 p-6 sm:p-9 lg:p-10 transition-all overflow-hidden">
+      {/* Centered Login Card Section */}
+      <section className="relative z-10 w-full flex justify-center items-center my-auto">
+        <div className="relative w-full max-w-[450px] sm:max-w-[480px] rounded-3xl sm:rounded-[2.5rem] bg-white/95 dark:bg-[#121c18]/95 backdrop-blur-xl border border-white/80 dark:border-emerald-950/60 shadow-2xl shadow-black/50 p-6 sm:p-8 lg:p-10 transition-all overflow-hidden">
           {/* Subtle Organic Mint Watermark in Card Corner */}
           <div
             aria-hidden="true"
