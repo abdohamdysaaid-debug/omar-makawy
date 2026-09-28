@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileBottomNav from './MobileBottomNav';
@@ -10,18 +10,44 @@ interface StudentLayoutProps {
 }
 
 export default function StudentLayout({ children }: StudentLayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileOpen]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 flex flex-col font-cairo transition-colors duration-300">
-      {/* Sidebar Navigation */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 flex flex-col font-cairo transition-colors duration-300 overflow-x-hidden">
+      {/* Sidebar Component */}
+      <Sidebar
+        isCollapsed={isCollapsed}
+        isMobileOpen={isMobileOpen}
+        onCloseMobile={() => setIsMobileOpen(false)}
+      />
 
-      {/* Main Content Area offset by sidebar width on desktop (lg:ms-64) */}
-      <div className="flex-1 lg:ms-64 flex flex-col min-h-screen pb-20 lg:pb-8">
-        <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+      {/* Main App Layout Container offset by sidebar width on desktop */}
+      <div
+        className={`flex-1 flex flex-col min-h-screen pb-20 lg:pb-8 transition-all duration-300 ease-in-out ${
+          isCollapsed ? 'lg:ms-20' : 'lg:ms-64'
+        }`}
+      >
+        <Header
+          isCollapsed={isCollapsed}
+          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          onToggleMobile={() => setIsMobileOpen(!isMobileOpen)}
+        />
+
+        {/* Centered Dashboard Content Area */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto transition-all duration-300">
           {children}
         </main>
       </div>

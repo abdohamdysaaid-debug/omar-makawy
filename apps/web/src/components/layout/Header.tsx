@@ -2,22 +2,37 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Menu, Search, Bell, User, LogOut, ChevronDown } from 'lucide-react';
+import {
+  Menu,
+  Search,
+  Bell,
+  User,
+  LogOut,
+  ChevronDown,
+  PanelRightClose,
+  PanelRightOpen
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import { academicYears } from '@/data/mock';
 
 interface HeaderProps {
-  onToggleSidebar?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
+  onToggleMobile?: () => void;
   unreadNotificationsCount?: number;
 }
 
-export default function Header({ onToggleSidebar, unreadNotificationsCount = 0 }: HeaderProps) {
+export default function Header({
+  isCollapsed = false,
+  onToggleCollapse,
+  onToggleMobile,
+  unreadNotificationsCount = 0,
+}: HeaderProps) {
   const { isAuthenticated, student, logout } = useAuth();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Find academic year title dynamically from student's assigned academic year id
   const academicYearObj = student
     ? academicYears.find((ay) => ay.id === student.academicYearId)
     : null;
@@ -33,14 +48,30 @@ export default function Header({ onToggleSidebar, unreadNotificationsCount = 0 }
   return (
     <header className="sticky top-0 z-30 h-20 bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800/80 transition-colors">
       <div className="h-full px-4 sm:px-6 flex items-center justify-between gap-4">
-        {/* Left Side: Toggle button & Search bar */}
+        {/* Left Side: Menu Toggle Buttons & Search bar */}
         <div className="flex items-center gap-3 flex-1 max-w-xl">
+          {/* Mobile Drawer Toggle */}
           <button
-            onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label="القائمة"
+            onClick={onToggleMobile}
+            className="lg:hidden p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="قائمة التصفح"
+            title="القائمة"
           >
             <Menu className="w-6 h-6" />
+          </button>
+
+          {/* Desktop Sidebar Collapse Toggle */}
+          <button
+            onClick={onToggleCollapse}
+            className="hidden lg:flex p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800/80 hover:text-emerald-600 transition-colors"
+            aria-label="طي/فتح القائمة الجانبية"
+            title={isCollapsed ? 'توسيع القائمة' : 'طي القائمة'}
+          >
+            {isCollapsed ? (
+              <PanelRightOpen className="w-5 h-5" />
+            ) : (
+              <PanelRightClose className="w-5 h-5" />
+            )}
           </button>
 
           {/* Search Input Box */}
