@@ -97,6 +97,9 @@ export interface Student {
   parentPhone: string;
   email: string;
   academicYearId: number;
+  academicYearName?: string;
+  walletBalance?: number;
+  avatarUrl?: string;
 }
 
 export interface Notification {

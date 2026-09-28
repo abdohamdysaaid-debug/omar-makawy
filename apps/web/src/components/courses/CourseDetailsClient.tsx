@@ -1,129 +1,311 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { courses, lectures, academicYears } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
-import { Clock, PlayCircle, CheckCircle2 } from 'lucide-react';
-import LectureCard from '@/components/courses/LectureCard';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import MobileBottomNav from '@/components/layout/MobileBottomNav';
+import {
+  Play,
+  Clock,
+  CheckCircle2,
+  Lock,
+  BookOpen,
+  FileText,
+  HelpCircle,
+  ChevronRight
+} from 'lucide-react';
+import StudentLayout from '@/components/layout/StudentLayout';
+import EmptyState from '@/components/ui/EmptyState';
+import { Course, Lecture } from '@/types';
+import { apiClient } from '@/lib/api';
 
 export default function CourseDetailsClient({ courseId }: { courseId: number }) {
-  const { isAuthenticated, openAuthGate } = useAuth();
-  
-  const course = courses.find((c) => c.id === courseId);
-  
-  if (!course) {
+  const { student, isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState<'lectures' | 'exams' | 'files'>('lectures');
+  const [course, setCourse] = useState<Course | null>(null);
+  const [courseLectures, setCourseLectures] = useState<Lecture[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Dynamic progress telemetry
+  const [completedCount, setCompletedCount] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCourseData() {
+      setLoading(true);
+      try {
+        // Try backend API first
+        const apiCourse = await apiClient.get<Course>(`/courses/${courseId}`).catch(() => null);
+        const apiLectures = await apiClient.get<Lecture[]>(`/courses/${courseId}/lectures`).catch(() => null);
+
+        if (isMounted) {
+          if (apiCourse) {
+            setCourse(apiCourse);
+          } else {
+            // Fallback to local course object if found
+            const localCourse = courses.find((c) => c.id === Number(courseId));
+            setCourse(localCourse || null);
+          }
+
+          if (Array.isArray(apiLectures)) {
+            setCourseLectures(apiLectures);
+          } else {
+            const localLectures = lectures.filter((l) => l.courseId === Number(courseId));
+            setCourseLectures(localLectures);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          const localCourse = courses.find((c) => c.id === Number(courseId));
+          setCourse(localCourse || null);
+          const localLectures = lectures.filter((l) => l.courseId === Number(courseId));
+          setCourseLectures(localLectures);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    loadCourseData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseId]);
+
+  useEffect(() => {
+    // Calculate completed count from lectures array
+    const completed = courseLectures.filter((l) => l.status === 'completed').length;
+    setCompletedCount(completed);
+  }, [courseLectures]);
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark pt-24">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">الكورس غير موجود</h1>
-          <p className="text-gray-500">عذراً، لم يتم العثور على هذا الكورس</p>
+      <StudentLayout>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-40 rounded-3xl bg-gray-200 dark:bg-gray-800" />
+          <div className="h-64 rounded-3xl bg-gray-200 dark:bg-gray-800" />
         </div>
-      </div>
+      </StudentLayout>
     );
   }
 
-  const courseLectures = lectures.filter((l) => l.courseId === courseId);
-  const academicYear = academicYears.find((y) => y.id === course.academicYearId);
-  
-  const handleSubscribe = () => {
-    if (!isAuthenticated) {
-      openAuthGate(`/courses/${course.id}`);
-    } else {
-      alert('تم الاشتراك بنجاح! (نسخة تجريبية)');
-    }
-  };
+  if (!course) {
+    return (
+      <StudentLayout>
+        <div className="py-12">
+          <EmptyState
+            icon="BookOpen"
+            title="الكورس غير موجود"
+            description="عذراً، لم يتم العثور على هذا الكورس أو تم نقله."
+            actionText="الرجوع للكورسات"
+            actionUrl="/courses"
+          />
+        </div>
+      </StudentLayout>
+    );
+  }
+
+  const academicYearObj = academicYears.find((y) => y.id === course.academicYearId);
+  const totalLectures = courseLectures.length || course.lectureCount || 0;
+  const progressPercentage = totalLectures > 0 ? Math.round((completedCount / totalLectures) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark pb-24">
-      <Navbar />
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-brand-500/10 to-transparent dark:from-brand-500/5 pt-24 pb-12">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-full md:w-2/3">
-              <span className="inline-block bg-brand-500/10 text-brand-500 px-3 py-1 rounded-full text-xs font-bold mb-4">
-                {academicYear?.title || 'عام'}
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-cairo font-bold text-gray-900 dark:text-white mb-4">
-                {course.title}
-              </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                {course.teacher}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                {course.description}
-              </p>
+    <StudentLayout>
+      <div className="space-y-6 animate-fade-in">
+        {/* Breadcrumb Header */}
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <Link href="/courses" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1">
+            <ChevronRight className="w-4 h-4" />
+            المحاضرات
+          </Link>
+          <span>/</span>
+          <span className="text-gray-900 dark:text-white font-bold">{course.title}</span>
+        </div>
 
-              <div className="flex flex-wrap gap-4 sm:gap-8 mb-8">
-                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <PlayCircle className="w-5 h-5 text-brand-500" />
-                  <span className="font-medium">{course.lectureCount} محاضرة</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <Clock className="w-5 h-5 text-brand-500" />
-                  <span className="font-medium">{course.duration}</span>
-                </div>
-              </div>
+        {/* Course Header Overview Card (Matching Reference Image) */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50 shadow-xs">
+            <BookOpen className="w-10 h-10" />
+          </div>
+
+          <div className="flex-1 space-y-3 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+                {academicYearObj?.title || 'عام'}
+              </span>
+              {progressPercentage === 100 && (
+                <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  مكتمل
+                </span>
+              )}
             </div>
 
-            <div className="w-full md:w-1/3 bg-white dark:bg-surface-dark p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 md:sticky md:top-24">
-              <div className="text-3xl font-bold text-brand-500 mb-6 text-center">
-                {course.price} <span className="text-lg font-normal">جنيه</span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
+              {course.title}
+            </h1>
+
+            {course.description && (
+              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                {course.description}
+              </p>
+            )}
+
+            {/* Dynamic Progress Telemetry */}
+            <div className="space-y-1.5 pt-2 max-w-md">
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-gray-500 dark:text-gray-400">
+                  {completedCount} من {totalLectures} محاضرات مكتملة
+                </span>
+                <span className="text-emerald-600 dark:text-emerald-400">{progressPercentage}%</span>
               </div>
-              
-              <button
-                onClick={handleSubscribe}
-                className="w-full bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-xl font-bold text-lg transition-colors mb-4"
-              >
-                اشترك الآن
-              </button>
-              
-              <div className="space-y-3">
-                {course.features?.map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <CheckCircle2 className="w-5 h-5 text-brand-500 shrink-0" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
+              <div className="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                <div
+                  className="h-full bg-emerald-600 dark:bg-emerald-500 rounded-full transition-all duration-500"
+                  style={{ width: `${progressPercentage}%` }}
+                />
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 max-w-5xl mt-8">
-        {isAuthenticated && (
-          <div className="bg-white dark:bg-surface-dark rounded-xl p-5 mb-8 shadow-sm border border-gray-100 dark:border-gray-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-gray-900 dark:text-white">نسبة الإنجاز</span>
-              <span className="font-bold text-brand-500">35%</span>
-            </div>
-            <div className="h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: '35%' }} />
-            </div>
+        {/* Tab Navigation (المحاضرات | الاختبارات | ملفات إضافية) */}
+        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-2">
+          <button
+            onClick={() => setActiveTab('lectures')}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'lectures'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+          >
+            المحاضرات ({courseLectures.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('exams')}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'exams'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+          >
+            الاختبارات
+          </button>
+          <button
+            onClick={() => setActiveTab('files')}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'files'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+          >
+            ملفات إضافية
+          </button>
+        </div>
+
+        {/* Tab Contents */}
+        {activeTab === 'lectures' && (
+          <div className="space-y-3">
+            {courseLectures.length > 0 ? (
+              courseLectures.map((lecture, index) => {
+                const isCompleted = lecture.status === 'completed';
+                const isLocked = lecture.isLocked;
+
+                return (
+                  <div
+                    key={lecture.id}
+                    className={`p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#131b2e] border transition-all flex items-center justify-between gap-4 ${
+                      isCompleted
+                        ? 'border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/10'
+                        : 'border-gray-100 dark:border-gray-800/80 hover:border-emerald-500/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      {/* Index Circle */}
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
+                          isCompleted
+                            ? 'bg-emerald-600 text-white'
+                            : isLocked
+                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-400'
+                            : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-base text-gray-900 dark:text-white truncate">
+                          {lecture.title}
+                        </h3>
+                        {lecture.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+                            {lecture.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      {lecture.duration && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 hidden sm:flex">
+                          <Clock className="w-3.5 h-3.5" />
+                          {lecture.duration}
+                        </span>
+                      )}
+
+                      {isLocked ? (
+                        <div className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400">
+                          <Lock className="w-5 h-5" />
+                        </div>
+                      ) : (
+                        <Link
+                          href={`/courses/${course.id}/lectures/${lecture.id}`}
+                          className={`p-2.5 rounded-xl font-bold transition-all flex items-center gap-2 ${
+                            isCompleted
+                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                              : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <CheckCircle2 className="w-5 h-5" />
+                          ) : (
+                            <Play className="w-5 h-5 fill-current" />
+                          )}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <EmptyState
+                icon="PlaySquare"
+                title="لا توجد محاضرات متاحة حالياً"
+                description="لم تقم الإدارة بنشر محاضرات في هذا الكورس بعد."
+              />
+            )}
           </div>
         )}
 
-        <h2 className="text-2xl font-cairo font-bold text-gray-900 dark:text-white mb-6">
-          محتويات الكورس
-        </h2>
-        
-        <div className="space-y-3">
-          {courseLectures.map((lecture, index) => (
-            <LectureCard key={lecture.id} lecture={lecture} index={index} />
-          ))}
-          {courseLectures.length === 0 && (
-            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-              لا توجد محاضرات متاحة بعد
-            </div>
-          )}
-        </div>
+        {activeTab === 'exams' && (
+          <EmptyState
+            icon="HelpCircle"
+            title="لا توجد اختبارات متاحة حالياً"
+            description="سيتم إضافة الاختبارات التقييمية الخاصة بهذا الكورس فور اعتمادها من المعلم."
+          />
+        )}
+
+        {activeTab === 'files' && (
+          <EmptyState
+            icon="FileText"
+            title="لا توجد ملفات إضافية حالياً"
+            description="عند إرفاق مذكرات ملخصة أو ملفات PDF جديدة ستظهر في هذه القائمة."
+          />
+        )}
       </div>
-      <Footer />
-      <MobileBottomNav />
-    </div>
+    </StudentLayout>
   );
 }

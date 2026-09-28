@@ -13,42 +13,57 @@ interface BookCardProps {
 
 export default function BookCard({ book }: BookCardProps) {
   const { addItem } = useCart();
-  const academicYear = academicYears.find(y => y.id === book.academicYearId);
+  const academicYear = academicYears.find((y) => y.id === book.academicYearId);
 
   return (
-    <div className="card flex flex-col group h-full">
-      <Link href={`/bookstore/${book.id}`} className="block relative aspect-[3/4] bg-gradient-to-br from-brand-500/20 to-brand-500/5 rounded-t-xl overflow-hidden flex items-center justify-center p-4">
-        <BookOpen className="w-16 h-16 text-brand-500 opacity-50 group-hover:scale-110 transition-transform duration-300" />
-        <div className="absolute top-3 end-3 flex flex-col gap-2">
+    <div className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden">
+      <Link
+        href={`/bookstore/${book.id}`}
+        className="block relative aspect-[4/3] bg-gradient-to-br from-emerald-800 to-gray-900 overflow-hidden flex items-center justify-center p-4"
+      >
+        <BookOpen className="w-14 h-14 text-emerald-400 opacity-60 group-hover:scale-110 transition-transform duration-300" />
+        <div className="absolute top-3 start-3 flex items-center gap-1.5 flex-wrap">
           {academicYear && (
-            <span className="bg-white/90 dark:bg-surface-dark/90 text-brand-500 text-xs px-2 py-1 rounded font-bold shadow-sm">
+            <span className="bg-black/70 backdrop-blur-md text-emerald-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20">
               {academicYear.title}
             </span>
           )}
-          <span className="bg-warm-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded shadow-sm text-center">
+          <span className="bg-emerald-950/80 backdrop-blur-md text-emerald-200 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
             {book.category}
           </span>
         </div>
       </Link>
-      <div className="p-4 flex flex-col flex-1">
+
+      <div className="p-4 flex flex-col flex-1 space-y-3">
         <Link href={`/bookstore/${book.id}`}>
-          <h3 className="font-bold text-lg mb-1 group-hover:text-brand-500 transition-colors line-clamp-1">{book.title}</h3>
+          <h3 className="font-bold text-base text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
+            {book.title}
+          </h3>
         </Link>
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 flex-1">
-          {book.description}
-        </p>
-        <div className="flex items-center justify-between mt-auto mb-4">
-          <span className="font-bold text-xl text-brand-500">{book.price} جنيه</span>
+
+        {book.description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed flex-1">
+            {book.description}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+          <span className="font-extrabold text-base text-gray-900 dark:text-white">
+            <span className="text-emerald-600 dark:text-emerald-400">{book.price}</span>{' '}
+            <span className="text-xs text-gray-500 font-normal">جنيه</span>
+          </span>
+
           {book.stock > 0 ? (
-            <span className="text-sm text-brand-400">متوفر</span>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">متوفر</span>
           ) : (
-            <span className="text-sm text-red-500">نفد المخزون</span>
+            <span className="text-xs font-bold text-red-500">نفد المخزون</span>
           )}
         </div>
+
         <button
           onClick={() => addItem(book, 1)}
           disabled={book.stock === 0}
-          className="w-full py-2 px-4 rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-brand-500 hover:bg-brand-400 text-white"
+          className="w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
         >
           أضف إلى السلة
         </button>

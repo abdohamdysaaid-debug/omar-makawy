@@ -2,19 +2,30 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import MobileBottomNav from '@/components/layout/MobileBottomNav';
+import StudentLayout from '@/components/layout/StudentLayout';
 import { useAuth } from '@/context/AuthContext';
 import { academicYears } from '@/data/mock';
-import { User, LogOut, Edit, BookOpen, GraduationCap, Mail, CreditCard, Laptop, ShoppingBag } from 'lucide-react';
+import {
+  User,
+  LogOut,
+  GraduationCap,
+  Mail,
+  Phone,
+  MessageSquare,
+  ShieldCheck,
+  CreditCard,
+  Laptop
+} from 'lucide-react';
+import Link from 'next/link';
 
 export default function ProfileClient() {
   const { student, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mounted && !isAuthenticated) {
@@ -24,13 +35,16 @@ export default function ProfileClient() {
 
   if (!mounted || !isAuthenticated || !student) {
     return (
-      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center font-cairo">
-        <div className="animate-spin w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full" />
-      </div>
+      <StudentLayout>
+        <div className="h-64 flex items-center justify-center">
+          <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+        </div>
+      </StudentLayout>
     );
   }
 
-  const academicYear = academicYears.find(y => y.id === student.academicYearId);
+  const academicYear = academicYears.find((y) => y.id === student.academicYearId);
+  const academicYearName = student.academicYearName || academicYear?.title || 'طالب';
 
   const handleLogout = () => {
     logout();
@@ -38,140 +52,121 @@ export default function ProfileClient() {
   };
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark font-cairo pb-16 md:pb-0">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 py-8 max-w-4xl pt-24">
-        {/* Header */}
-        <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-center gap-6 mb-8 text-center md:text-start">
-          <div className="w-24 h-24 rounded-full bg-brand-500/10 dark:bg-brand-900/30 flex items-center justify-center text-brand-500 text-3xl font-bold">
+    <StudentLayout>
+      <div className="space-y-6 animate-fade-in max-w-4xl">
+        {/* Header Profile Card */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs flex flex-col md:flex-row items-center gap-6 text-center md:text-start">
+          <div className="w-20 h-20 rounded-full bg-emerald-600 text-white flex items-center justify-center text-3xl font-extrabold shadow-md shadow-emerald-600/20 shrink-0">
             {student.fullName.charAt(0)}
           </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{student.fullName}</h1>
-            <div className="flex flex-col md:flex-row gap-2 md:gap-4 text-gray-600 dark:text-gray-400 text-sm">
-              <span className="flex items-center justify-center md:justify-start gap-1"><GraduationCap className="w-4 h-4"/> {academicYear?.title}</span>
-              <span className="flex items-center justify-center md:justify-start gap-1"><Mail className="w-4 h-4"/> {student.email}</span>
-            </div>
-          </div>
-        </div>
 
-        <div className="space-y-6">
-          {/* Personal Info */}
-          <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <User className="text-brand-500 w-5 h-5"/> البيانات الشخصية
-              </h2>
-              <button className="text-brand-500 hover:bg-brand-500/10 p-2 rounded-lg transition-colors" title="تعديل">
-                <Edit className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">الاسم</p>
-                <p className="font-bold text-gray-900 dark:text-white">{student.fullName}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">رقم الهاتف</p>
-                <p className="font-bold text-gray-900 dark:text-white" dir="ltr">{student.phone}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">واتساب</p>
-                <p className="font-bold text-gray-900 dark:text-white" dir="ltr">{student.whatsapp}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">البريد الإلكتروني</p>
-                <p className="font-bold text-gray-900 dark:text-white">{student.email}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">رقم ولي الأمر</p>
-                <p className="font-bold text-gray-900 dark:text-white" dir="ltr">{student.parentPhone}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">السنة الدراسية</p>
-                <p className="font-bold text-gray-900 dark:text-white">{academicYear?.title}</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Enrolled Courses */}
-          <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
-              <BookOpen className="text-brand-500 w-5 h-5"/> الكورسات المشتركة
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2].map((i) => (
-                <div key={i} className="border border-gray-100 dark:border-gray-800 rounded-xl p-4">
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-2">كورس اللغة الإنجليزية - ثالثة ثانوي (الوحدة {i})</h3>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-500">نسبة الإنجاز</span>
-                    <span className="font-bold text-brand-500">{i * 35}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-brand-500 h-2 rounded-full transition-all" style={{ width: `${i * 35}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Orders */}
-            <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
-                <ShoppingBag className="text-brand-500 w-5 h-5"/> الطلبات
-              </h2>
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                لا توجد طلبات حالياً
-              </div>
-            </section>
-
-            {/* Wallet */}
-            <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
-                <CreditCard className="text-brand-500 w-5 h-5"/> المحفظة
-              </h2>
-              <div className="bg-brand-500 text-white rounded-xl p-6 text-center">
-                <p className="text-white/80 mb-1">الرصيد المتاح</p>
-                <p className="text-4xl font-bold mb-4">0 <span className="text-xl font-normal">جنيه</span></p>
-                <button className="bg-white text-brand-500 px-6 py-2 rounded-full font-bold w-full hover:bg-gray-50 transition-colors">
-                  شحن المحفظة
-                </button>
-              </div>
-            </section>
-          </div>
-
-          {/* Devices */}
-          <section className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-6">
-              <Laptop className="text-brand-500 w-5 h-5"/> الأجهزة
-            </h2>
-            <div className="border border-brand-500/20 bg-brand-500/5 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white">جهازك الحالي</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Windows - Chrome</p>
-              </div>
-              <span className="text-brand-500 bg-brand-500/10 px-3 py-1 rounded-full text-sm font-bold">
-                جهاز واحد مسجل من 2
+          <div className="flex-1 space-y-1">
+            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">
+              {student.fullName}
+            </h1>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-gray-500 dark:text-gray-400 pt-1">
+              <span className="flex items-center gap-1">
+                <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                {academicYearName}
+              </span>
+              <span className="flex items-center gap-1">
+                <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                {student.email}
               </span>
             </div>
-          </section>
-
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors mt-8"
-          >
-            <LogOut className="w-5 h-5" />
-            تسجيل الخروج
-          </button>
+          </div>
         </div>
-      </main>
-      
-      <Footer />
-      <MobileBottomNav />
-    </div>
+
+        {/* Personal Details Section */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <User className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            البيانات الشخصية
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">الاسم بالكامل</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">{student.fullName}</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">رقم الهاتف</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white" dir="ltr">
+                {student.phone}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">رقم الواتساب</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white" dir="ltr">
+                {student.whatsapp || student.phone}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">رقم ولي الأمر</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white" dir="ltr">
+                {student.parentPhone}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">البريد الإلكتروني</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">{student.email}</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">السنة الدراسية المسجلة</span>
+              <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                {academicYearName}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Shortcuts */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Link
+            href="/wallet"
+            className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:border-emerald-500/40 transition-all flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="font-bold text-sm text-gray-900 dark:text-white block">المحفظة الإلكترونية</span>
+                <span className="text-xs text-gray-400">الرصيد: {student.walletBalance ?? 0} ج.م</span>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/progress"
+            className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:border-emerald-500/40 transition-all flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="font-bold text-sm text-gray-900 dark:text-white block">تقرير التقدم الدراسي</span>
+                <span className="text-xs text-gray-400">عرض الساعات المكتملة</span>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Logout Action */}
+        <button
+          onClick={handleLogout}
+          className="w-full py-4 rounded-2xl font-bold text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 transition-colors flex items-center justify-center gap-2 border border-red-200/50 dark:border-red-900/30"
+        >
+          <LogOut className="w-4 h-4" />
+          تسجيل الخروج من الحساب
+        </button>
+      </div>
+    </StudentLayout>
   );
 }

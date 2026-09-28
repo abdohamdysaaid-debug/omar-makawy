@@ -1,61 +1,81 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAuth } from '@/context/AuthContext';
-import { mockNotifications } from '@/data/mock';
-import { Bell, BookOpen, FileCheck, Info, CheckCircle, CheckCircle2 } from 'lucide-react';
+import { Bell, BookOpen, FileCheck, Info, CheckCircle2 } from 'lucide-react';
+import { Notification } from '@/types';
+import { apiClient } from '@/lib/api';
 
 export default function NotificationsClient() {
-  const { isAuthenticated } = useAuth();
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
-
-  useEffect(() => { setMounted(true); }, []);
+  const { student, isAuthenticated } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (mounted && !isAuthenticated) {
-      router.push('/login?returnUrl=/notifications');
+    let isMounted = true;
+
+    async function fetchNotifications() {
+      setLoading(true);
+      try {
+        const res = await apiClient.get<Notification[]>('/notifications/my-notifications').catch(() => []);
+        if (isMounted) {
+          if (Array.isArray(res)) {
+            setNotifications(res);
+          } else {
+            setNotifications([]);
+          }
+        }
+      } catch {
+        if (isMounted) setNotifications([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     }
-  }, [mounted, isAuthenticated, router]);
 
-  if (!mounted || !isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center font-cairo">
-        <div className="animate-spin w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
+    fetchNotifications();
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const markAllAsRead = async () => {
+    setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+    await apiClient.post('/notifications/mark-read', {}).catch(() => null);
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'course': return <BookOpen className="w-6 h-6 text-brand-500" />;
-      case 'exam': return <FileCheck className="w-6 h-6 text-orange-500" />;
-      case 'info': return <Info className="w-6 h-6 text-blue-500" />;
-      case 'success': return <CheckCircle className="w-6 h-6 text-green-500" />;
-      default: return <Bell className="w-6 h-6 text-gray-500" />;
+      case 'course':
+        return <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
+      case 'exam':
+        return <FileCheck className="w-5 h-5 text-amber-500" />;
+      case 'info':
+        return <Info className="w-5 h-5 text-emerald-500" />;
+      default:
+        return <Bell className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark font-cairo flex flex-col">
-      <Navbar />
-      
-      <main className="container mx-auto px-4 py-8 max-w-3xl flex-1 pt-24">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">الإشعارات</h1>
-          {notifications.some(n => !n.isRead) && (
+    <StudentLayout>
+      <div className="space-y-6 animate-fade-in max-w-3xl">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+              الإشعارات والتنبيهات
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              تابع التحديثات والتنبيهات الصادرة من المعلم والإدارة
+            </p>
+          </div>
+
+          {notifications.some((n) => !n.isRead) && (
             <button
               onClick={markAllAsRead}
-              className="flex items-center gap-2 text-sm font-bold text-brand-500 hover:text-brand-400 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
             >
               <CheckCircle2 className="w-4 h-4" />
               تحديد الكل كمقروء
@@ -63,47 +83,53 @@ export default function NotificationsClient() {
           )}
         </div>
 
-        {notifications.length === 0 ? (
-          <EmptyState
-            icon="Bell"
-            title="لا توجد إشعارات"
-            description="أنت على اطلاع بكل جديد"
-          />
-        ) : (
-          <div className="space-y-4">
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            ))}
+          </div>
+        ) : notifications.length > 0 ? (
+          <div className="space-y-3">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`relative bg-white dark:bg-surface-dark p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-start gap-4 transition-colors ${
-                  !notification.isRead ? 'border-s-4 border-s-brand-500 bg-brand-50/30 dark:bg-brand-900/10' : ''
+                className={`p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#131b2e] border transition-all flex items-start gap-4 ${
+                  !notification.isRead
+                    ? 'border-emerald-500/40 bg-emerald-50/10 dark:bg-emerald-950/20 shadow-xs'
+                    : 'border-gray-100 dark:border-gray-800/80'
                 }`}
               >
-                <div className="shrink-0 p-3 bg-gray-50 dark:bg-gray-800 rounded-full">
+                <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 shrink-0">
                   {getIcon(notification.type)}
                 </div>
-                
-                <div className="flex-1">
-                  <h3 className={`text-lg mb-1 ${!notification.isRead ? 'font-bold text-gray-900 dark:text-white' : 'font-semibold text-gray-700 dark:text-gray-300'}`}>
+
+                <div className="space-y-1 flex-1">
+                  <h3
+                    className={`text-sm ${
+                      !notification.isRead
+                        ? 'font-extrabold text-gray-900 dark:text-white'
+                        : 'font-semibold text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
                     {notification.title}
                   </h3>
-                  <p className={`text-sm mb-2 ${!notification.isRead ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                     {notification.message}
                   </p>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
-                    {new Date(notification.date).toLocaleDateString('ar-EG', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </span>
+                  <span className="text-[10px] text-gray-400 block pt-1">{notification.date}</span>
                 </div>
               </div>
             ))}
           </div>
+        ) : (
+          <EmptyState
+            icon="Bell"
+            title="لا توجد إشعارات حالياً"
+            description="ستظهر هنا التنبيهات الخاصة بالمحاضرات والنتائج والرسائل الهامة."
+          />
         )}
-      </main>
-      
-      <Footer />
-    </div>
+      </div>
+    </StudentLayout>
   );
 }

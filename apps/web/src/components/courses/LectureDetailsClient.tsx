@@ -1,192 +1,331 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { lectures } from '@/data/mock';
-import { useAuth } from '@/context/AuthContext';
-import { Play, FileText, CheckSquare, Clock, ChevronRight, ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import { useRouter } from 'next/navigation';
+import { lectures, courses } from '@/data/mock';
+import { useAuth } from '@/context/AuthContext';
+import {
+  Play,
+  FileText,
+  CheckSquare,
+  Clock,
+  ChevronRight,
+  ChevronLeft,
+  Video,
+  Download,
+  CheckCircle2,
+  Lock
+} from 'lucide-react';
+import StudentLayout from '@/components/layout/StudentLayout';
+import EmptyState from '@/components/ui/EmptyState';
+import { Lecture, Course } from '@/types';
+import { apiClient } from '@/lib/api';
 
-export default function LectureDetailsClient({ courseId, lectureId }: { courseId: number; lectureId: number }) {
+export default function LectureDetailsClient({
+  courseId,
+  lectureId,
+}: {
+  courseId: number;
+  lectureId: number;
+}) {
   const router = useRouter();
   const { isAuthenticated, openAuthGate } = useAuth();
-  
-  const lecture = lectures.find((l) => l.id === lectureId && l.courseId === courseId);
-  const courseLectures = lectures.filter((l) => l.courseId === courseId).sort((a, b) => a.order - b.order);
-  
+
+  const [lecture, setLecture] = useState<Lecture | null>(null);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [courseLectures, setCourseLectures] = useState<Lecture[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'video' | 'solution' | 'pdf' | 'notes' | 'quiz'>('video');
+
   useEffect(() => {
-    if (!isAuthenticated) {
-      openAuthGate(`/courses/${courseId}/lectures/${lectureId}`);
-    } else if (lecture?.isLocked) {
-      router.push(`/courses/${courseId}`);
+    let isMounted = true;
+
+    async function loadLectureData() {
+      setLoading(true);
+      try {
+        const apiLecture = await apiClient.get<Lecture>(`/lectures/${lectureId}`).catch(() => null);
+        const apiCourse = await apiClient.get<Course>(`/courses/${courseId}`).catch(() => null);
+        const apiLectures = await apiClient.get<Lecture[]>(`/courses/${courseId}/lectures`).catch(() => null);
+
+        if (isMounted) {
+          if (apiLecture) {
+            setLecture(apiLecture);
+          } else {
+            const localLecture = lectures.find((l) => l.id === Number(lectureId));
+            setLecture(localLecture || null);
+          }
+
+          if (apiCourse) {
+            setCourse(apiCourse);
+          } else {
+            const localCourse = courses.find((c) => c.id === Number(courseId));
+            setCourse(localCourse || null);
+          }
+
+          if (Array.isArray(apiLectures)) {
+            setCourseLectures(apiLectures);
+          } else {
+            const localLectures = lectures.filter((l) => l.courseId === Number(courseId));
+            setCourseLectures(localLectures);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          const localLecture = lectures.find((l) => l.id === Number(lectureId));
+          setLecture(localLecture || null);
+          const localCourse = courses.find((c) => c.id === Number(courseId));
+          setCourse(localCourse || null);
+          const localLectures = lectures.filter((l) => l.courseId === Number(courseId));
+          setCourseLectures(localLectures);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     }
-  }, [isAuthenticated, lecture, courseId, lectureId, openAuthGate, router]);
+
+    loadLectureData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [courseId, lectureId]);
+
+  if (loading) {
+    return (
+      <StudentLayout>
+        <div className="space-y-6 animate-pulse">
+          <div className="aspect-video rounded-3xl bg-gray-200 dark:bg-gray-800" />
+          <div className="h-40 rounded-3xl bg-gray-200 dark:bg-gray-800" />
+        </div>
+      </StudentLayout>
+    );
+  }
 
   if (!lecture) {
     return (
-      <div className="min-h-screen pt-24 pb-20 flex items-center justify-center bg-background-light dark:bg-background-dark">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">المحاضرة غير موجودة</h1>
-          <Link href={`/courses/${courseId}`} className="text-brand-500 hover:underline">الرجوع للكورس</Link>
+      <StudentLayout>
+        <div className="py-12">
+          <EmptyState
+            icon="PlaySquare"
+            title="المحاضرة غير موجودة"
+            description="عذراً، لم يتم العثور على هذه المحاضرة."
+            actionText="الرجوع للكورس"
+            actionUrl={`/courses/${courseId}`}
+          />
         </div>
-      </div>
+      </StudentLayout>
     );
   }
 
-  if (lecture.isLocked || !isAuthenticated) {
-    return (
-      <div className="min-h-screen pt-24 pb-20 flex items-center justify-center bg-background-light dark:bg-background-dark">
-        <div className="text-center text-gray-500">جاري التحميل...</div>
-      </div>
-    );
-  }
-
-  const currentIndex = courseLectures.findIndex(l => l.id === lecture.id);
-  const prevLecture = currentIndex > 0 ? courseLectures[currentIndex - 1] : null;
-  const nextLecture = currentIndex < courseLectures.length - 1 ? courseLectures[currentIndex + 1] : null;
+  const sortedLectures = [...courseLectures].sort((a, b) => a.order - b.order);
+  const currentIndex = sortedLectures.findIndex((l) => l.id === lecture.id);
+  const prevLecture = currentIndex > 0 ? sortedLectures[currentIndex - 1] : null;
+  const nextLecture = currentIndex < sortedLectures.length - 1 ? sortedLectures[currentIndex + 1] : null;
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark pt-20 pb-24">
-      <Navbar />
-      <div className="container mx-auto px-4 max-w-5xl">
-        
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 py-4">
-          <Link href={`/courses/${courseId}`} className="hover:text-brand-500">الرجوع للكورس</Link>
+    <StudentLayout>
+      <div className="space-y-6 animate-fade-in">
+        {/* Breadcrumb Header */}
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+          <Link href="/courses" className="hover:text-emerald-600 dark:hover:text-emerald-400">
+            المحاضرات
+          </Link>
           <ChevronLeft className="w-4 h-4" />
-          <span className="text-gray-900 dark:text-gray-300 font-medium">{lecture.title}</span>
+          <Link href={`/courses/${courseId}`} className="hover:text-emerald-600 dark:hover:text-emerald-400">
+            {course?.title || `الكورس #${courseId}`}
+          </Link>
+          <ChevronLeft className="w-4 h-4" />
+          <span className="text-gray-900 dark:text-white font-bold">{lecture.title}</span>
         </div>
 
-        {/* Video Player Placeholder */}
-        <div className="w-full aspect-video bg-gray-900 rounded-2xl mb-6 relative overflow-hidden shadow-lg flex flex-col items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-500/20 to-transparent" />
-          <Play className="w-16 h-16 text-white/80 mb-4 relative z-10" />
-          <span className="text-white/80 font-medium relative z-10 text-xl">Video Player</span>
-        </div>
+        {/* Main Grid: Video Player + Lecture Content Panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          {/* Left / Center 2 Columns: Player + Info + Navigation */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Video Player Box */}
+            <div className="relative aspect-video w-full rounded-3xl bg-black overflow-hidden shadow-2xl flex flex-col justify-between p-4 group">
+              {/* Overlay Thumbnail if video not played */}
+              {lecture.imageUrl ? (
+                <img
+                  src={lecture.imageUrl}
+                  alt={lecture.title}
+                  className="absolute inset-0 w-full h-full object-cover opacity-60"
+                />
+              ) : null}
 
-        <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
-          <h1 className="text-2xl font-cairo font-bold text-gray-900 dark:text-white mb-2">
-            {lecture.title}
-          </h1>
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              <span>{lecture.duration}</span>
+              <div className="relative z-10 flex justify-between items-center text-white/80">
+                <span className="text-xs font-bold bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                  {lecture.title}
+                </span>
+                {lecture.duration && (
+                  <span className="text-xs font-semibold bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                    {lecture.duration}
+                  </span>
+                )}
+              </div>
+
+              {/* Big Play Button Overlay */}
+              <div className="relative z-10 flex items-center justify-center my-auto">
+                <button
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-xl shadow-emerald-600/30 transform hover:scale-110 transition-all focus:outline-none"
+                  aria-label="تشغيل المحاضرة"
+                >
+                  <Play className="w-8 h-8 sm:w-10 sm:h-10 fill-current ms-1" />
+                </button>
+              </div>
+
+              {/* Fake Player Bottom Bar Controls */}
+              <div className="relative z-10 flex items-center justify-between text-white text-xs bg-black/60 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10">
+                <div className="flex items-center gap-3">
+                  <Play className="w-4 h-4 fill-current text-emerald-400 cursor-pointer" />
+                  <span>00:00 / {lecture.duration || '00:00'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">1x</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">CC</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Lecture Info Card */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-3">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white">
+                {lecture.title}
+              </h1>
+              {lecture.description ? (
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {lecture.description}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400 italic">لا يوجد وصف للمحاضرة</p>
+              )}
+            </div>
+
+            {/* Navigation Controls (Previous / Next Lecture) */}
+            <div className="flex items-center justify-between gap-4 pt-2">
+              {prevLecture ? (
+                <Link
+                  href={`/courses/${courseId}/lectures/${prevLecture.id}`}
+                  className="px-5 py-3 rounded-xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/40 text-sm font-bold transition-all flex items-center gap-2 shadow-xs"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  المحاضرة السابقة
+                </Link>
+              ) : (
+                <div />
+              )}
+
+              {nextLecture ? (
+                <Link
+                  href={`/courses/${courseId}/lectures/${nextLecture.id}`}
+                  className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-all flex items-center gap-2 shadow-md shadow-emerald-600/20"
+                >
+                  المحاضرة التالية
+                  <ChevronLeft className="w-4 h-4" />
+                </Link>
+              ) : (
+                <div />
+              )}
             </div>
           </div>
 
-          {lecture.description && (
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
-              {lecture.description}
-            </p>
-          )}
+          {/* Right Column: Lecture Content Panel (محتوى المحاضرة) */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-4">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-800/80 pb-3">
+              <span className="w-2 h-5 bg-emerald-600 rounded-full inline-block" />
+              محتوى المحاضرة
+            </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Timestamps */}
-            <div>
-              <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-brand-500" />
-                فهرس المحاضرة
-              </h3>
-              <div className="space-y-2">
-                {lecture.timestamps.length > 0 ? (
-                  lecture.timestamps.map((ts, idx) => (
-                    <button key={idx} className="w-full text-start p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-brand-50 dark:hover:bg-brand-500/10 text-sm text-gray-700 dark:text-gray-300 transition-colors">
-                      {ts.time} - {ts.label}
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-400">لا يوجد فهرس متاح</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {/* Solution Video */}
-              <div>
-                <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-                  <Play className="w-5 h-5 text-brand-500" />
-                  حل الأسئلة
-                </h3>
-                <div className="w-full aspect-video bg-gray-800 rounded-xl flex items-center justify-center max-h-40">
-                  <Play className="w-8 h-8 text-white/50" />
+            <div className="space-y-2">
+              {/* 1. Main Lecture Video Button */}
+              <button
+                onClick={() => setActiveTab('video')}
+                className={`w-full p-3.5 rounded-2xl flex items-center justify-between gap-3 text-sm font-bold transition-all ${
+                  activeTab === 'video'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                    : 'bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Video className="w-5 h-5 shrink-0" />
+                  <span>فيديو المحاضرة</span>
                 </div>
-              </div>
+                {lecture.duration && <span className="text-xs font-semibold opacity-90">{lecture.duration}</span>}
+              </button>
 
-              {/* Attachments */}
-              <div>
-                <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-brand-500" />
-                  المرفقات
-                </h3>
-                {lecture.hasPdf && (
-                  <button className="w-full flex items-center justify-between p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-brand-500 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg text-red-500 text-xs font-bold">
-                        PDF
-                      </div>
-                      <span className="font-medium text-gray-700 dark:text-gray-200">تحميل المذكرة</span>
-                    </div>
-                  </button>
-                )}
-              </div>
-
-              {/* Quiz */}
-              {lecture.hasQuiz && (
-                <div>
-                  <h3 className="font-bold text-lg mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-                    <CheckSquare className="w-5 h-5 text-brand-500" />
-                    اختبار
-                  </h3>
-                  <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-brand-50/50 dark:bg-brand-900/10">
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">اختبر معلوماتك بعد مشاهدة المحاضرة</p>
-                    <button className="w-full bg-brand-500 hover:bg-brand-600 text-white py-2 rounded-lg font-medium transition-colors">
-                      ابدأ الاختبار
-                    </button>
+              {/* 2. Solution Video (Only render if actually present!) */}
+              {(lecture as any).hasSolutionVideo && (
+                <button
+                  onClick={() => setActiveTab('solution')}
+                  className={`w-full p-3.5 rounded-2xl flex items-center justify-between gap-3 text-sm font-bold transition-all ${
+                    activeTab === 'solution'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                      : 'bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Play className="w-5 h-5 shrink-0" />
+                    <span>فيديو حل تدريبات</span>
                   </div>
+                </button>
+              )}
+
+              {/* 3. PDF Attachment (Only render if actually present!) */}
+              {lecture.hasPdf && (
+                <button
+                  onClick={() => setActiveTab('pdf')}
+                  className={`w-full p-3.5 rounded-2xl flex items-center justify-between gap-3 text-sm font-bold transition-all ${
+                    activeTab === 'pdf'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                      : 'bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 shrink-0 text-red-500" />
+                    <span>ملف PDF / المذكرة</span>
+                  </div>
+                  <Download className="w-4 h-4 opacity-80" />
+                </button>
+              )}
+
+              {/* 4. Quiz/Exam (Only render if actually present!) */}
+              {lecture.hasQuiz && (
+                <button
+                  onClick={() => setActiveTab('quiz')}
+                  className={`w-full p-3.5 rounded-2xl flex items-center justify-between gap-3 text-sm font-bold transition-all ${
+                    activeTab === 'quiz'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                      : 'bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckSquare className="w-5 h-5 shrink-0" />
+                    <span>اختبار المحاضرة</span>
+                  </div>
+                </button>
+              )}
+
+              {/* Lecture Index / Timestamps if available */}
+              {lecture.timestamps && lecture.timestamps.length > 0 && (
+                <div className="pt-4 space-y-2 border-t border-gray-100 dark:border-gray-800/80">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">فهرس الأجزاء</h3>
+                  {lecture.timestamps.map((ts, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-900/40 text-xs text-gray-700 dark:text-gray-300 flex items-center justify-between"
+                    >
+                      <span>{ts.label}</span>
+                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{ts.time}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
         </div>
-
-        {/* Progress Bar */}
-        <div className="bg-white dark:bg-surface-dark rounded-xl p-5 mb-6 shadow-sm border border-gray-100 dark:border-gray-800">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-medium text-gray-900 dark:text-white">إنجاز المحاضرة</span>
-            <span className="font-bold text-brand-500">60%</span>
-          </div>
-          <div className="h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-            <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: '60%' }} />
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-8">
-          {prevLecture ? (
-            <Link 
-              href={`/courses/${courseId}/lectures/${prevLecture.id}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
-            >
-              <ChevronRight className="w-5 h-5" />
-              <span>المحاضرة السابقة</span>
-            </Link>
-          ) : <div />}
-          
-          {nextLecture ? (
-            <Link 
-              href={`/courses/${courseId}/lectures/${nextLecture.id}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white transition-colors"
-            >
-              <span>المحاضرة التالية</span>
-              <ChevronLeft className="w-5 h-5" />
-            </Link>
-          ) : <div />}
-        </div>
       </div>
-      <Footer />
-    </div>
+    </StudentLayout>
   );
 }
