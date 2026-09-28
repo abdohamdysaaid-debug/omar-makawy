@@ -198,7 +198,7 @@ export default function StudentHomeClient() {
               {inProgressCourses.map(({ course, completedLectures, totalLectures, percentage, lastLectureId }) => (
                 <div
                   key={course.id}
-                  className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                  className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
@@ -279,7 +279,7 @@ export default function StudentHomeClient() {
                 <Link
                   key={lecture.id}
                   href={`/courses/${lecture.courseId}/lectures/${lecture.id}`}
-                  className="group rounded-2xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col"
+                  className="group rounded-2xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col"
                 >
                   <div className="relative aspect-video bg-gray-900 overflow-hidden flex items-center justify-center">
                     {lecture.imageUrl ? (

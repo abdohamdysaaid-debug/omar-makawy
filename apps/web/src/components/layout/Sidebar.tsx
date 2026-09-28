@@ -58,7 +58,7 @@ export default function Sidebar({
 
       {/* Persistent Collapsible Sidebar */}
       <aside
-        className={`fixed top-0 bottom-0 start-0 z-50 flex flex-col bg-white dark:bg-[#0b0f19] border-e border-gray-100 dark:border-gray-800/80 transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 bottom-0 start-0 z-50 flex flex-col bg-[#064e3b] dark:bg-[#0b0f19] border-e border-emerald-800/60 dark:border-gray-800/80 shadow-xl transition-all duration-300 ease-in-out ${
           isCollapsed ? 'lg:w-20' : 'lg:w-64'
         } ${
           isMobileOpen
@@ -67,18 +67,18 @@ export default function Sidebar({
         }`}
       >
         {/* Brand Header */}
-        <div className={`flex items-center h-20 border-b border-gray-100 dark:border-gray-800/60 ${
+        <div className={`flex items-center h-20 border-b border-emerald-800/60 dark:border-gray-800/60 ${
           isCollapsed ? 'px-3 justify-center' : 'px-6 justify-between'
         }`}>
           <Link href="/student" className="flex items-center gap-3 group" onClick={onCloseMobile}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white font-black flex items-center justify-center text-lg shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-white text-emerald-950 font-black flex items-center justify-center text-lg shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform shrink-0">
               OM
             </div>
             <div className={`flex flex-col transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
-              <span className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+              <span className="text-base font-bold text-white dark:text-white leading-tight">
                 Omar Makawy
               </span>
-              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="text-[11px] font-semibold text-emerald-200 dark:text-emerald-400">
                 English Teacher
               </span>
             </div>
@@ -87,7 +87,7 @@ export default function Sidebar({
           {/* Close button on mobile */}
           <button
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 lg:hidden"
+            className="p-1.5 rounded-lg text-emerald-200 hover:text-white dark:text-gray-400 dark:hover:text-gray-200 lg:hidden"
             aria-label="إغلاق القائمة"
           >
             <X className="w-5 h-5" />
@@ -109,15 +109,15 @@ export default function Sidebar({
                 key={item.href}
                 href={item.href}
                 onClick={onCloseMobile}
-                className={`relative group flex items-center gap-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+                className={`relative group flex items-center gap-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
                   isCollapsed ? 'px-3 py-3 justify-center' : 'px-4 py-3'
                 } ${
                   isActive
-                    ? 'bg-emerald-600 dark:bg-emerald-600/90 text-white font-bold shadow-md shadow-emerald-600/20'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800/60 hover:text-emerald-600 dark:hover:text-emerald-400'
+                    ? 'bg-emerald-700/90 dark:bg-emerald-600/90 text-white font-extrabold shadow-md shadow-emerald-950/40 border-s-4 border-emerald-300 dark:border-emerald-400'
+                    : 'text-emerald-100/90 dark:text-gray-300 hover:bg-emerald-800/70 dark:hover:bg-gray-800/60 hover:text-white dark:hover:text-emerald-400'
                 }`}
               >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-gray-400 dark:text-gray-400 group-hover:text-emerald-600'}`} />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-emerald-200/80 dark:text-gray-400 group-hover:text-white dark:group-hover:text-emerald-400'}`} />
 
                 <span className={`truncate transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
                   {item.label}
@@ -125,7 +125,7 @@ export default function Sidebar({
 
                 {/* Floating Tooltip on Desktop when Collapsed */}
                 {isCollapsed && (
-                  <div className="hidden lg:block pointer-events-none absolute start-full ms-2 px-3 py-1.5 bg-gray-900 dark:bg-gray-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl z-50">
+                  <div className="hidden lg:block pointer-events-none absolute start-full ms-2 px-3 py-1.5 bg-emerald-950 dark:bg-gray-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl z-50 border border-emerald-800/60 dark:border-gray-700">
                     {item.label}
                   </div>
                 )}
@@ -135,18 +135,18 @@ export default function Sidebar({
         </div>
 
         {/* Sidebar Footer Teacher Card */}
-        <div className="p-3 border-t border-gray-100 dark:border-gray-800/60">
-          <div className={`flex items-center rounded-xl bg-emerald-50/70 dark:bg-gray-900/60 border border-emerald-100/50 dark:border-gray-800 ${
+        <div className="p-3 border-t border-emerald-800/60 dark:border-gray-800/60">
+          <div className={`flex items-center rounded-xl bg-emerald-950/60 dark:bg-gray-900/60 border border-emerald-800/50 dark:border-gray-800 ${
             isCollapsed ? 'p-2 justify-center' : 'p-3 gap-3'
           }`}>
-            <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div className={`flex flex-col min-w-0 ${isCollapsed ? 'hidden' : 'block'}`}>
-              <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
+              <span className="text-xs font-bold text-white dark:text-white truncate">
                 مستر عمر مكاوي
               </span>
-              <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+              <span className="text-[10px] text-emerald-200/80 dark:text-gray-400 truncate">
                 خبير اللغة الإنجليزية
               </span>
             </div>

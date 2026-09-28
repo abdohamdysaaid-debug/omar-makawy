@@ -28,7 +28,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   };
 
   return (
-    <div className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden">
+    <div className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden">
       {/* Top Banner Box */}
       <div className="relative h-44 bg-gradient-to-br from-emerald-800 to-gray-900 flex items-center justify-center p-4">
         {course.imageUrl ? (

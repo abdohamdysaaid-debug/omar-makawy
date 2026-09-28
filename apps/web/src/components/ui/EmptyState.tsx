@@ -15,14 +15,14 @@ export default function EmptyState({ icon, title, description, actionText, actio
   const IconComponent = (LucideIcons as any)[icon] || LucideIcons.FileQuestion;
 
   return (
-    <div className="flex flex-col items-center justify-center text-center p-8 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-      <div className="w-16 h-16 bg-brand-100 text-brand-500 rounded-full flex items-center justify-center mb-4">
+    <div className="flex flex-col items-center justify-center text-center p-8 sm:p-10 rounded-3xl bg-[#faf8f5] dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800 shadow-xs">
+      <div className="w-16 h-16 bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4 border border-emerald-200/50 dark:border-emerald-800/50">
         <IconComponent className="w-8 h-8" />
       </div>
-      <h3 className="text-xl font-bold font-cairo text-gray-900 dark:text-white mb-2">{title}</h3>
-      <p className="text-gray-500 dark:text-gray-400 font-cairo mb-6 max-w-md">{description}</p>
+      <h3 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">{title}</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 max-w-md leading-relaxed">{description}</p>
       {actionText && actionUrl && (
-        <Link href={actionUrl} className="px-6 py-2 bg-brand-500 text-white rounded-md font-cairo font-medium hover:bg-brand-600 transition-colors">
+        <Link href={actionUrl} className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-emerald-600/20">
           {actionText}
         </Link>
       )}

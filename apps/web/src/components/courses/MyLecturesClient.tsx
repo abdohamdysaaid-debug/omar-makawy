@@ -156,7 +156,7 @@ function MyLecturesContent() {
               <Link
                 key={lecture.id}
                 href={`/student/courses/${lecture.courseId}/lectures/${lecture.id}`}
-                className="group rounded-2xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 overflow-hidden shadow-xs hover:shadow-lg transition-all flex flex-col justify-between"
+                className="group rounded-2xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
               >
                 {/* Lecture Thumbnail */}
                 <div className="relative aspect-video bg-gray-900 overflow-hidden flex items-center justify-center">

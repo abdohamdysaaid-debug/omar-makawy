@@ -46,7 +46,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-30 h-20 bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800/80 transition-colors">
+    <header className="sticky top-0 z-30 h-20 bg-white/95 dark:bg-[#0b0f19]/90 backdrop-blur-md border-b border-stone-200/80 dark:border-gray-800/80 shadow-2xs transition-colors">
       <div className="h-full px-4 sm:px-6 flex items-center justify-between gap-4">
         {/* Left Side: Menu Toggle Buttons & Search bar */}
         <div className="flex items-center gap-3 flex-1 max-w-xl">
