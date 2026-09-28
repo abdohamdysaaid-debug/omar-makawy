@@ -1,231 +1,1152 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  User,
+  Phone,
+  MessageSquare,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  GraduationCap,
+  MapPin,
+  Sparkles,
+  AlertCircle,
+  Loader2,
+  Edit3,
+  ShieldCheck,
+  Check
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import PasswordInput from '@/components/auth/PasswordInput';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { authApi, Governorate, RegisterPayload } from '@/lib/api/auth';
+
+// Canonical Egyptian Governorates Fallback
+const FALLBACK_GOVERNORATES: Governorate[] = [
+  { id: 'b0000000-0000-0000-0000-000000000001', code: 'CAIRO', name_ar: 'القاهرة', name_en: 'Cairo' },
+  { id: 'b0000000-0000-0000-0000-000000000002', code: 'GIZA', name_ar: 'الجيزة', name_en: 'Giza' },
+  { id: 'b0000000-0000-0000-0000-000000000003', code: 'ALEXANDRIA', name_ar: 'الإسكندرية', name_en: 'Alexandria' },
+  { id: 'b0000000-0000-0000-0000-000000000004', code: 'QUALYUBIA', name_ar: 'القليوبية', name_en: 'Qualyubia' },
+  { id: 'b0000000-0000-0000-0000-000000000005', code: 'SHARQIA', name_ar: 'الشرقية', name_en: 'Sharqia' },
+  { id: 'b0000000-0000-0000-0000-000000000006', code: 'DAKAHLIA', name_ar: 'الدقهلية', name_en: 'Dakahlia' },
+  { id: 'b0000000-0000-0000-0000-000000000007', code: 'GHARBIA', name_ar: 'الغربية', name_en: 'Gharbia' },
+  { id: 'b0000000-0000-0000-0000-000000000008', code: 'MONUFIA', name_ar: 'المنوفية', name_en: 'Monufia' },
+  { id: 'b0000000-0000-0000-0000-000000000009', code: 'BEHEIRA', name_ar: 'البحيرة', name_en: 'Beheira' },
+  { id: 'b0000000-0000-0000-0000-000000000010', code: 'KAFR_EL_SHEIKH', name_ar: 'كفر الشيخ', name_en: 'Kafr El Sheikh' },
+  { id: 'b0000000-0000-0000-0000-000000000011', code: 'DAMIETTA', name_ar: 'دمياط', name_en: 'Damietta' },
+  { id: 'b0000000-0000-0000-0000-000000000012', code: 'PORT_SAID', name_ar: 'بورسعيد', name_en: 'Port Said' },
+  { id: 'b0000000-0000-0000-0000-000000000013', code: 'ISMAILIA', name_ar: 'الإسماعيلية', name_en: 'Ismailia' },
+  { id: 'b0000000-0000-0000-0000-000000000014', code: 'SUEZ', name_ar: 'السويس', name_en: 'Suez' },
+  { id: 'b0000000-0000-0000-0000-000000000015', code: 'BENI_SUEF', name_ar: 'بني سويف', name_en: 'Beni Suef' },
+  { id: 'b0000000-0000-0000-0000-000000000016', code: 'FAYOUM', name_ar: 'الفيوم', name_en: 'Fayoum' },
+  { id: 'b0000000-0000-0000-0000-000000000017', code: 'MINYA', name_ar: 'المنيا', name_en: 'Minya' },
+  { id: 'b0000000-0000-0000-0000-000000000018', code: 'ASYUT', name_ar: 'أسيوط', name_en: 'Asyut' },
+  { id: 'b0000000-0000-0000-0000-000000000019', code: 'SOHAG', name_ar: 'سوهاج', name_en: 'Sohag' },
+  { id: 'b0000000-0000-0000-0000-000000000020', code: 'QENA', name_ar: 'قنا', name_en: 'Qena' },
+  { id: 'b0000000-0000-0000-0000-000000000021', code: 'LUXOR', name_ar: 'الأقصر', name_en: 'Luxor' },
+  { id: 'b0000000-0000-0000-0000-000000000022', code: 'ASWAN', name_ar: 'أسوان', name_en: 'Aswan' },
+  { id: 'b0000000-0000-0000-0000-000000000023', code: 'RED_SEA', name_ar: 'البحر الأحمر', name_en: 'Red Sea' },
+  { id: 'b0000000-0000-0000-0000-000000000024', code: 'NEW_VALLEY', name_ar: 'الوادي الجديد', name_en: 'New Valley' },
+  { id: 'b0000000-0000-0000-0000-000000000025', code: 'MATROUH', name_ar: 'مطروح', name_en: 'Matrouh' },
+  { id: 'b0000000-0000-0000-0000-000000000026', code: 'NORTH_SINAI', name_ar: 'شمال سيناء', name_en: 'North Sinai' },
+  { id: 'b0000000-0000-0000-0000-000000000027', code: 'SOUTH_SINAI', name_ar: 'جنوب سيناء', name_en: 'South Sinai' },
+];
+
+// Academic Year UUID Mappings
+const ACADEMIC_YEAR_OPTIONS = [
+  {
+    id: 'a0000000-0000-0000-0000-000000000001',
+    code: 'THIRD_PREPARATORY',
+    title: 'الصف الثالث الإعدادي',
+    subtitle: 'الشهادة الإعدادية',
+    supportedEducation: ['GENERAL', 'AZHAR'],
+    hasSections: false,
+  },
+  {
+    id: 'a0000000-0000-0000-0000-000000000002',
+    code: 'FIRST_SECONDARY',
+    title: 'الصف الأول الثانوي',
+    subtitle: 'المرحلة الثانوية - Senior 1',
+    supportedEducation: ['GENERAL', 'AZHAR', 'BACCALAUREATE'],
+    hasSections: false,
+  },
+  {
+    id: 'a0000000-0000-0000-0000-000000000003',
+    code: 'SECOND_SECONDARY',
+    title: 'الصف الثاني الثانوي',
+    subtitle: 'المرحلة الثانوية - Senior 2',
+    supportedEducation: ['GENERAL', 'AZHAR', 'BACCALAUREATE'],
+    hasSections: false,
+  },
+  {
+    id: 'a0000000-0000-0000-0000-000000000004',
+    code: 'THIRD_SECONDARY',
+    title: 'الصف الثالث الثانوي',
+    subtitle: 'الثانوية العامة / الأزهرية - Senior 3',
+    supportedEducation: ['GENERAL', 'AZHAR', 'BACCALAUREATE'],
+    hasSections: true,
+  },
+];
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { register } = useAuth();
+  const { register: setAuthContextState } = useAuth();
 
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [governorates, setGovernorates] = useState<Governorate[]>(FALLBACK_GOVERNORATES);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Form Fields State
   const [formData, setFormData] = useState({
+    // Step 1: Personal
     fullName: '',
     studentPhone: '',
+    sameAsPhone: false,
     whatsappPhone: '',
-    email: '',
     parentPhone: '',
-    gradeId: '',
+    email: '',
+    governorateId: '',
+    gender: 'MALE',
     password: '',
     confirmPassword: '',
+
+    // Step 2: Academic
+    educationType: 'GENERAL',
+    studyType: 'ARABIC',
+    academicYearId: 'a0000000-0000-0000-0000-000000000004',
+    section: 'SCIENCE_GENERAL',
+
+    // Step 3: Terms
+    acceptTerms: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Fetch Governorates on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadGovs() {
+      try {
+        const govs = await authApi.getGovernorates();
+        if (isMounted && Array.isArray(govs) && govs.length > 0) {
+          setGovernorates(govs);
+        }
+      } catch {
+        // Fallback already active
+      }
+    }
+    loadGovs();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Handle WhatsApp Copy Toggle
+  const handleSameAsPhoneToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setFormData((prev) => ({
+      ...prev,
+      sameAsPhone: checked,
+      whatsappPhone: checked ? prev.studentPhone : prev.whatsappPhone,
+    }));
+    if (errors.whatsappPhone) {
+      setErrors((prev) => ({ ...prev, whatsappPhone: '' }));
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'studentPhone' && prev.sameAsPhone) {
+        next.whatsappPhone = value;
+      }
+      return next;
+    });
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    let isValid = true;
+  // Step 2 Hierarchical Choice Handlers
+  const handleEducationTypeChange = (eduType: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      educationType: eduType,
+      studyType: eduType === 'BACCALAUREATE' ? 'LANGUAGES' : 'ARABIC',
+      academicYearId: 'a0000000-0000-0000-0000-000000000004',
+      section: eduType === 'GENERAL' ? 'SCIENCE_GENERAL' : '',
+    }));
+  };
+
+  const handleStudyTypeChange = (studyType: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      studyType,
+    }));
+  };
+
+  const handleAcademicYearChange = (yearId: string) => {
+    const selectedYear = ACADEMIC_YEAR_OPTIONS.find((y) => y.id === yearId);
+    setFormData((prev) => ({
+      ...prev,
+      academicYearId: yearId,
+      section: selectedYear?.hasSections ? 'SCIENCE_GENERAL' : '',
+    }));
+  };
+
+  const handleSectionChange = (section: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      section,
+    }));
+  };
+
+  // --- Step 1 Validation ---
+  const validateStep1 = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Validate empty fields
-    Object.keys(formData).forEach((key) => {
-      if (!formData[key as keyof typeof formData]) {
-        newErrors[key] = 'هذا الحقل مطلوب';
-        isValid = false;
-      }
-    });
-
-    // Validate full name (exactly 4 words)
-    if (formData.fullName) {
-      const words = formData.fullName.trim().split(/\s+/).filter(Boolean);
-      if (words.length !== 4) {
-        newErrors.fullName = 'من فضلك اكتب اسم الطالب رباعي كما هو في بياناته الرسمية.';
-        isValid = false;
-      }
+    // 1. Full name validation (Min 4 words, Arabic or English, no numbers-only)
+    const nameTrimmed = formData.fullName.trim();
+    const words = nameTrimmed.split(/\s+/).filter(Boolean);
+    if (!nameTrimmed) {
+      newErrors.fullName = 'اسم الطالب الرباعي مطلوب';
+    } else if (words.length < 4) {
+      newErrors.fullName = 'من فضلك اكتب اسم الطالب رباعي (4 كلمات على الأقل)';
+    } else if (/^\d+$/.test(nameTrimmed)) {
+      newErrors.fullName = 'لا يمكن أن يحتوي الاسم على أرقام فقط';
+    } else if (!/^[\u0600-\u06FFa-zA-Z\s]+$/.test(nameTrimmed)) {
+      newErrors.fullName = 'الاسم يحتوي على أرقام أو رموز غير مسموح بها';
     }
 
-    // Validate password requirements
-    if (formData.password) {
-      const hasUppercase = /[A-Z]/.test(formData.password);
-      const hasLowercase = /[a-z]/.test(formData.password);
-      const hasDigit = /[0-9]/.test(formData.password);
-      const hasMinLength = formData.password.length >= 8;
-      
-      if (!hasUppercase || !hasLowercase || !hasDigit || !hasMinLength) {
-        newErrors.password = 'كلمة المرور لا تلبي المتطلبات';
-        isValid = false;
-      }
+    // 2. Student Phone
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!formData.studentPhone) {
+      newErrors.studentPhone = 'رقم هاتف الطالب مطلوب';
+    } else if (!phoneRegex.test(formData.studentPhone)) {
+      newErrors.studentPhone = 'يرجى إدخال رقم هاتف مصري صحيح من 11 رقم (010, 011, 012, 015)';
     }
 
-    // Validate confirm password
-    if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+    // 3. WhatsApp Phone
+    if (!formData.whatsappPhone) {
+      newErrors.whatsappPhone = 'رقم واتساب الطالب مطلوب';
+    } else if (!phoneRegex.test(formData.whatsappPhone)) {
+      newErrors.whatsappPhone = 'يرجى إدخال رقم واتساب مصري صحيح من 11 رقم';
+    }
+
+    // 4. Parent Phone
+    if (!formData.parentPhone) {
+      newErrors.parentPhone = 'رقم هاتف ولي الأمر مطلوب';
+    } else if (!phoneRegex.test(formData.parentPhone)) {
+      newErrors.parentPhone = 'يرجى إدخال رقم هاتف ولي الأمر مصري صحيح من 11 رقم';
+    }
+
+    // 5. Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) {
+      newErrors.email = 'البريد الإلكتروني مطلوب';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'يرجى إدخال بريد إلكتروني صحيح';
+    }
+
+    // 6. Governorate
+    if (!formData.governorateId) {
+      newErrors.governorateId = 'يرجى اختيار المحافظة';
+    }
+
+    // 7. Password
+    if (!formData.password) {
+      newErrors.password = 'كلمة المرور مطلوبة';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل';
+    }
+
+    // 8. Confirm Password
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'تأكيد كلمة المرور مطلوب';
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'كلمة المرور غير متطابقة';
-      isValid = false;
     }
 
     setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    if (isValid) {
-      setIsSubmitting(true);
-      try {
-        await register(formData as any);
-        const returnUrl = searchParams.get('returnUrl') || '/';
-        router.push(returnUrl);
-      } catch (error) {
-        console.error('Registration failed', error);
-      } finally {
-        setIsSubmitting(false);
-      }
+  // --- Step 2 Validation ---
+  const validateStep2 = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.educationType) {
+      newErrors.educationType = 'نوع التعليم مطلوب';
+    }
+    if (!formData.studyType) {
+      newErrors.studyType = 'نوع الدراسة مطلوب';
+    }
+    if (!formData.academicYearId) {
+      newErrors.academicYearId = 'الصف الدراسي مطلوب';
+    }
+
+    const currentYear = ACADEMIC_YEAR_OPTIONS.find((y) => y.id === formData.academicYearId);
+    if (currentYear?.hasSections && !formData.section) {
+      newErrors.section = 'الشعبة مطلوبة لهذا الصف الدراسي';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Navigation Buttons Handlers
+  const handleGoToStep2 = () => {
+    if (validateStep1()) {
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const SectionHeader = ({ title }: { title: string }) => (
-    <div className="mb-4 mt-8 flex items-center gap-3">
-      <div className="h-6 w-1 rounded bg-brand-500"></div>
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white font-cairo">{title}</h3>
-      <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700"></div>
-    </div>
-  );
+  const handleGoToStep3 = () => {
+    if (validateStep2()) {
+      setStep(3);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
-  const InputField = ({ label, name, type = 'text', placeholder, dir = 'auto' }: any) => (
-    <div className="mb-4">
-      <label className="mb-2 block font-cairo text-sm font-bold text-gray-700 dark:text-gray-300">
-        {label}
-      </label>
-      <input
-        type={type}
-        name={name}
-        value={formData[name as keyof typeof formData]}
-        onChange={handleChange}
-        placeholder={placeholder}
-        dir={dir}
-        className={`w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-surface-dark dark:text-white font-cairo ${
-          errors[name] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-        }`}
-      />
-      {errors[name] && <p className="mt-1 text-sm text-red-500 font-cairo">{errors[name]}</p>}
-    </div>
-  );
+  // Submit Registration
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.acceptTerms) {
+      setErrors((prev) => ({ ...prev, acceptTerms: 'يرجى الموافقة على الشروط والأحكام للاستمرار' }));
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const payload: RegisterPayload = {
+      full_name: formData.fullName.trim(),
+      phone: formData.studentPhone.trim(),
+      whatsapp_phone: formData.whatsappPhone.trim(),
+      parent_phone: formData.parentPhone.trim(),
+      email: formData.email.trim(),
+      governorate_id: formData.governorateId,
+      gender: formData.gender,
+      password: formData.password,
+      education_type: formData.educationType,
+      study_type: formData.studyType,
+      academic_year_id: formData.academicYearId,
+      section: formData.section || undefined,
+    };
+
+    try {
+      await authApi.register(payload);
+      
+      // Update Client Auth State
+      setAuthContextState({
+        fullName: formData.fullName,
+        phone: formData.studentPhone,
+        whatsapp: formData.whatsappPhone,
+        parentPhone: formData.parentPhone,
+        email: formData.email,
+        password: formData.password,
+        academicYearId: formData.academicYearId,
+      });
+
+      setStep(4); // Success screen
+      
+      const returnUrl = searchParams.get('returnUrl') || '/student';
+      setTimeout(() => {
+        router.push(returnUrl);
+      }, 2000);
+    } catch (err: any) {
+      const msg = err?.message || err?.error_code || 'حدث خطأ أثناء التسجيل. يرجى التأكد من البيانات والمحاولة مرة أخرى.';
+      setSubmitError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Password Requirements helper
+  const hasUppercase = /[A-Z]/.test(formData.password);
+  const hasLowercase = /[a-z]/.test(formData.password);
+  const hasDigit = /[0-9]/.test(formData.password);
+  const hasMinLength = formData.password.length >= 8;
+
+  const currentYearObj = ACADEMIC_YEAR_OPTIONS.find((y) => y.id === formData.academicYearId);
+  const selectedGovObj = governorates.find((g) => g.id === formData.governorateId);
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col">
-      <SectionHeader title="بيانات الطالب" />
-      <div className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-        <div className="md:col-span-2">
-          <InputField label="اسم الطالب الرباعي" name="fullName" placeholder="الاسم رباعي" />
+    <div className="w-full max-w-3xl mx-auto animate-fade-in">
+      {/* Stepper Header (Only shown during steps 1, 2, 3) */}
+      {step < 4 && (
+        <div className="mb-8 p-4 sm:p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800 shadow-sm">
+          <div className="flex items-center justify-between relative">
+            {/* Progress Line */}
+            <div className="absolute top-1/2 start-8 end-8 -translate-y-1/2 h-1 bg-stone-200 dark:bg-gray-800 z-0" />
+            <div
+              className="absolute top-1/2 start-8 h-1 bg-emerald-600 transition-all duration-500 z-0"
+              style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }}
+            />
+
+            {/* Step 1 Pill */}
+            <button
+              onClick={() => step > 1 && setStep(1)}
+              className={`relative z-10 flex flex-col items-center gap-1.5 focus:outline-none ${step >= 1 ? 'cursor-pointer' : ''}`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                  step > 1
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                    : step === 1
+                    ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950 font-extrabold shadow-md'
+                    : 'bg-stone-200 dark:bg-gray-800 text-gray-500'
+                }`}
+              >
+                {step > 1 ? <Check className="w-5 h-5 stroke-[3]" /> : '1'}
+              </div>
+              <span className={`text-xs font-bold ${step === 1 ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500'}`}>
+                ① بياناتك
+              </span>
+            </button>
+
+            {/* Step 2 Pill */}
+            <button
+              onClick={() => step > 2 && setStep(2)}
+              className={`relative z-10 flex flex-col items-center gap-1.5 focus:outline-none ${step >= 2 ? 'cursor-pointer' : ''}`}
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                  step > 2
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                    : step === 2
+                    ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950 font-extrabold shadow-md'
+                    : 'bg-stone-200 dark:bg-gray-800 text-gray-500'
+                }`}
+              >
+                {step > 2 ? <Check className="w-5 h-5 stroke-[3]" /> : '2'}
+              </div>
+              <span className={`text-xs font-bold ${step === 2 ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500'}`}>
+                ② دراستك
+              </span>
+            </button>
+
+            {/* Step 3 Pill */}
+            <div className="relative z-10 flex flex-col items-center gap-1.5">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                  step === 3
+                    ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-950 font-extrabold shadow-md'
+                    : 'bg-stone-200 dark:bg-gray-800 text-gray-500'
+                }`}
+              >
+                3
+              </div>
+              <span className={`text-xs font-bold ${step === 3 ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500'}`}>
+                ③ مراجعة وتأكيد
+              </span>
+            </div>
+          </div>
         </div>
-        <InputField label="رقم هاتف الطالب" name="studentPhone" type="tel" placeholder="رقم الهاتف" dir="ltr" />
-        <InputField label="رقم واتساب الطالب" name="whatsappPhone" type="tel" placeholder="رقم الواتساب" dir="ltr" />
-        <div className="md:col-span-2">
-          <InputField label="البريد الإلكتروني للطالب" name="email" type="email" placeholder="البريد الإلكتروني" dir="ltr" />
-        </div>
+      )}
+
+      {/* Main Card Container */}
+      <div className="rounded-3xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800/80 shadow-md p-6 sm:p-10">
+        {/* ============================================================ */}
+        {/* STEP 1: PERSONAL INFORMATION                                  */}
+        {/* ============================================================ */}
+        {step === 1 && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="space-y-1 text-start border-b border-stone-100 dark:border-gray-800 pb-4">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
+                بياناتك الشخصية
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                أدخل بياناتك الأساسية بدقة لتأهيل حسابك التعليمي
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* 1. Full Name (4 words min) */}
+              <div className="sm:col-span-2 space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  الاسم الرباعي <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  placeholder="مثال: أحمد محمد علي حسن"
+                  className={`w-full px-4 py-3 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    errors.fullName ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'
+                  }`}
+                />
+                <p className="text-[11px] text-gray-400">اكتب اسمك رباعي كما هو في السجلات الرسمية (4 كلمات على الأقل)</p>
+                {errors.fullName && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.fullName}
+                  </p>
+                )}
+              </div>
+
+              {/* 2. Student Phone */}
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  رقم الهاتف <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="studentPhone"
+                  dir="ltr"
+                  maxLength={11}
+                  value={formData.studentPhone}
+                  onChange={handleInputChange}
+                  placeholder="010XXXXXXXX"
+                  className={`w-full px-4 py-3 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    errors.studentPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'
+                  }`}
+                />
+                {errors.studentPhone && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.studentPhone}
+                  </p>
+                )}
+              </div>
+
+              {/* 3. Student WhatsApp */}
+              <div className="space-y-1.5 text-start">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                    <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    رقم واتساب الطالب <span className="text-red-500">*</span>
+                  </label>
+                  <label className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.sameAsPhone}
+                      onChange={handleSameAsPhoneToggle}
+                      className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    نفس رقم الهاتف
+                  </label>
+                </div>
+                <input
+                  type="tel"
+                  name="whatsappPhone"
+                  dir="ltr"
+                  maxLength={11}
+                  disabled={formData.sameAsPhone}
+                  value={formData.whatsappPhone}
+                  onChange={handleInputChange}
+                  placeholder="010XXXXXXXX"
+                  className={`w-full px-4 py-3 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    formData.sameAsPhone ? 'opacity-60 cursor-not-allowed bg-stone-100 dark:bg-gray-800' : ''
+                  } ${errors.whatsappPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'}`}
+                />
+                {errors.whatsappPhone && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.whatsappPhone}
+                  </p>
+                )}
+              </div>
+
+              {/* 4. Parent Phone */}
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  رقم هاتف ولي الأمر <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="parentPhone"
+                  dir="ltr"
+                  maxLength={11}
+                  value={formData.parentPhone}
+                  onChange={handleInputChange}
+                  placeholder="011XXXXXXXX"
+                  className={`w-full px-4 py-3 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    errors.parentPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'
+                  }`}
+                />
+                {errors.parentPhone && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.parentPhone}
+                  </p>
+                )}
+              </div>
+
+              {/* 5. Email */}
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  البريد الإلكتروني <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  dir="ltr"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="student@example.com"
+                  className={`w-full px-4 py-3 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'
+                  }`}
+                />
+                {errors.email && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* 6. Governorate */}
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  المحافظة <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="governorateId"
+                  value={formData.governorateId}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    errors.governorateId ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'
+                  }`}
+                >
+                  <option value="">-- اختر المحافظة --</option>
+                  {governorates.map((gov) => (
+                    <option key={gov.id} value={gov.id}>
+                      {gov.name_ar} ({gov.name_en})
+                    </option>
+                  ))}
+                </select>
+                {errors.governorateId && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.governorateId}
+                  </p>
+                )}
+              </div>
+
+              {/* 7. Gender */}
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  النوع <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, gender: 'MALE' }))}
+                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
+                      formData.gender === 'MALE'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                        : 'bg-stone-50/50 dark:bg-gray-900/60 border-stone-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50'
+                    }`}
+                  >
+                    ذكر (Male)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, gender: 'FEMALE' }))}
+                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
+                      formData.gender === 'FEMALE'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                        : 'bg-stone-50/50 dark:bg-gray-900/60 border-stone-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50'
+                    }`}
+                  >
+                    أنثى (Female)
+                  </button>
+                </div>
+              </div>
+
+              {/* 8. Password */}
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  كلمة المرور <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    dir="ltr"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="••••••••"
+                    className={`w-full px-4 py-3 pe-10 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                      errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.password}
+                  </p>
+                )}
+              </div>
+
+              {/* 9. Confirm Password */}
+              <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  تأكيد كلمة المرور <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  dir="ltr"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  className={`w-full px-4 py-3 rounded-xl bg-stone-50/50 dark:bg-gray-900/60 border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-200 dark:border-gray-800'
+                  }`}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-xs font-bold text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Step 1 Action Button */}
+            <div className="pt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={handleGoToStep2}
+                className="w-full sm:w-auto px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
+              >
+                التالي: البيانات الدراسية
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* STEP 2: ACADEMIC INFORMATION                                  */}
+        {/* ============================================================ */}
+        {step === 2 && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="space-y-1 text-start border-b border-stone-100 dark:border-gray-800 pb-4">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
+                بياناتك الدراسية
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                حدد مرحلتك الدراسية ونوع التعليم للتأكد من تخصيص المحتوى المناسب لك
+              </p>
+            </div>
+
+            <div className="space-y-6 text-start">
+              {/* 1. Education Type (نوع التعليم) */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  1. نوع التعليم <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: 'GENERAL', title: 'تعليم عام', desc: 'التعليم العام والمدارس الحكومية / الخاصة' },
+                    { id: 'AZHAR', title: 'تعليم أزهري', desc: 'المعاهد الأزهرية النموذجية والعادية' },
+                    { id: 'BACCALAUREATE', title: 'بكالوريا / دولي', desc: 'الشهادات الدولية واللغات الخاصة' },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleEducationTypeChange(item.id)}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
+                        formData.educationType === item.id
+                          ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-600 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'bg-stone-50/50 dark:bg-gray-900/40 border-stone-200 dark:border-gray-800 hover:border-emerald-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-sm text-gray-900 dark:text-white">{item.title}</span>
+                        {formData.educationType === item.id && (
+                          <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Study Type (الدراسة) */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  2. مسار الدراسة <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { id: 'ARABIC', title: 'دراسة عربي', desc: 'المناهج باللغة العربية' },
+                    { id: 'LANGUAGES', title: 'دراسة لغات (Languages)', desc: 'مدارس اللغات واللوغات الرسمية' },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleStudyTypeChange(item.id)}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                        formData.studyType === item.id
+                          ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-600 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'bg-stone-50/50 dark:bg-gray-900/40 border-stone-200 dark:border-gray-800 hover:border-emerald-300'
+                      }`}
+                    >
+                      <div>
+                        <h4 className="font-bold text-sm text-gray-900 dark:text-white">{item.title}</h4>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">{item.desc}</p>
+                      </div>
+                      {formData.studyType === item.id && (
+                        <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Academic Year / Grade (الصف الدراسي) */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  3. الصف الدراسي <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {ACADEMIC_YEAR_OPTIONS.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleAcademicYearChange(item.id)}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                        formData.academicYearId === item.id
+                          ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-600 ring-2 ring-emerald-500/20 shadow-xs'
+                          : 'bg-stone-50/50 dark:bg-gray-900/40 border-stone-200 dark:border-gray-800 hover:border-emerald-300'
+                      }`}
+                    >
+                      <div>
+                        <h4 className="font-extrabold text-sm text-gray-900 dark:text-white">{item.title}</h4>
+                        <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">{item.subtitle}</p>
+                      </div>
+                      {formData.academicYearId === item.id && (
+                        <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Section / Track (Conditional ONLY if applicable) */}
+              {currentYearObj?.hasSections && (
+                <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-gray-800 animate-fade-in">
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    4. الشعبة / التخصص <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { id: 'SCIENCE_GENERAL', title: 'علمي علوم', desc: 'تخصص الأحياء والعلوم الطبية' },
+                      { id: 'SCIENCE_MATH', title: 'علمي رياضة', desc: 'تخصص الرياضيات والهندسة' },
+                      { id: 'LITERATURE', title: 'أدبي', desc: 'تخصص العلوم الإنسانية والأدبية' },
+                    ].map((sec) => (
+                      <div
+                        key={sec.id}
+                        onClick={() => handleSectionChange(sec.id)}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between space-y-1.5 ${
+                          formData.section === sec.id
+                            ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-600 ring-2 ring-emerald-500/20 shadow-xs'
+                            : 'bg-stone-50/50 dark:bg-gray-900/40 border-stone-200 dark:border-gray-800 hover:border-emerald-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-xs sm:text-sm text-gray-900 dark:text-white">{sec.title}</span>
+                          {formData.section === sec.id && (
+                            <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400">{sec.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {errors.section && (
+                    <p className="text-xs font-bold text-red-500 flex items-center gap-1 mt-1">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {errors.section}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Step 2 Action Buttons */}
+            <div className="pt-6 flex items-center justify-between gap-4 border-t border-stone-100 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="px-6 py-3 rounded-xl bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 text-gray-700 dark:text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5"
+              >
+                <ChevronRight className="w-4 h-4" />
+                الرجوع للبيانات الشخصية
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGoToStep3}
+                className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
+              >
+                التالي: مراجعة البيانات
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* STEP 3: REVIEW & CONFIRMATION                                 */}
+        {/* ============================================================ */}
+        {step === 3 && (
+          <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+            <div className="space-y-1 text-start border-b border-stone-100 dark:border-gray-800 pb-4">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
+                راجع بياناتك قبل تأكيد الحساب
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                تأكد من صحة جميع البيانات المدخلة قبل الضغط على إنشاء الحساب
+              </p>
+            </div>
+
+            {/* Error Notification Alert if API returned error */}
+            {submitError && (
+              <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2 text-start">
+                <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
+                <span className="flex-1">{submitError}</span>
+              </div>
+            )}
+
+            {/* Summary Box 1: Personal Information */}
+            <div className="p-5 rounded-2xl bg-stone-50/70 dark:bg-gray-900/60 border border-stone-200/80 dark:border-gray-800 space-y-3 text-start">
+              <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-gray-800 pb-2.5">
+                <h3 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                  <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  البيانات الشخصية
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="px-3 py-1 bg-white dark:bg-gray-800 hover:bg-emerald-50 text-emerald-700 dark:text-emerald-400 border border-stone-200 dark:border-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  تعديل
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-400 block font-medium">الاسم الرباعي:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{formData.fullName}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">رقم الهاتف:</span>
+                  <span className="font-bold text-gray-900 dark:text-white dir-ltr inline-block">{formData.studentPhone}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">رقم واتساب:</span>
+                  <span className="font-bold text-gray-900 dark:text-white dir-ltr inline-block">{formData.whatsappPhone}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">رقم ولي الأمر:</span>
+                  <span className="font-bold text-gray-900 dark:text-white dir-ltr inline-block">{formData.parentPhone}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">البريد الإلكتروني:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{formData.email}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">المحافظة:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{selectedGovObj?.name_ar || 'غير محدد'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary Box 2: Academic Information */}
+            <div className="p-5 rounded-2xl bg-stone-50/70 dark:bg-gray-900/60 border border-stone-200/80 dark:border-gray-800 space-y-3 text-start">
+              <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-gray-800 pb-2.5">
+                <h3 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  البيانات الدراسية
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="px-3 py-1 bg-white dark:bg-gray-800 hover:bg-emerald-50 text-emerald-700 dark:text-emerald-400 border border-stone-200 dark:border-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  تعديل
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-400 block font-medium">نوع التعليم:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    {formData.educationType === 'GENERAL' ? 'تعليم عام' : formData.educationType === 'AZHAR' ? 'تعليم أزهري' : 'بكالوريا / دولي'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">مسار الدراسة:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    {formData.studyType === 'ARABIC' ? 'دراسة عربي' : 'دراسة لغات (Languages)'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">الصف الدراسي:</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">{currentYearObj?.title}</span>
+                </div>
+                {formData.section && (
+                  <div>
+                    <span className="text-gray-400 block font-medium">الشعبة / التخصص:</span>
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {formData.section === 'SCIENCE_GENERAL' ? 'علمي علوم' : formData.section === 'SCIENCE_MATH' ? 'علمي رياضة' : 'أدبي'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Terms Agreement Checkbox */}
+            <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 text-start">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.acceptTerms}
+                  onChange={(e) => {
+                    setFormData((prev) => ({ ...prev, acceptTerms: e.target.checked }));
+                    if (errors.acceptTerms) setErrors((prev) => ({ ...prev, acceptTerms: '' }));
+                  }}
+                  className="mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                />
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 leading-relaxed">
+                  أقر بأن البيانات التي أدخلتها صحيحة ودقيقة، وأوافق على شروط وسياسة استخدام منصة مستر عمر مكاوي التعليمية.
+                </span>
+              </label>
+              {errors.acceptTerms && (
+                <p className="text-xs font-bold text-red-500 mt-2 flex items-center gap-1 ms-7">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {errors.acceptTerms}
+                </p>
+              )}
+            </div>
+
+            {/* Step 3 Action Buttons */}
+            <div className="pt-4 flex items-center justify-between gap-4 border-t border-stone-100 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="px-6 py-3 rounded-xl bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 text-gray-700 dark:text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5"
+              >
+                <ChevronRight className="w-4 h-4" />
+                الرجوع للدراسة
+              </button>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-10 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-extrabold text-sm transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    جاري إنشاء الحساب...
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-5 h-5" />
+                    إنشاء الحساب الآن
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* ============================================================ */}
+        {/* STEP 4: SUCCESS STATE SCREEN                                  */}
+        {/* ============================================================ */}
+        {step === 4 && (
+          <div className="py-12 px-4 text-center space-y-4 animate-scale-up">
+            <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-600/20">
+              <CheckCircle2 className="w-12 h-12 stroke-[2.5]" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
+                تم إنشاء حسابك بنجاح!
+              </h2>
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                جاري تحويلك إلى لوحة التحكم الخاصة بك...
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
-      <SectionHeader title="بيانات ولي الأمر" />
-      <div className="grid grid-cols-1 md:grid-cols-2">
-        <InputField label="رقم هاتف ولي الأمر" name="parentPhone" type="tel" placeholder="رقم هاتف ولي الأمر" dir="ltr" />
-      </div>
-
-      <SectionHeader title="البيانات الدراسية" />
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-2">
-        <div>
-          <label className="mb-2 block font-cairo text-sm font-bold text-gray-700 dark:text-gray-300">
-            السنة الدراسية
-          </label>
-          <select
-            name="gradeId"
-            value={formData.gradeId}
-            onChange={handleChange}
-            className={`w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-surface-dark dark:text-white font-cairo ${
-              errors.gradeId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
-          >
-            <option value="">اختر السنة الدراسية</option>
-            <option value="1">الصف الثالث الإعدادي</option>
-            <option value="2">الصف الأول الثانوي</option>
-            <option value="3">الصف الثاني الثانوي</option>
-            <option value="4">الصف الثالث الثانوي</option>
-          </select>
-          {errors.gradeId && <p className="mt-1 text-sm text-red-500 font-cairo">{errors.gradeId}</p>}
+      {/* Login Navigation Link at Footer */}
+      {step < 4 && (
+        <div className="mt-8 text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+          لديك حساب بالفعل على المنصة؟{' '}
+          <Link href="/login" className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline">
+            تسجيل الدخول
+          </Link>
         </div>
-      </div>
-
-      <SectionHeader title="الأمان" />
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label className="mb-2 block font-cairo text-sm font-bold text-gray-700 dark:text-gray-300">
-            كلمة المرور
-          </label>
-          <PasswordInput
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-            showRequirements={true}
-          />
-        </div>
-        <div>
-          <label className="mb-2 block font-cairo text-sm font-bold text-gray-700 dark:text-gray-300">
-            تأكيد كلمة المرور
-          </label>
-          <PasswordInput
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            error={errors.confirmPassword}
-          />
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="mt-8 w-full rounded-lg bg-brand-500 px-4 py-3 text-lg font-bold text-white transition-colors hover:bg-brand-500/90 disabled:opacity-70 font-cairo"
-      >
-        {isSubmitting ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
-      </button>
-
-      <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400 font-cairo">
-        لديك حساب بالفعل؟{' '}
-        <Link href="/login" className="font-bold text-brand-500 hover:underline">
-          تسجيل الدخول
-        </Link>
-      </div>
-    </form>
+      )}
+    </div>
   );
 }
 
 export default function RegisterClient() {
   return (
-    <div className="flex min-h-screen flex-col bg-warm-200 dark:bg-black">
+    <div className="flex min-h-screen flex-col bg-[#f6f8f5] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
       <Navbar />
-      <main className="flex flex-1 items-center justify-center p-4 py-12">
-        <div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-xl dark:bg-surface-dark">
-          <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-brand-500 font-cairo">Omar Meckawy</h1>
-            <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white font-cairo">إنشاء حساب جديد</h2>
-            <p className="text-gray-600 dark:text-gray-400 font-cairo">
-              أنشئ حسابك للوصول إلى جميع الكورسات والمحتوى التعليمي
-            </p>
-          </div>
-          <Suspense fallback={<div className="h-96 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800"></div>}>
-            <RegisterForm />
-          </Suspense>
-        </div>
+      <main className="flex-1 flex items-center justify-center p-4 py-8 sm:py-12">
+        <Suspense fallback={<div className="h-96 w-full max-w-2xl animate-pulse rounded-3xl bg-gray-200 dark:bg-gray-800" />}>
+          <RegisterForm />
+        </Suspense>
       </main>
       <Footer />
     </div>

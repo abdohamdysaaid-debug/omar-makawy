@@ -11,7 +11,51 @@ export interface LoginCredentials {
   two_factor_code?: string;
 }
 
+export interface RegisterPayload {
+  full_name: string;
+  phone: string;
+  whatsapp_phone: string;
+  parent_phone: string;
+  email: string;
+  governorate_id: string;
+  gender: string;
+  password: string;
+  education_type: string;
+  study_type: string;
+  academic_year_id: string;
+  section?: string;
+  school_name?: string;
+  device_uuid?: string;
+  device_type?: string;
+  os_info?: string;
+  browser_info?: string;
+  model_name?: string;
+}
+
+export interface Governorate {
+  id: string;
+  code: string;
+  name_ar: string;
+  name_en: string;
+}
+
 export const authApi = {
+  async register(data: RegisterPayload): Promise<AuthSuccessResponse> {
+    const deviceUuid = getOrCreateDeviceUuid();
+    return apiClient.post<AuthSuccessResponse>('/auth/register', {
+      ...data,
+      device_uuid: deviceUuid,
+      device_type: data.device_type || 'WEB',
+      os_info: data.os_info || (typeof navigator !== 'undefined' ? navigator.platform : 'Desktop'),
+      browser_info: data.browser_info || (typeof navigator !== 'undefined' ? navigator.userAgent.split(' ')[0] : 'Browser'),
+      model_name: data.model_name || 'Web Dashboard',
+    });
+  },
+
+  async getGovernorates(): Promise<Governorate[]> {
+    return apiClient.get<Governorate[]>('/auth/governorates').catch(() => []);
+  },
+
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     const deviceUuid = getOrCreateDeviceUuid();
     return apiClient.post<LoginResponse>('/auth/login', {

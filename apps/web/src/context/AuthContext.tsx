@@ -22,11 +22,16 @@ interface AuthContextType {
 export interface RegisterData {
   fullName: string;
   phone: string;
-  whatsapp: string;
+  whatsapp?: string;
   parentPhone: string;
   email: string;
   password: string;
-  academicYearId: number;
+  academicYearId: number | string;
+  governorateId?: string;
+  gender?: string;
+  educationType?: string;
+  studyType?: string;
+  section?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,10 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: Date.now(),
       fullName: data.fullName,
       phone: data.phone,
-      whatsapp: data.whatsapp,
+      whatsapp: data.whatsapp || data.phone,
       parentPhone: data.parentPhone,
       email: data.email,
-      academicYearId: data.academicYearId,
+      academicYearId: typeof data.academicYearId === 'number' ? data.academicYearId : 1,
     };
     setStudent(newStudent);
     setIsAuthenticated(true);
