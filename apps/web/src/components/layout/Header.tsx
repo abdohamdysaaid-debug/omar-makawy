@@ -46,7 +46,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-30 h-20 bg-white/95 dark:bg-[#0b0f19]/90 backdrop-blur-md border-b border-stone-200/80 dark:border-gray-800/80 shadow-2xs transition-colors">
+    <header className="sticky top-0 z-30 h-20 bg-white/95 dark:bg-[#0b0f19]/90 backdrop-blur-md border-b border-stone-200/80 dark:border-gray-800/80 shadow-sm transition-colors">
       <div className="h-full px-4 sm:px-6 flex items-center justify-between gap-4">
         {/* Left Side: Menu Toggle Buttons & Search bar */}
         <div className="flex items-center gap-3 flex-1 max-w-xl">
@@ -112,7 +112,7 @@ export default function Header({
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 className="flex items-center gap-3 p-1.5 pe-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors focus:outline-none"
               >
-                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white font-bold text-sm flex items-center justify-center shadow-sm">
                   {student.avatarUrl ? (
                     <img
                       src={student.avatarUrl}

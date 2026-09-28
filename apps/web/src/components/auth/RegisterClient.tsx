@@ -379,7 +379,7 @@ function RegisterForm() {
     <div className="w-full max-w-3xl mx-auto animate-fade-in">
       {/* Dedicated Horizontal Stepper Section with Distinct Surface Background */}
       {step < 4 && (
-        <div className="mb-6 py-5 px-4 sm:px-8 rounded-2xl bg-[#e6eee4] dark:bg-[#162132] border border-stone-300/70 dark:border-gray-800 shadow-xs transition-colors duration-300">
+        <div className="mb-6 py-5 px-4 sm:px-8 rounded-2xl bg-[#e6eee4] dark:bg-[#162132] border border-stone-300/70 dark:border-gray-800 shadow-sm transition-colors duration-300">
           <div className="flex items-center justify-between max-w-lg mx-auto px-1 sm:px-4">
             {/* Step 1 */}
             <button
@@ -705,7 +705,7 @@ function RegisterForm() {
                     onClick={() => setFormData((prev) => ({ ...prev, gender: 'MALE' }))}
                     className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
                       formData.gender === 'MALE'
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : 'bg-[#f8faf7] dark:bg-[#1f293d] border-stone-300/80 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-[#253249]'
                     }`}
                   >
@@ -716,7 +716,7 @@ function RegisterForm() {
                     onClick={() => setFormData((prev) => ({ ...prev, gender: 'FEMALE' }))}
                     className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
                       formData.gender === 'FEMALE'
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : 'bg-[#f8faf7] dark:bg-[#1f293d] border-stone-300/80 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-[#253249]'
                     }`}
                   >
@@ -1021,7 +1021,7 @@ function RegisterForm() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-3 py-1 bg-white dark:bg-gray-800 hover:bg-emerald-50 text-emerald-700 dark:text-emerald-400 border border-stone-200 dark:border-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs"
+                  className="px-3 py-1 bg-white dark:bg-gray-800 hover:bg-emerald-50 text-emerald-700 dark:text-emerald-400 border border-stone-200 dark:border-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   تعديل

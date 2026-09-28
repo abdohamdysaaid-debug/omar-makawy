@@ -51,8 +51,8 @@ function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <div>
-        <label className="mb-2 block font-cairo text-sm font-bold text-gray-700 dark:text-gray-300">
+      <div className="text-start">
+        <label className="mb-2 block font-cairo text-xs font-bold text-gray-700 dark:text-gray-300">
           رقم الهاتف أو البريد الإلكتروني
         </label>
         <input
@@ -60,16 +60,16 @@ function LoginForm() {
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           placeholder="أدخل رقم الهاتف أو البريد الإلكتروني"
-          className={`w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-surface-dark dark:text-white font-cairo ${
-            errors.identifier ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+          className={`w-full rounded-xl border px-4 py-3 bg-[#f8faf7] dark:bg-[#1f293d] text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all font-cairo ${
+            errors.identifier ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
           }`}
           dir="auto"
         />
-        {errors.identifier && <p className="mt-1 text-sm text-red-500 font-cairo">{errors.identifier}</p>}
+        {errors.identifier && <p className="mt-1 text-xs font-bold text-red-500 font-cairo">{errors.identifier}</p>}
       </div>
 
-      <div>
-        <label className="mb-2 block font-cairo text-sm font-bold text-gray-700 dark:text-gray-300">
+      <div className="text-start">
+        <label className="mb-2 block font-cairo text-xs font-bold text-gray-700 dark:text-gray-300">
           كلمة المرور
         </label>
         <PasswordInput
@@ -78,7 +78,7 @@ function LoginForm() {
           error={errors.password}
         />
         <div className="mt-2 text-end">
-          <Link href="/forgot-password" className="text-sm font-bold text-brand-500 hover:underline font-cairo">
+          <Link href="/forgot-password" className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline font-cairo">
             نسيت كلمة المرور؟
           </Link>
         </div>
@@ -87,14 +87,14 @@ function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-4 w-full rounded-lg bg-brand-500 px-4 py-3 font-bold text-white transition-colors hover:bg-brand-500/90 disabled:opacity-70 font-cairo"
+        className="mt-4 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-3.5 font-bold text-white transition-all shadow-md shadow-emerald-600/20 disabled:opacity-70 font-cairo text-sm"
       >
         {isSubmitting ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
       </button>
 
-      <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 font-cairo">
+      <div className="mt-4 text-center text-sm font-medium text-gray-600 dark:text-gray-400 font-cairo">
         ليس لديك حساب؟{' '}
-        <Link href="/register" className="font-bold text-brand-500 hover:underline">
+        <Link href="/register" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
           إنشاء حساب جديد
         </Link>
       </div>
@@ -104,15 +104,15 @@ function LoginForm() {
 
 export default function LoginClient() {
   return (
-    <div className="flex min-h-screen flex-col bg-warm-200 dark:bg-black">
+    <div className="flex min-h-screen flex-col bg-[#f4f7f4] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
       <Navbar />
       <main className="flex flex-1 items-center justify-center p-4 py-12">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl dark:bg-surface-dark">
+        <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#111827] p-8 sm:p-10 border border-stone-200/90 dark:border-gray-800/90 shadow-md transition-colors">
           <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-brand-500 font-cairo">Omar Meckawy</h1>
+            <h1 className="mb-2 text-3xl font-black text-emerald-600 dark:text-emerald-400 font-cairo">Omar Meckawy</h1>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white font-cairo">تسجيل الدخول</h2>
           </div>
-          <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800"></div>}>
+          <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800"></div>}>
             <LoginForm />
           </Suspense>
         </div>
