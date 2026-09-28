@@ -39,7 +39,7 @@ export default function StudentHomeClient() {
       try {
         const queryParams = academicYearId ? `?academicYearId=${academicYearId}` : '';
         const coursesRes = await apiClient.get<Course[]>(`/courses${queryParams}`).catch(() => []);
-        const lecturesRes = await apiClient.get<Lecture[]>(`/lectures${queryParams}`).catch(() => []);
+        const lecturesRes = await apiClient.get<Lecture[]>('/lectures/my-lectures').catch(() => []);
 
         if (isMounted) {
           if (Array.isArray(coursesRes) && coursesRes.length > 0) {
@@ -58,11 +58,8 @@ export default function StudentHomeClient() {
             setInProgressCourses([]);
           }
 
-          if (Array.isArray(lecturesRes) && lecturesRes.length > 0) {
-            const filteredLectures = academicYearId
-              ? lecturesRes.filter((l: any) => l.academicYearId === academicYearId || !l.academicYearId)
-              : lecturesRes;
-            setLatestLectures(filteredLectures.slice(0, 4));
+          if (Array.isArray(lecturesRes)) {
+            setLatestLectures(lecturesRes.slice(0, 4));
           } else {
             setLatestLectures([]);
           }
@@ -327,10 +324,10 @@ export default function StudentHomeClient() {
           ) : (
             <EmptyState
               icon="PlaySquare"
-              title="لا توجد محاضرات متاحة حالياً"
-              description="لم يتم إضافة محاضرات جديدة لمرحلتك الدراسية حتى الآن. ستظهر المحاضرات فور نشرها من قبل المعلم."
-              actionText="تصفح جميع الكورسات"
-              actionUrl="/courses"
+              title="لا توجد محاضرات متاحة لك حالياً"
+              description="لم تقم بالاشتراك في أي كورس أو باقة بعد، أو لم يتم إتاحة محاضرات حسابك حالياً. يمكنك تصفح الاشتراكات والباقات للبدء."
+              actionText="تصفح الباقات والاشتراكات"
+              actionUrl="/student/subscriptions"
             />
           )}
         </section>

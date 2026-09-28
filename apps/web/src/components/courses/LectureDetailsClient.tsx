@@ -36,6 +36,7 @@ export default function LectureDetailsClient({
   const [course, setCourse] = useState<Course | null>(null);
   const [courseLectures, setCourseLectures] = useState<Lecture[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState<'video' | 'solution' | 'pdf' | 'notes' | 'quiz'>('video');
 
   useEffect(() => {
@@ -43,8 +44,26 @@ export default function LectureDetailsClient({
 
     async function loadLectureData() {
       setLoading(true);
+      setAccessDenied(false);
       try {
-        const apiLecture = await apiClient.get<Lecture>(`/lectures/${lectureId}`).catch(() => null);
+        let apiLecture: Lecture | null = null;
+        try {
+          apiLecture = await apiClient.get<Lecture>(`/lectures/${lectureId}`);
+        } catch (err: any) {
+          if (
+            err?.status === 403 ||
+            err?.response?.status === 403 ||
+            err?.error_code === 'LECTURE_ACCESS_DENIED' ||
+            String(err).includes('403')
+          ) {
+            if (isMounted) {
+              setAccessDenied(true);
+              setLecture(null);
+            }
+            return;
+          }
+        }
+
         const apiCourse = await apiClient.get<Course>(`/courses/${courseId}`).catch(() => null);
         const apiLectures = await apiClient.get<Lecture[]>(`/courses/${courseId}/lectures`).catch(() => null);
 
@@ -97,6 +116,22 @@ export default function LectureDetailsClient({
         <div className="space-y-6 animate-pulse">
           <div className="aspect-video rounded-3xl bg-gray-200 dark:bg-gray-800" />
           <div className="h-40 rounded-3xl bg-gray-200 dark:bg-gray-800" />
+        </div>
+      </StudentLayout>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <StudentLayout>
+        <div className="py-12">
+          <EmptyState
+            icon="Lock"
+            title="غير مصرح لك بمشاهدة هذه المحاضرة"
+            description="هذه المحاضرة مخصصة للطلاب المشتركين في الكورس فقط. يرجى تفعيل أو شراء الاشتراك للوصول."
+            actionText="تصفح الباقات والاشتراكات"
+            actionUrl="/student/subscriptions"
+          />
         </div>
       </StudentLayout>
     );
