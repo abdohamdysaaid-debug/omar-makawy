@@ -16,7 +16,7 @@ export interface RegisterPayload {
   phone: string;
   whatsapp_phone: string;
   parent_phone: string;
-  email: string;
+  email?: string;
   governorate_id: string;
   gender: string;
   password: string;
