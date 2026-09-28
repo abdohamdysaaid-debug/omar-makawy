@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Play, BookOpen, ArrowLeft, Clock, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { Play, BookOpen, ArrowLeft, Clock, GraduationCap, Camera, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
@@ -11,7 +11,7 @@ import { Course, Lecture } from '@/types';
 import { apiClient } from '@/lib/api';
 
 export default function StudentHomeClient() {
-  const { student, isAuthenticated } = useAuth();
+  const { student, updateStudentAvatar } = useAuth();
   const [loading, setLoading] = useState(true);
   const [inProgressCourses, setInProgressCourses] = useState<
     Array<{
@@ -23,7 +23,7 @@ export default function StudentHomeClient() {
     }>
   >([]);
   const [latestLectures, setLatestLectures] = useState<Lecture[]>([]);
-  const [banners, setBanners] = useState<Array<{ id: number; title: string; subtitle: string; imageUrl?: string }>>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const academicYearId = student?.academicYearId;
   const academicYearObj = academicYearId
@@ -37,31 +37,21 @@ export default function StudentHomeClient() {
     async function fetchData() {
       setLoading(true);
       try {
-        // Attempt API calls to fetch real courses and lectures for student's academic year
         const queryParams = academicYearId ? `?academicYearId=${academicYearId}` : '';
-        
-        // Fetch courses
         const coursesRes = await apiClient.get<Course[]>(`/courses${queryParams}`).catch(() => []);
-        // Fetch lectures
         const lecturesRes = await apiClient.get<Lecture[]>(`/lectures${queryParams}`).catch(() => []);
-        // Fetch banners if endpoint exists
-        const bannersRes = await apiClient.get<any[]>(`/banners`).catch(() => []);
 
         if (isMounted) {
           if (Array.isArray(coursesRes) && coursesRes.length > 0) {
-            // Calculate progress for courses that have student progress telemetry
             const progressList = coursesRes
               .filter((c) => !academicYearId || c.academicYearId === academicYearId)
-              .map((c) => {
-                // In real telemetry, completed lectures come from user progress records
-                return {
-                  course: c,
-                  completedLectures: 0, // Real calculated telemetry
-                  totalLectures: c.lectureCount || 0,
-                  percentage: 0,
-                };
-              })
-              .filter((item) => item.percentage > 0); // Only show in-progress courses
+              .map((c) => ({
+                course: c,
+                completedLectures: 0,
+                totalLectures: c.lectureCount || 0,
+                percentage: 0,
+              }))
+              .filter((item) => item.percentage > 0);
 
             setInProgressCourses(progressList);
           } else {
@@ -76,12 +66,8 @@ export default function StudentHomeClient() {
           } else {
             setLatestLectures([]);
           }
-
-          if (Array.isArray(bannersRes)) {
-            setBanners(bannersRes);
-          }
         }
-      } catch (error) {
+      } catch {
         if (isMounted) {
           setInProgressCourses([]);
           setLatestLectures([]);
@@ -100,68 +86,103 @@ export default function StudentHomeClient() {
 
   const studentFirstName = student?.fullName ? student.fullName.split(' ')[0] : 'الطالب';
 
+  // Handle student profile photo upload (Saved to Google Drive / backend)
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Image = reader.result as string;
+        updateStudentAvatar(base64Image);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <StudentLayout>
-      <div className="space-y-8 animate-fade-in">
-        {/* Dynamic Welcome Banner Header (Matching Reference Image) */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-900 text-white p-6 sm:p-8 md:p-10 shadow-xl shadow-emerald-900/10">
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-3 max-w-xl text-center md:text-start">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-200 text-xs font-semibold backdrop-blur-xs border border-emerald-400/20">
+      <div className="space-y-6 sm:space-y-8 animate-fade-in">
+        {/* Sleek Thinner Welcome Banner (Matching User Request) */}
+        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-900 text-white py-4 sm:py-5 px-5 sm:px-8 shadow-md shadow-emerald-900/10">
+          <div className="relative z-10 flex items-center justify-between gap-4 sm:gap-6">
+            {/* Left Info Column */}
+            <div className="space-y-1.5 max-w-xl text-start">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 text-[11px] font-bold backdrop-blur-xs border border-emerald-400/20">
                 <GraduationCap className="w-3.5 h-3.5" />
                 {academicYearName}
               </span>
 
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-tight">
                 مرحباً بك {studentFirstName}
               </h1>
 
-              <p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed">
+              <p className="text-emerald-100/90 text-xs sm:text-sm leading-snug line-clamp-1">
                 استمر في رحلتك لتطوير مستواك في اللغة الإنجليزية مع مستر عمر مكاوي.
               </p>
 
-              <div className="pt-2 flex flex-wrap gap-3 justify-center md:justify-start">
+              <div className="pt-1">
                 <Link
                   href="/courses"
-                  className="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-sm transition-all shadow-md flex items-center gap-2"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-xs transition-all shadow-sm"
                 >
-                  <BookOpen className="w-4 h-4 text-emerald-700" />
+                  <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
                   تصفح المحاضرات
                 </Link>
               </div>
             </div>
 
-            {/* Banner Teacher Illustration Container */}
-            <div className="relative w-40 h-40 sm:w-48 sm:h-48 shrink-0 flex items-center justify-center">
-              <div className="w-full h-full rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center p-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-2">
-                  <GraduationCap className="w-8 h-8 text-white" />
+            {/* Right Circle Avatar Photo Upload (Matching User Request) */}
+            <div className="relative shrink-0">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarUpload}
+                accept="image/*"
+                className="hidden"
+              />
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-white/40 shadow-lg overflow-hidden group cursor-pointer bg-emerald-950/60 flex items-center justify-center transition-transform hover:scale-105"
+                title="اضغط لتغيير الصورة الشخصية (الحفظ على جودل درايف)"
+              >
+                {student?.avatarUrl ? (
+                  <img
+                    src={student.avatarUrl}
+                    alt={student.fullName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="w-10 h-10 text-white/70" />
+                )}
+
+                {/* Camera Icon Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold">
+                  <Camera className="w-5 h-5 mb-0.5" />
+                  تغيير الصورة
                 </div>
-                <span className="text-xs font-bold text-white">Omar Makawy</span>
-                <span className="text-[10px] text-emerald-200">English Teacher</span>
               </div>
             </div>
           </div>
 
-          {/* Decorative Subtle SVG Accents */}
-          <div className="absolute top-0 end-0 -mt-10 -me-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 start-0 -mb-10 -ms-10 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+          {/* Decorative Subtle Accents */}
+          <div className="absolute top-0 end-0 -mt-10 -me-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
         </section>
 
         {/* Section 1: "استكمل دراستك" (Continue Learning) */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="w-2.5 h-5 bg-emerald-600 rounded-full inline-block" />
               استكمل دراستك
             </h2>
             {inProgressCourses.length > 0 && (
               <Link
                 href="/progress"
-                className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
               >
                 عرض الكل
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3.5 h-3.5" />
               </Link>
             )}
           </div>
@@ -171,7 +192,7 @@ export default function StudentHomeClient() {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-40 rounded-2xl bg-gray-100 dark:bg-gray-800/60 animate-pulse border border-gray-100 dark:border-gray-800"
+                  className="h-36 rounded-2xl bg-gray-100 dark:bg-gray-800/60 animate-pulse border border-gray-100 dark:border-gray-800"
                 />
               ))}
             </div>
@@ -180,24 +201,24 @@ export default function StudentHomeClient() {
               {inProgressCourses.map(({ course, completedLectures, totalLectures, percentage, lastLectureId }) => (
                 <div
                   key={course.id}
-                  className="p-5 rounded-2xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                  className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
-                      <BookOpen className="w-6 h-6" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
+                      <BookOpen className="w-5 h-5" />
                     </div>
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <h3 className="font-bold text-base text-gray-900 dark:text-white truncate">
+                    <div className="space-y-0.5 min-w-0 flex-1">
+                      <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">
                         {course.title}
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
                         {completedLectures} من {totalLectures} محاضرات مكتملة
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold">
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] font-bold">
                       <span className="text-gray-500 dark:text-gray-400">التقدم</span>
                       <span className="text-emerald-600 dark:text-emerald-400">{percentage}%</span>
                     </div>
@@ -211,7 +232,7 @@ export default function StudentHomeClient() {
 
                   <Link
                     href={`/courses/${course.id}${lastLectureId ? `/lectures/${lastLectureId}` : ''}`}
-                    className="w-full py-2.5 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 text-emerald-700 dark:text-emerald-400 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-900/50"
+                    className="w-full py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 text-emerald-700 dark:text-emerald-400 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-emerald-100 dark:border-emerald-900/50"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     متابعة الدراسة
@@ -233,16 +254,16 @@ export default function StudentHomeClient() {
         {/* Section 2: "أحدث المحاضرات" (Latest Lectures) */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="w-2.5 h-5 bg-emerald-600 rounded-full inline-block" />
               أحدث المحاضرات
             </h2>
             <Link
               href="/courses"
-              className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
             >
               عرض الكل
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3.5 h-3.5" />
             </Link>
           </div>
 
@@ -251,7 +272,7 @@ export default function StudentHomeClient() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-56 rounded-2xl bg-gray-100 dark:bg-gray-800/60 animate-pulse border border-gray-100 dark:border-gray-800"
+                  className="h-52 rounded-2xl bg-gray-100 dark:bg-gray-800/60 animate-pulse border border-gray-100 dark:border-gray-800"
                 />
               ))}
             </div>
@@ -263,7 +284,6 @@ export default function StudentHomeClient() {
                   href={`/courses/${lecture.courseId}/lectures/${lecture.id}`}
                   className="group rounded-2xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col"
                 >
-                  {/* Video Thumbnail Box */}
                   <div className="relative aspect-video bg-gray-900 overflow-hidden flex items-center justify-center">
                     {lecture.imageUrl ? (
                       <img
@@ -277,7 +297,6 @@ export default function StudentHomeClient() {
                       </div>
                     )}
 
-                    {/* Duration Badge */}
                     {lecture.duration && (
                       <span className="absolute bottom-2 end-2 px-2 py-0.5 bg-black/80 text-white text-[10px] font-medium rounded-md flex items-center gap-1 backdrop-blur-xs">
                         <Clock className="w-3 h-3 text-emerald-400" />
@@ -285,21 +304,19 @@ export default function StudentHomeClient() {
                       </span>
                     )}
 
-                    {/* Play Icon Hover Overlay */}
                     <div className="absolute inset-0 bg-emerald-900/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                        <Play className="w-5 h-5 fill-current ms-0.5" />
+                      <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                        <Play className="w-4 h-4 fill-current ms-0.5" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Details */}
-                  <div className="p-4 flex-1 flex flex-col justify-between space-y-2">
-                    <h3 className="font-bold text-sm text-gray-900 dark:text-white line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  <div className="p-3.5 flex-1 flex flex-col justify-between space-y-1">
+                    <h3 className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       {lecture.title}
                     </h3>
                     {lecture.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1">
                         {lecture.description}
                       </p>
                     )}

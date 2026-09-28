@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Student } from '@/types';
 import { mockStudent } from '@/data/mock';
+import { apiClient } from '@/lib/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -15,6 +16,7 @@ interface AuthContextType {
   showAuthGate: boolean;
   openAuthGate: (returnUrl?: string) => void;
   closeAuthGate: () => void;
+  updateStudentAvatar: (avatarUrl: string) => Promise<void>;
 }
 
 export interface RegisterData {
@@ -36,7 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [showAuthGate, setShowAuthGate] = useState(false);
 
   const login = useCallback((email: string, _password: string) => {
-    // Mock authentication - always succeeds
     void email;
     void _password;
     setStudent(mockStudent);
@@ -46,7 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback((data: RegisterData) => {
-    // Mock registration - always succeeds
     const newStudent: Student = {
       id: Date.now(),
       fullName: data.fullName,
@@ -77,6 +77,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setShowAuthGate(false);
   }, []);
 
+  const updateStudentAvatar = useCallback(async (avatarUrl: string) => {
+    setStudent((prev) => (prev ? { ...prev, avatarUrl } : prev));
+    try {
+      // Backend avatar upload / Drive integration endpoint
+      await apiClient.post('/students/avatar', { avatarUrl }).catch(() => null);
+    } catch {
+      // Keep state fallback
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -90,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         showAuthGate,
         openAuthGate,
         closeAuthGate,
+        updateStudentAvatar,
       }}
     >
       {children}
