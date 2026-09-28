@@ -51,14 +51,14 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container — Fixed on Right Edge for RTL */}
       <aside
         className={`fixed top-0 bottom-0 start-0 z-50 flex flex-col w-64 bg-white dark:bg-[#0b0f19] border-e border-gray-100 dark:border-gray-800/80 transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'rtl:translate-x-full ltr:-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Brand Header */}
-        <div className="flex items-center justify-between h-20 px-6 border-b border-gray-100 dark:border-gray-800/60">
+        <div className="flex items-center justify-between h-20 px-6 border-b border-gray-100 dark:border-gray-800/60 shrink-0">
           <Link href="/" className="flex items-center gap-3 group" onClick={onClose}>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white font-black flex items-center justify-center text-lg shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
               OM
@@ -83,8 +83,8 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 scrollbar-thin">
+        {/* Navigation Items with Visible Custom Vertical Slider/Scrollbar */}
+        <div className="flex-1 overflow-y-scroll px-4 py-4 space-y-1.5 sidebar-scrollbar">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
@@ -108,7 +108,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </div>
 
         {/* Sidebar Footer Teacher Card */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-800/60">
+        <div className="p-4 border-t border-gray-100 dark:border-gray-800/60 shrink-0">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-50/70 dark:bg-gray-900/60 border border-emerald-100/50 dark:border-gray-800">
             <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
               <GraduationCap className="w-5 h-5 text-white" />
