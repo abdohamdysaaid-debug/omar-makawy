@@ -379,7 +379,7 @@ function RegisterForm() {
     <div className="w-full max-w-3xl mx-auto animate-fade-in">
       {/* Dedicated Horizontal Stepper Section with Distinct Surface Background */}
       {step < 4 && (
-        <div className="mb-6 py-5 px-4 sm:px-8 rounded-2xl bg-[#e6eee4] dark:bg-[#162132] border border-stone-300/70 dark:border-gray-800 shadow-sm transition-colors duration-300">
+        <div className="mb-6 py-5 px-4 sm:px-8 rounded-2xl bg-[#dce6db] dark:bg-[#162132] border-2 border-emerald-950/15 dark:border-gray-800 shadow-sm transition-colors duration-300">
           <div className="flex items-center justify-between max-w-lg mx-auto px-1 sm:px-4">
             {/* Step 1 */}
             <button
@@ -392,10 +392,10 @@ function RegisterForm() {
               <span
                 className={`text-lg sm:text-xl font-black leading-none transition-colors ${
                   step === 1
-                    ? 'text-emerald-700 dark:text-emerald-400'
+                    ? 'text-emerald-800 dark:text-emerald-400'
                     : step > 1
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-gray-400 dark:text-gray-500'
+                    ? 'text-emerald-700 dark:text-emerald-400'
+                    : 'text-gray-500 dark:text-gray-500'
                 }`}
               >
                 1
@@ -403,10 +403,10 @@ function RegisterForm() {
               <span
                 className={`text-xs sm:text-sm font-bold transition-colors ${
                   step === 1
-                    ? 'text-emerald-800 dark:text-emerald-300 font-extrabold'
+                    ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
                     : step > 1
-                    ? 'text-emerald-700 dark:text-emerald-400 font-bold'
-                    : 'text-gray-500 dark:text-gray-400 font-semibold'
+                    ? 'text-emerald-800 dark:text-emerald-400 font-bold'
+                    : 'text-gray-600 dark:text-gray-400 font-semibold'
                 }`}
               >
                 بياناتك
@@ -414,9 +414,9 @@ function RegisterForm() {
               <div
                 className={`h-0.5 w-10 sm:w-16 rounded-full transition-all duration-300 ${
                   step === 1
-                    ? 'bg-emerald-600 dark:bg-emerald-400'
+                    ? 'bg-emerald-700 dark:bg-emerald-400'
                     : step > 1
-                    ? 'bg-emerald-500/50 dark:bg-emerald-500/40'
+                    ? 'bg-emerald-600/50 dark:bg-emerald-500/40'
                     : 'bg-transparent'
                 }`}
               />
@@ -425,7 +425,7 @@ function RegisterForm() {
             {/* Divider Line 1-2 */}
             <div
               className={`flex-1 h-0.5 mx-3 sm:mx-6 rounded-full transition-colors duration-300 ${
-                step > 1 ? 'bg-emerald-500/40 dark:bg-emerald-500/30' : 'bg-stone-300/80 dark:bg-gray-700/80'
+                step > 1 ? 'bg-emerald-600/50 dark:bg-emerald-500/30' : 'bg-stone-300/90 dark:bg-gray-700/80'
               }`}
             />
 
@@ -440,10 +440,10 @@ function RegisterForm() {
               <span
                 className={`text-lg sm:text-xl font-black leading-none transition-colors ${
                   step === 2
-                    ? 'text-emerald-700 dark:text-emerald-400'
+                    ? 'text-emerald-800 dark:text-emerald-400'
                     : step > 2
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-gray-400 dark:text-gray-500'
+                    ? 'text-emerald-700 dark:text-emerald-400'
+                    : 'text-gray-500 dark:text-gray-500'
                 }`}
               >
                 2
@@ -451,10 +451,10 @@ function RegisterForm() {
               <span
                 className={`text-xs sm:text-sm font-bold transition-colors ${
                   step === 2
-                    ? 'text-emerald-800 dark:text-emerald-300 font-extrabold'
+                    ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
                     : step > 2
-                    ? 'text-emerald-700 dark:text-emerald-400 font-bold'
-                    : 'text-gray-500 dark:text-gray-400 font-semibold'
+                    ? 'text-emerald-800 dark:text-emerald-400 font-bold'
+                    : 'text-gray-600 dark:text-gray-400 font-semibold'
                 }`}
               >
                 دراستك
@@ -462,9 +462,9 @@ function RegisterForm() {
               <div
                 className={`h-0.5 w-10 sm:w-16 rounded-full transition-all duration-300 ${
                   step === 2
-                    ? 'bg-emerald-600 dark:bg-emerald-400'
+                    ? 'bg-emerald-700 dark:bg-emerald-400'
                     : step > 2
-                    ? 'bg-emerald-500/50 dark:bg-emerald-500/40'
+                    ? 'bg-emerald-600/50 dark:bg-emerald-500/40'
                     : 'bg-transparent'
                 }`}
               />
@@ -473,7 +473,7 @@ function RegisterForm() {
             {/* Divider Line 2-3 */}
             <div
               className={`flex-1 h-0.5 mx-3 sm:mx-6 rounded-full transition-colors duration-300 ${
-                step > 2 ? 'bg-emerald-500/40 dark:bg-emerald-500/30' : 'bg-stone-300/80 dark:bg-gray-700/80'
+                step > 2 ? 'bg-emerald-600/50 dark:bg-emerald-500/30' : 'bg-stone-300/90 dark:bg-gray-700/80'
               }`}
             />
 
@@ -482,8 +482,8 @@ function RegisterForm() {
               <span
                 className={`text-lg sm:text-xl font-black leading-none transition-colors ${
                   step === 3
-                    ? 'text-emerald-700 dark:text-emerald-400'
-                    : 'text-gray-400 dark:text-gray-500'
+                    ? 'text-emerald-800 dark:text-emerald-400'
+                    : 'text-gray-500 dark:text-gray-500'
                 }`}
               >
                 3
@@ -491,15 +491,15 @@ function RegisterForm() {
               <span
                 className={`text-xs sm:text-sm font-bold transition-colors ${
                   step === 3
-                    ? 'text-emerald-800 dark:text-emerald-300 font-extrabold'
-                    : 'text-gray-500 dark:text-gray-400 font-semibold'
+                    ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
+                    : 'text-gray-600 dark:text-gray-400 font-semibold'
                 }`}
               >
                 مراجعة وتأكيد
               </span>
               <div
                 className={`h-0.5 w-10 sm:w-16 rounded-full transition-all duration-300 ${
-                  step === 3 ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-transparent'
+                  step === 3 ? 'bg-emerald-700 dark:bg-emerald-400' : 'bg-transparent'
                 }`}
               />
             </div>
@@ -507,19 +507,19 @@ function RegisterForm() {
         </div>
       )}
 
-      {/* Main Card Container with Visible Layering */}
-      <div className="rounded-3xl bg-white dark:bg-[#111827] border border-stone-200/90 dark:border-gray-800/90 shadow-sm p-6 sm:p-10 transition-colors duration-300">
+      {/* Main Card Container with Visible Crisp Border & Surface Separation */}
+      <div className="rounded-3xl bg-white dark:bg-[#111827] border-2 border-stone-300/90 dark:border-gray-800/90 shadow-md p-6 sm:p-10 transition-colors duration-300">
         {/* ============================================================ */}
         {/* STEP 1: PERSONAL INFORMATION                                  */}
         {/* ============================================================ */}
         {step === 1 && (
           <div className="space-y-6 animate-fade-in">
-            <div className="space-y-1 text-start border-b border-stone-100 dark:border-gray-800 pb-4">
+            <div className="space-y-1 text-start border-b border-stone-200 dark:border-gray-800 pb-4">
               <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                 <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
                 البيانات الشخصية
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
                 أدخل بياناتك الأساسية بدقة لتأهيل حسابك التعليمي
               </p>
             </div>
@@ -527,7 +527,7 @@ function RegisterForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* 1. Full Name (4 words min, each >= 2 chars) */}
               <div className="sm:col-span-2 space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   الاسم الرباعي <span className="text-red-500">*</span>
                 </label>
@@ -537,11 +537,11 @@ function RegisterForm() {
                   value={formData.fullName}
                   onChange={handleInputChange}
                   placeholder="مثال: أحمد محمد علي حسن"
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.fullName ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.fullName ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 />
-                <p className="text-[11px] text-gray-500 dark:text-gray-400">اكتب اسمك رباعي كما هو في السجلات الرسمية (4 كلمات على الأقل، ويكون كل جزء من حرفين على الأقل)</p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">اكتب اسمك رباعي كما هو في السجلات الرسمية (4 كلمات على الأقل، ويكون كل جزء من حرفين على الأقل)</p>
                 {errors.fullName && (
                   <p className="text-xs font-bold text-red-500 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5" />
@@ -552,7 +552,7 @@ function RegisterForm() {
 
               {/* 2. Student Phone */}
               <div className="space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   رقم الهاتف <span className="text-red-500">*</span>
                 </label>
@@ -564,8 +564,8 @@ function RegisterForm() {
                   value={formData.studentPhone}
                   onChange={handleInputChange}
                   placeholder="010XXXXXXXX"
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.studentPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.studentPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 />
                 {errors.studentPhone && (
@@ -579,7 +579,7 @@ function RegisterForm() {
               {/* 3. Student WhatsApp */}
               <div className="space-y-1.5 text-start">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                     <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     رقم واتساب الطالب <span className="text-red-500">*</span>
                   </label>
@@ -602,9 +602,9 @@ function RegisterForm() {
                   value={formData.whatsappPhone}
                   onChange={handleInputChange}
                   placeholder="010XXXXXXXX"
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    formData.sameAsPhone ? 'opacity-60 cursor-not-allowed bg-stone-100 dark:bg-gray-800' : ''
-                  } ${errors.whatsappPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'}`}
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    formData.sameAsPhone ? 'opacity-60 cursor-not-allowed bg-stone-200/80 dark:bg-gray-800' : ''
+                  } ${errors.whatsappPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'}`}
                 />
                 {errors.whatsappPhone && (
                   <p className="text-xs font-bold text-red-500 flex items-center gap-1">
@@ -616,7 +616,7 @@ function RegisterForm() {
 
               {/* 4. Parent Phone */}
               <div className="space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   رقم هاتف ولي الأمر <span className="text-red-500">*</span>
                 </label>
@@ -628,8 +628,8 @@ function RegisterForm() {
                   value={formData.parentPhone}
                   onChange={handleInputChange}
                   placeholder="011XXXXXXXX"
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.parentPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.parentPhone ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 />
                 {errors.parentPhone && (
@@ -642,9 +642,9 @@ function RegisterForm() {
 
               {/* 5. Optional Email */}
               <div className="space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  البريد الإلكتروني <span className="text-gray-400 font-normal">(اختياري)</span>
+                  البريد الإلكتروني <span className="text-gray-500 dark:text-gray-400 font-normal">(اختياري)</span>
                 </label>
                 <input
                   type="email"
@@ -653,8 +653,8 @@ function RegisterForm() {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="student@example.com"
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 />
                 {errors.email && (
@@ -667,7 +667,7 @@ function RegisterForm() {
 
               {/* 6. Governorate Dropdown with Fully Styled Options in Dark Mode */}
               <div className="space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   المحافظة <span className="text-red-500">*</span>
                 </label>
@@ -675,8 +675,8 @@ function RegisterForm() {
                   name="governorateId"
                   value={formData.governorateId}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.governorateId ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.governorateId ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 >
                   <option value="" className="bg-white dark:bg-[#111827] text-gray-900 dark:text-gray-100 font-medium">-- اختر المحافظة --</option>
@@ -696,17 +696,17 @@ function RegisterForm() {
 
               {/* 7. Gender */}
               <div className="space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200">
                   النوع <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, gender: 'MALE' }))}
-                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
+                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border-2 transition-all flex items-center justify-center gap-2 ${
                       formData.gender === 'MALE'
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                        : 'bg-[#f8faf7] dark:bg-[#1f293d] border-stone-300/80 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-[#253249]'
+                        : 'bg-[#f4f7f4] dark:bg-[#1f293d] border-stone-300/90 dark:border-gray-700 text-gray-800 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-[#253249]'
                     }`}
                   >
                     ذكر (Male)
@@ -714,10 +714,10 @@ function RegisterForm() {
                   <button
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, gender: 'FEMALE' }))}
-                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
+                    className={`py-2.5 px-4 rounded-xl text-xs font-bold border-2 transition-all flex items-center justify-center gap-2 ${
                       formData.gender === 'FEMALE'
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                        : 'bg-[#f8faf7] dark:bg-[#1f293d] border-stone-300/80 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-[#253249]'
+                        : 'bg-[#f4f7f4] dark:bg-[#1f293d] border-stone-300/90 dark:border-gray-700 text-gray-800 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-[#253249]'
                     }`}
                   >
                     أنثى (Female)
@@ -727,7 +727,7 @@ function RegisterForm() {
 
               {/* 8. Password with Focus Requirement Box */}
               <div className="space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   كلمة المرور <span className="text-red-500">*</span>
                 </label>
@@ -740,14 +740,14 @@ function RegisterForm() {
                     onFocus={() => setIsPasswordFocused(true)}
                     onChange={handleInputChange}
                     placeholder="••••••••"
-                    className={`w-full px-4 py-3 pe-10 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                      errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                    className={`w-full px-4 py-3 pe-10 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                      errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -755,22 +755,22 @@ function RegisterForm() {
                 
                 {/* Live Password Requirements Panel */}
                 {(isPasswordFocused || formData.password.length > 0) && (
-                  <div className="p-3 rounded-xl bg-[#f4f7f3] dark:bg-[#192233] border border-stone-200 dark:border-gray-800 space-y-1.5 mt-2 animate-fade-in">
-                    <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-1">متطلبات كلمة المرور:</p>
+                  <div className="p-3 rounded-xl bg-[#eef3ee] dark:bg-[#192233] border-2 border-stone-300/70 dark:border-gray-800 space-y-1.5 mt-2 animate-fade-in">
+                    <p className="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">متطلبات كلمة المرور:</p>
                     <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                      <div className={`flex items-center gap-1 font-semibold ${hasUppercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                      <div className={`flex items-center gap-1 font-semibold ${hasUppercase ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-500'}`}>
                         {hasUppercase ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <span className="w-3.5 inline-block text-center">•</span>}
                         حرف كبير (A-Z)
                       </div>
-                      <div className={`flex items-center gap-1 font-semibold ${hasLowercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                      <div className={`flex items-center gap-1 font-semibold ${hasLowercase ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-500'}`}>
                         {hasLowercase ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <span className="w-3.5 inline-block text-center">•</span>}
                         حرف صغير (a-z)
                       </div>
-                      <div className={`flex items-center gap-1 font-semibold ${hasDigit ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                      <div className={`flex items-center gap-1 font-semibold ${hasDigit ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-500'}`}>
                         {hasDigit ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <span className="w-3.5 inline-block text-center">•</span>}
                         رقم (0-9)
                       </div>
-                      <div className={`flex items-center gap-1 font-semibold ${hasMinLength ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                      <div className={`flex items-center gap-1 font-semibold ${hasMinLength ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-500'}`}>
                         {hasMinLength ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <span className="w-3.5 inline-block text-center">•</span>}
                         8 أحرف على الأقل
                       </div>
@@ -788,7 +788,7 @@ function RegisterForm() {
 
               {/* 9. Confirm Password */}
               <div className="space-y-1.5 text-start">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   تأكيد كلمة المرور <span className="text-red-500">*</span>
                 </label>
@@ -799,14 +799,14 @@ function RegisterForm() {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   placeholder="••••••••"
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 />
                 {formData.confirmPassword && (
                   <div className="mt-1">
                     {formData.password === formData.confirmPassword ? (
-                      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                         كلمتا المرور متطابقتان
                       </p>
@@ -846,12 +846,12 @@ function RegisterForm() {
         {/* ============================================================ */}
         {step === 2 && (
           <div className="space-y-6 animate-fade-in">
-            <div className="space-y-1 text-start border-b border-stone-100 dark:border-gray-800 pb-4">
+            <div className="space-y-1 text-start border-b border-stone-200 dark:border-gray-800 pb-4">
               <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                 <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
                 بياناتك الدراسية
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
                 اختر مرحلتك الدراسية ونوع التعليم للتأكد من تخصيص المحتوى المناسب لك
               </p>
             </div>
@@ -859,7 +859,7 @@ function RegisterForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-start">
               {/* 1. Education Type (نوع التعليم) Dropdown */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   نوع التعليم <span className="text-red-500">*</span>
                 </label>
@@ -867,8 +867,8 @@ function RegisterForm() {
                   name="educationType"
                   value={formData.educationType}
                   onChange={handleEducationTypeChange}
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.educationType ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.educationType ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 >
                   <option value="GENERAL" className="bg-white dark:bg-[#111827] text-gray-900 dark:text-gray-100 font-medium">تعليم عام</option>
@@ -885,7 +885,7 @@ function RegisterForm() {
 
               {/* 2. Study Type (مسار الدراسة) Dropdown */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   مسار الدراسة <span className="text-red-500">*</span>
                 </label>
@@ -893,8 +893,8 @@ function RegisterForm() {
                   name="studyType"
                   value={formData.studyType}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.studyType ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.studyType ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 >
                   <option value="ARABIC" className="bg-white dark:bg-[#111827] text-gray-900 dark:text-gray-100 font-medium">دراسة عربي</option>
@@ -910,7 +910,7 @@ function RegisterForm() {
 
               {/* 3. Academic Year / Grade (الصف الدراسي) Dropdown */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                   <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   الصف الدراسي <span className="text-red-500">*</span>
                 </label>
@@ -918,8 +918,8 @@ function RegisterForm() {
                   name="academicYearId"
                   value={formData.academicYearId}
                   onChange={handleAcademicYearChange}
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.academicYearId ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    errors.academicYearId ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                   }`}
                 >
                   {ACADEMIC_YEAR_OPTIONS.map((item) => (
@@ -939,7 +939,7 @@ function RegisterForm() {
               {/* 4. Section / Track (Conditional Dropdown ONLY for Secondary grades) */}
               {!isPrep3Selected && (
                 <div className="space-y-1.5 animate-fade-in">
-                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                     <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     الشعبة / التخصص <span className="text-red-500">*</span>
                   </label>
@@ -947,8 +947,8 @@ function RegisterForm() {
                     name="section"
                     value={formData.section}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-xl bg-[#f8faf7] dark:bg-[#1f293d] border text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                      errors.section ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/80 dark:border-gray-700/80'
+                    className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                      errors.section ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                     }`}
                   >
                     <option value="SCIENCE_GENERAL" className="bg-white dark:bg-[#111827] text-gray-900 dark:text-gray-100 font-medium">علمي علوم</option>
@@ -966,11 +966,11 @@ function RegisterForm() {
             </div>
 
             {/* Step 2 Action Buttons */}
-            <div className="pt-6 flex items-center justify-between gap-4 border-t border-stone-100 dark:border-gray-800">
+            <div className="pt-6 flex items-center justify-between gap-4 border-t border-stone-200 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="px-6 py-3 rounded-xl bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5"
+                className="px-6 py-3 rounded-xl bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5"
               >
                 <ChevronRight className="w-4 h-4" />
                 الرجوع للبيانات الشخصية
@@ -993,12 +993,12 @@ function RegisterForm() {
         {/* ============================================================ */}
         {step === 3 && (
           <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
-            <div className="space-y-1 text-start border-b border-stone-100 dark:border-gray-800 pb-4">
+            <div className="space-y-1 text-start border-b border-stone-200 dark:border-gray-800 pb-4">
               <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                 <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
                 راجع بياناتك قبل تأكيد الحساب
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
                 تأكد من صحة جميع البيانات المدخلة قبل الضغط على إنشاء الحساب
               </p>
             </div>
@@ -1012,8 +1012,8 @@ function RegisterForm() {
             )}
 
             {/* Summary Box 1: Personal Information */}
-            <div className="p-5 rounded-2xl bg-[#f7f9f6] dark:bg-[#192233] border border-stone-200/90 dark:border-gray-800 space-y-3 text-start">
-              <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-gray-800 pb-2.5">
+            <div className="p-5 rounded-2xl bg-[#f4f7f4] dark:bg-[#192233] border-2 border-stone-300/80 dark:border-gray-800 space-y-3 text-start">
+              <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-gray-800 pb-2.5">
                 <h3 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2">
                   <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   البيانات الشخصية
@@ -1059,8 +1059,8 @@ function RegisterForm() {
             </div>
 
             {/* Summary Box 2: Academic Information */}
-            <div className="p-5 rounded-2xl bg-[#f7f9f6] dark:bg-[#192233] border border-stone-200/90 dark:border-gray-800 space-y-3 text-start">
-              <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-gray-800 pb-2.5">
+            <div className="p-5 rounded-2xl bg-[#f4f7f4] dark:bg-[#192233] border-2 border-stone-300/80 dark:border-gray-800 space-y-3 text-start">
+              <div className="flex items-center justify-between border-b border-stone-200/80 dark:border-gray-800 pb-2.5">
                 <h3 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-2">
                   <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   البيانات الدراسية
@@ -1068,7 +1068,7 @@ function RegisterForm() {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="px-3 py-1 bg-white dark:bg-gray-800 hover:bg-emerald-50 text-emerald-700 dark:text-emerald-400 border border-stone-200 dark:border-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs"
+                  className="px-3 py-1 bg-white dark:bg-gray-800 hover:bg-emerald-50 text-emerald-700 dark:text-emerald-400 border border-stone-200 dark:border-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-sm"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   تعديل
@@ -1104,7 +1104,7 @@ function RegisterForm() {
             </div>
 
             {/* Terms Agreement Checkbox */}
-            <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 text-start">
+            <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border-2 border-emerald-200/80 dark:border-emerald-900/40 text-start">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -1115,7 +1115,7 @@ function RegisterForm() {
                   }}
                   className="mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
                 />
-                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 leading-relaxed">
+                <span className="text-xs font-semibold text-gray-800 dark:text-gray-300 leading-relaxed">
                   أقر بأن البيانات التي أدخلتها صحيحة ودقيقة، وأوافق على شروط وسياسة استخدام منصة مستر عمر مكاوي التعليمية.
                 </span>
               </label>
@@ -1128,11 +1128,11 @@ function RegisterForm() {
             </div>
 
             {/* Step 3 Action Buttons */}
-            <div className="pt-4 flex items-center justify-between gap-4 border-t border-stone-100 dark:border-gray-800">
+            <div className="pt-4 flex items-center justify-between gap-4 border-t border-stone-200 dark:border-gray-800">
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="px-6 py-3 rounded-xl bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5"
+                className="px-6 py-3 rounded-xl bg-stone-100 dark:bg-gray-800 hover:bg-stone-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-300 font-bold text-xs transition-all flex items-center gap-1.5"
               >
                 <ChevronRight className="w-4 h-4" />
                 الرجوع للدراسة
@@ -1183,7 +1183,7 @@ function RegisterForm() {
 
       {/* Login Navigation Link at Footer */}
       {step < 4 && (
-        <div className="mt-8 text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+        <div className="mt-8 text-center text-sm font-medium text-gray-700 dark:text-gray-400">
           لديك حساب بالفعل على المنصة؟{' '}
           <Link href="/login" className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline">
             تسجيل الدخول
@@ -1196,7 +1196,7 @@ function RegisterForm() {
 
 export default function RegisterClient() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f4f7f3] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
+    <div className="flex min-h-screen flex-col bg-[#eef2ed] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
       <Navbar />
       <main className="flex-1 flex items-center justify-center p-4 py-8 sm:py-12">
         <Suspense fallback={<div className="h-96 w-full max-w-2xl animate-pulse rounded-3xl bg-gray-200 dark:bg-gray-800" />}>
