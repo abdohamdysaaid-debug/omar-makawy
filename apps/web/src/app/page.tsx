@@ -8,7 +8,6 @@ import Footer from '@/components/layout/Footer';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import HeroBanner from '@/components/home/HeroBanner';
 import AcademicYearSection from '@/components/home/AcademicYearSection';
-import BannerSlider from '@/components/home/BannerSlider';
 import PackagesSection from '@/components/home/PackagesSection';
 import FeaturesSection from '@/components/home/FeaturesSection';
 import CTASection from '@/components/home/CTASection';
@@ -29,7 +28,6 @@ export default function HomePage() {
       <div className="flex-1">
         <HeroBanner />
         <AcademicYearSection />
-        <BannerSlider />
         <PackagesSection />
         <FeaturesSection />
         <CTASection />
