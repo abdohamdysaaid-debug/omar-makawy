@@ -7,7 +7,7 @@ import { heroBanner } from '@/data/mock';
 
 export default function HeroBanner() {
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-gray-900 text-white py-16 lg:py-24">
+    <section className="relative w-full overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-gray-900 text-white pt-20 pb-12 sm:pt-24 sm:pb-16 lg:pt-28 lg:pb-24">
       {/* Decorative Text */}
       <div className="absolute top-10 right-10 -z-0 text-6xl font-black text-white/5 uppercase tracking-widest hidden lg:block rotate-[-10deg] select-none pointer-events-none">
         English Opens New Worlds
@@ -17,7 +17,7 @@ export default function HeroBanner() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-8">
+        <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-8">
           {/* Text Content */}
           <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
             <span className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 font-semibold text-xs px-4 py-2 rounded-full mb-6 border border-emerald-400/20 backdrop-blur-xs">

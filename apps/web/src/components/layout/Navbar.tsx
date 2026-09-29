@@ -44,15 +44,22 @@ export default function Navbar() {
 
   return (
     <nav className={`fixed top-0 start-0 end-0 z-50 transition-all duration-300 font-cairo ${
-      isScrolled ? 'bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm py-3 border-b border-transparent dark:border-stone-800/80' : 'bg-white dark:bg-black py-4'
+      isScrolled
+        ? 'bg-white/80 dark:bg-[#000000]/80 backdrop-blur-md shadow-xs py-2.5 border-b border-gray-200/40 dark:border-stone-800/60'
+        : 'bg-white/60 dark:bg-[#000000]/50 backdrop-blur-md py-2.5 border-b border-gray-200/20 dark:border-stone-800/40'
     }`}>
       <div className="container mx-auto px-4 flex items-center justify-between">
         
-        {/* Logo */}
-        <Link href="/" className="flex flex-col items-start">
-          <span className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-none" style={{ fontStyle: 'italic' }}>
+        {/* Logo & Avatar Circle */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="text-lg md:text-2xl font-extrabold text-gray-900 dark:text-white leading-none tracking-tight" style={{ fontStyle: 'italic' }}>
             Omar Meckawy
           </span>
+          {isAuthenticated && student && (
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-400/30 shrink-0 shadow-xs">
+              {student.fullName ? student.fullName.charAt(0).toUpperCase() : 'OM'}
+            </div>
+          )}
         </Link>
 
         {/* Desktop Nav */}
