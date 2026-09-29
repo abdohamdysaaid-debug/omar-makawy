@@ -380,8 +380,8 @@ function RegisterForm() {
     <div className="w-full max-w-3xl mx-auto animate-fade-in">
       {/* Dedicated Horizontal Stepper Section with Distinct Surface Background */}
       {step < 4 && (
-        <div className="mb-6 py-6 px-4 sm:px-8 rounded-2xl bg-[#dce6db] dark:bg-[#162132] border-2 border-emerald-950/15 dark:border-gray-800 shadow-sm transition-colors duration-300">
-          <div className="flex flex-col gap-2.5 max-w-lg mx-auto px-1 sm:px-4">
+        <div className="mb-6 pt-7 sm:pt-9 pb-5 px-4 sm:px-8 rounded-2xl bg-[#dce6db] dark:bg-[#162132] border-2 border-emerald-950/15 dark:border-gray-800 shadow-sm transition-colors duration-300">
+          <div className="flex flex-col gap-3 max-w-lg mx-auto px-1 sm:px-4 pt-1 sm:pt-2">
             {/* Row 1: Step Numbers & Connecting Lines */}
             <div className="flex items-center justify-between">
               {/* Step 1 Number Badge */}
@@ -742,7 +742,7 @@ function RegisterForm() {
                     onFocus={() => setIsPasswordFocused(true)}
                     onChange={handleInputChange}
                     placeholder="••••••••"
-                    className={`w-full px-4 py-3 pe-11 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    className={`w-full px-4 py-3 pe-12 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
                       errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                     }`}
                   />
@@ -751,7 +751,7 @@ function RegisterForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                     title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
-                    className="absolute end-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="absolute start-3 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -804,7 +804,7 @@ function RegisterForm() {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     placeholder="••••••••"
-                    className={`w-full px-4 py-3 pe-11 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    className={`w-full px-4 py-3 pe-12 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
                       errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                     }`}
                   />
@@ -813,7 +813,7 @@ function RegisterForm() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     aria-label={showConfirmPassword ? 'إخفاء تأكيد كلمة المرور' : 'إظهار تأكيد كلمة المرور'}
                     title={showConfirmPassword ? 'إخفاء تأكيد كلمة المرور' : 'إظهار تأكيد كلمة المرور'}
-                    className="absolute end-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    className="absolute start-3 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -1213,7 +1213,7 @@ export default function RegisterClient() {
   return (
     <div className="flex min-h-screen flex-col bg-[#eef2ed] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-4 py-8 sm:py-12">
+      <main className="flex-1 flex items-start sm:items-center justify-center p-4 py-6 sm:py-12">
         <Suspense fallback={<div className="h-96 w-full max-w-2xl animate-pulse rounded-3xl bg-gray-200 dark:bg-gray-800" />}>
           <RegisterForm />
         </Suspense>
