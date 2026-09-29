@@ -94,6 +94,7 @@ function RegisterForm() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [governorates, setGovernorates] = useState<Governorate[]>(FALLBACK_GOVERNORATES);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -379,129 +380,130 @@ function RegisterForm() {
     <div className="w-full max-w-3xl mx-auto animate-fade-in">
       {/* Dedicated Horizontal Stepper Section with Distinct Surface Background */}
       {step < 4 && (
-        <div className="mb-6 py-5 px-4 sm:px-8 rounded-2xl bg-[#dce6db] dark:bg-[#162132] border-2 border-emerald-950/15 dark:border-gray-800 shadow-sm transition-colors duration-300">
-          <div className="flex items-center justify-between max-w-lg mx-auto px-1 sm:px-4">
-            {/* Step 1 */}
-            <button
-              type="button"
-              onClick={() => step > 1 && setStep(1)}
-              className={`flex flex-col items-center gap-1.5 focus:outline-none transition-all ${
-                step > 1 ? 'cursor-pointer hover:opacity-85' : ''
-              }`}
-            >
-              <span
-                className={`text-lg sm:text-xl font-black leading-none transition-colors ${
+        <div className="mb-6 py-6 px-4 sm:px-8 rounded-2xl bg-[#dce6db] dark:bg-[#162132] border-2 border-emerald-950/15 dark:border-gray-800 shadow-sm transition-colors duration-300">
+          <div className="flex flex-col gap-2.5 max-w-lg mx-auto px-1 sm:px-4">
+            {/* Row 1: Step Numbers & Connecting Lines */}
+            <div className="flex items-center justify-between">
+              {/* Step 1 Number Badge */}
+              <button
+                type="button"
+                onClick={() => step > 1 && setStep(1)}
+                disabled={step <= 1}
+                aria-label="الخطوة 1: بياناتك"
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-black transition-all ${
                   step === 1
-                    ? 'text-emerald-800 dark:text-emerald-400'
+                    ? 'bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-600/20'
                     : step > 1
-                    ? 'text-emerald-700 dark:text-emerald-400'
-                    : 'text-gray-500 dark:text-gray-500'
+                    ? 'bg-emerald-600 text-white cursor-pointer hover:opacity-90'
+                    : 'bg-stone-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-extrabold'
                 }`}
               >
-                1
-              </span>
-              <span
-                className={`text-xs sm:text-sm font-bold transition-colors ${
-                  step === 1
-                    ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
-                    : step > 1
-                    ? 'text-emerald-800 dark:text-emerald-400 font-bold'
-                    : 'text-gray-600 dark:text-gray-400 font-semibold'
-                }`}
-              >
-                بياناتك
-              </span>
+                {step > 1 ? <Check className="w-5 h-5 stroke-[3]" /> : '1'}
+              </button>
+
+              {/* Connecting Line 1-2 */}
               <div
-                className={`h-0.5 w-10 sm:w-16 rounded-full transition-all duration-300 ${
-                  step === 1
-                    ? 'bg-emerald-700 dark:bg-emerald-400'
-                    : step > 1
-                    ? 'bg-emerald-600/50 dark:bg-emerald-500/40'
-                    : 'bg-transparent'
+                className={`flex-1 h-1 mx-3 sm:mx-6 rounded-full transition-colors duration-300 ${
+                  step > 1 ? 'bg-emerald-600 dark:bg-emerald-500' : 'bg-stone-300/90 dark:bg-gray-700/80'
                 }`}
               />
-            </button>
 
-            {/* Divider Line 1-2 */}
-            <div
-              className={`flex-1 h-0.5 mx-3 sm:mx-6 rounded-full transition-colors duration-300 ${
-                step > 1 ? 'bg-emerald-600/50 dark:bg-emerald-500/30' : 'bg-stone-300/90 dark:bg-gray-700/80'
-              }`}
-            />
-
-            {/* Step 2 */}
-            <button
-              type="button"
-              onClick={() => step > 2 && setStep(2)}
-              className={`flex flex-col items-center gap-1.5 focus:outline-none transition-all ${
-                step > 2 ? 'cursor-pointer hover:opacity-85' : ''
-              }`}
-            >
-              <span
-                className={`text-lg sm:text-xl font-black leading-none transition-colors ${
+              {/* Step 2 Number Badge */}
+              <button
+                type="button"
+                onClick={() => step > 2 && setStep(2)}
+                disabled={step <= 2}
+                aria-label="الخطوة 2: دراستك"
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-black transition-all ${
                   step === 2
-                    ? 'text-emerald-800 dark:text-emerald-400'
+                    ? 'bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-600/20'
                     : step > 2
-                    ? 'text-emerald-700 dark:text-emerald-400'
-                    : 'text-gray-500 dark:text-gray-500'
+                    ? 'bg-emerald-600 text-white cursor-pointer hover:opacity-90'
+                    : 'bg-stone-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-extrabold'
                 }`}
               >
-                2
-              </span>
-              <span
-                className={`text-xs sm:text-sm font-bold transition-colors ${
-                  step === 2
-                    ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
-                    : step > 2
-                    ? 'text-emerald-800 dark:text-emerald-400 font-bold'
-                    : 'text-gray-600 dark:text-gray-400 font-semibold'
-                }`}
-              >
-                دراستك
-              </span>
+                {step > 2 ? <Check className="w-5 h-5 stroke-[3]" /> : '2'}
+              </button>
+
+              {/* Connecting Line 2-3 */}
               <div
-                className={`h-0.5 w-10 sm:w-16 rounded-full transition-all duration-300 ${
-                  step === 2
-                    ? 'bg-emerald-700 dark:bg-emerald-400'
-                    : step > 2
-                    ? 'bg-emerald-600/50 dark:bg-emerald-500/40'
-                    : 'bg-transparent'
+                className={`flex-1 h-1 mx-3 sm:mx-6 rounded-full transition-colors duration-300 ${
+                  step > 2 ? 'bg-emerald-600 dark:bg-emerald-500' : 'bg-stone-300/90 dark:bg-gray-700/80'
                 }`}
               />
-            </button>
 
-            {/* Divider Line 2-3 */}
-            <div
-              className={`flex-1 h-0.5 mx-3 sm:mx-6 rounded-full transition-colors duration-300 ${
-                step > 2 ? 'bg-emerald-600/50 dark:bg-emerald-500/30' : 'bg-stone-300/90 dark:bg-gray-700/80'
-              }`}
-            />
-
-            {/* Step 3 */}
-            <div className="flex flex-col items-center gap-1.5">
-              <span
-                className={`text-lg sm:text-xl font-black leading-none transition-colors ${
+              {/* Step 3 Number Badge */}
+              <div
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-black transition-all ${
                   step === 3
-                    ? 'text-emerald-800 dark:text-emerald-400'
-                    : 'text-gray-500 dark:text-gray-500'
+                    ? 'bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-600/20'
+                    : 'bg-stone-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-extrabold'
                 }`}
               >
                 3
-              </span>
-              <span
-                className={`text-xs sm:text-sm font-bold transition-colors ${
-                  step === 3
-                    ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
-                    : 'text-gray-600 dark:text-gray-400 font-semibold'
-                }`}
+              </div>
+            </div>
+
+            {/* Row 2: Labels aligned under step numbers */}
+            <div className="flex items-center justify-between text-center">
+              <button
+                type="button"
+                onClick={() => step > 1 && setStep(1)}
+                disabled={step <= 1}
+                className={`w-20 sm:w-24 text-center focus:outline-none ${step > 1 ? 'cursor-pointer' : ''}`}
               >
-                مراجعة وتأكيد
-              </span>
-              <div
-                className={`h-0.5 w-10 sm:w-16 rounded-full transition-all duration-300 ${
-                  step === 3 ? 'bg-emerald-700 dark:bg-emerald-400' : 'bg-transparent'
-                }`}
-              />
+                <span
+                  className={`block text-xs sm:text-sm transition-colors ${
+                    step === 1
+                      ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
+                      : step > 1
+                      ? 'text-emerald-800 dark:text-emerald-400 font-bold'
+                      : 'text-gray-700 dark:text-gray-300 font-medium'
+                  }`}
+                >
+                  بياناتك
+                </span>
+                <span className="hidden sm:block text-[11px] text-gray-600 dark:text-gray-400 font-medium mt-0.5">
+                  البيانات الشخصية
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => step > 2 && setStep(2)}
+                disabled={step <= 2}
+                className={`w-20 sm:w-24 text-center focus:outline-none ${step > 2 ? 'cursor-pointer' : ''}`}
+              >
+                <span
+                  className={`block text-xs sm:text-sm transition-colors ${
+                    step === 2
+                      ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
+                      : step > 2
+                      ? 'text-emerald-800 dark:text-emerald-400 font-bold'
+                      : 'text-gray-700 dark:text-gray-300 font-medium'
+                  }`}
+                >
+                  دراستك
+                </span>
+                <span className="hidden sm:block text-[11px] text-gray-600 dark:text-gray-400 font-medium mt-0.5">
+                  البيانات الدراسية
+                </span>
+              </button>
+
+              <div className="w-20 sm:w-24 text-center">
+                <span
+                  className={`block text-xs sm:text-sm transition-colors ${
+                    step === 3
+                      ? 'text-emerald-900 dark:text-emerald-300 font-extrabold'
+                      : 'text-gray-700 dark:text-gray-300 font-medium'
+                  }`}
+                >
+                  مراجعة وتأكيد
+                </span>
+                <span className="hidden sm:block text-[11px] text-gray-600 dark:text-gray-400 font-medium mt-0.5">
+                  مراجعة البيانات
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -740,14 +742,16 @@ function RegisterForm() {
                     onFocus={() => setIsPasswordFocused(true)}
                     onChange={handleInputChange}
                     placeholder="••••••••"
-                    className={`w-full px-4 py-3 pe-10 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                    className={`w-full px-4 py-3 pe-11 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
                       errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+                    aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    className="absolute end-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -792,17 +796,28 @@ function RegisterForm() {
                   <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   تأكيد كلمة المرور <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  dir="ltr"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                  className={`w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
-                    errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
-                  }`}
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    dir="ltr"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    placeholder="••••••••"
+                    className={`w-full px-4 py-3 pe-11 rounded-xl bg-[#f4f7f4] dark:bg-[#1f293d] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#182234] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all ${
+                      errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-gray-700/80'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'إخفاء تأكيد كلمة المرور' : 'إظهار تأكيد كلمة المرور'}
+                    title={showConfirmPassword ? 'إخفاء تأكيد كلمة المرور' : 'إظهار تأكيد كلمة المرور'}
+                    className="absolute end-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
                 {formData.confirmPassword && (
                   <div className="mt-1">
                     {formData.password === formData.confirmPassword ? (
