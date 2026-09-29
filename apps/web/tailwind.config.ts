@@ -33,13 +33,13 @@ const config: Config = {
         },
         surface: {
           light: '#ffffff',
-          dark: '#111827',
-          darkCard: '#161e2e',
-          darkInput: '#1f293d',
+          dark: '#121212',
+          darkCard: '#0d0d0d',
+          darkInput: '#1a1a1a',
         },
         background: {
           light: '#f4f7f4',
-          dark: '#090d16',
+          dark: '#000000',
         },
         accent: {
           amber: '#f59e0b',

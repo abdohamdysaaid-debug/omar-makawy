@@ -23,7 +23,7 @@
 
   /* Universal select option styling for Dark Mode dropdown menus */
   select option {
-    @apply bg-white text-gray-900 dark:bg-[#111827] dark:text-gray-100 font-medium;
+    @apply bg-white text-gray-900 dark:bg-[#121212] dark:text-gray-100 font-medium;
   }
 }
 
@@ -48,7 +48,7 @@
   }
 
   .dark .card {
-    @apply bg-[#111827] border-gray-800/90 shadow-md;
+    @apply bg-[#0d0d0d] border-stone-800 shadow-md;
   }
 
   .section-container {
@@ -60,7 +60,7 @@
   }
 
   .dark .input-field {
-    @apply border-gray-700/80 bg-[#1f293d] text-white placeholder-gray-400 focus:border-emerald-500 focus:bg-[#182234];
+    @apply border-stone-800 bg-[#1a1a1a] text-white placeholder-gray-400 focus:border-emerald-500 focus:bg-[#222222];
   }
 
   .badge {
