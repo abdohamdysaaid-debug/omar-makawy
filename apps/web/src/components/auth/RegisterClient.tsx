@@ -23,7 +23,6 @@ import {
   Check
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { authApi, Governorate, RegisterPayload } from '@/lib/api/auth';
 
@@ -1212,7 +1211,6 @@ function RegisterForm() {
 export default function RegisterClient() {
   return (
     <div className="flex min-h-screen flex-col bg-[#eef2ed] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
-      <Navbar />
       <main className="flex-1 flex items-start sm:items-center justify-center p-4 py-6 sm:py-12">
         <Suspense fallback={<div className="h-96 w-full max-w-2xl animate-pulse rounded-3xl bg-gray-200 dark:bg-gray-800" />}>
           <RegisterForm />
