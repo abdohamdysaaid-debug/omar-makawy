@@ -44,7 +44,7 @@ export default function Navbar() {
 
   return (
     <nav className={`fixed top-0 start-0 end-0 z-50 transition-all duration-300 font-cairo ${
-      isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm py-3' : 'bg-white dark:bg-gray-900 py-4'
+      isScrolled ? 'bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-sm py-3 border-b border-transparent dark:border-stone-800/80' : 'bg-white dark:bg-black py-4'
     }`}>
       <div className="container mx-auto px-4 flex items-center justify-between">
         
@@ -102,21 +102,21 @@ export default function Navbar() {
               </button>
 
               {isProfileDropdownOpen && (
-                <div className="absolute end-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-xl shadow-lg py-2 border border-gray-200 dark:border-gray-700 animate-fade-in">
-                  <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                <div className="absolute end-0 mt-2 w-52 bg-white dark:bg-[#121212] rounded-xl shadow-lg py-2 border border-gray-200 dark:border-stone-800 animate-fade-in">
+                  <div className="px-4 py-2 border-b border-gray-100 dark:border-stone-800">
                     <p className="font-bold text-gray-900 dark:text-white text-sm">{student.fullName}</p>
                     <p className="text-xs text-gray-500">{student.email}</p>
                   </div>
-                  <Link href="/profile" className="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <Link href="/profile" className="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
                     <User className="w-4 h-4 me-2" /> الملف الشخصي
                   </Link>
-                  <Link href="/notifications" className="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <Link href="/notifications" className="flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
                     <Bell className="w-4 h-4 me-2" /> الإشعارات
                   </Link>
-                  <hr className="my-1 border-gray-100 dark:border-gray-700" />
+                  <hr className="my-1 border-gray-100 dark:border-stone-800" />
                   <button 
                     onClick={logout}
-                    className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-start"
+                    className="flex w-full items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 text-start"
                   >
                     <LogOut className="w-4 h-4 me-2" /> تسجيل الخروج
                   </button>
@@ -141,9 +141,9 @@ export default function Navbar() {
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="relative w-72 max-w-sm bg-white dark:bg-gray-900 h-full shadow-xl flex flex-col start-0">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="relative w-72 max-w-sm bg-white dark:bg-[#080808] h-full shadow-xl flex flex-col start-0 border-e dark:border-stone-800">
+            <div className="p-4 border-b border-gray-200 dark:border-stone-800 flex justify-between items-center">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col">
                 <span className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontStyle: 'italic' }}>Omar Meckawy</span>
                 <span className="text-xs text-brand-500">English Made Simple</span>
@@ -155,8 +155,8 @@ export default function Navbar() {
             
             <div className="overflow-y-auto py-4 px-4 flex-grow">
               {isAuthenticated && student && (
-                <div className="flex items-center space-x-3 space-x-reverse mb-6 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold">
+                <div className="flex items-center space-x-3 space-x-reverse mb-6 p-3 bg-gray-50 dark:bg-[#121212] border dark:border-stone-800 rounded-lg">
+                  <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold">
                     {student.fullName.charAt(0)}
                   </div>
                   <div>
@@ -172,7 +172,7 @@ export default function Navbar() {
                     <Link
                       href={link.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 font-medium"
+                      className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-[#181818] font-medium"
                     >
                       {link.name}
                     </Link>
@@ -181,12 +181,12 @@ export default function Navbar() {
                 {isAuthenticated && (
                   <>
                     <li>
-                      <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 font-medium">
+                      <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-[#181818] font-medium">
                         الملف الشخصي
                       </Link>
                     </li>
                     <li>
-                      <Link href="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-800 font-medium">
+                      <Link href="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-[#181818] font-medium">
                         الإشعارات
                       </Link>
                     </li>
@@ -195,9 +195,9 @@ export default function Navbar() {
               </ul>
             </div>
             
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="p-4 border-t border-gray-200 dark:border-stone-800">
               {isAuthenticated ? (
-                <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center py-3 text-red-600 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center py-3 text-red-600 font-medium hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors">
                   <LogOut className="w-5 h-5 me-2" /> تسجيل الخروج
                 </button>
               ) : (
