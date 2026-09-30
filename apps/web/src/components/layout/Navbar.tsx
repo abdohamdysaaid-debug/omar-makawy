@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ShoppingCart, User, Bell, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, Bell, LogOut, ChevronDown, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
@@ -50,16 +50,24 @@ export default function Navbar() {
           : 'bg-white/75 dark:bg-[#000000]/65 backdrop-blur-md border-gray-200/40 dark:border-stone-800/50 shadow-black/10'
       }`}>
         
-        {/* Logo & Avatar Circle */}
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="text-lg md:text-2xl font-extrabold text-gray-900 dark:text-white leading-none tracking-tight" style={{ fontStyle: 'italic' }}>
-            Omar Meckawy
-          </span>
-          {isAuthenticated && student && (
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs border border-emerald-400/30 shrink-0 shadow-xs">
-              {student.fullName ? student.fullName.charAt(0).toUpperCase() : 'OM'}
+        {/* Logo & Subtitle */}
+        <Link href="/" className="flex items-center gap-2 text-start">
+          <div className="flex flex-col items-start justify-center">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base sm:text-lg md:text-xl font-black bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 dark:from-emerald-400 dark:via-emerald-300 dark:to-teal-300 bg-clip-text text-transparent leading-none tracking-tight">
+                Mr. Omar Meckawy
+              </span>
+              {isAuthenticated && student && (
+                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px] border border-emerald-400/30 shrink-0 shadow-xs">
+                  {student.fullName ? student.fullName.charAt(0).toUpperCase() : 'OM'}
+                </div>
+              )}
             </div>
-          )}
+            <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-400 leading-none mt-1">
+              <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم</span>
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Nav */}
@@ -150,8 +158,14 @@ export default function Navbar() {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setIsMobileMenuOpen(false)} />
           <div className="relative w-72 max-w-sm bg-white dark:bg-[#080808] h-full shadow-xl flex flex-col start-0 border-e dark:border-stone-800">
             <div className="p-4 border-b border-gray-200 dark:border-stone-800 flex justify-between items-center">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col">
-                <span className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontStyle: 'italic' }}>Omar Meckawy</span>
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-start text-start">
+                <span className="text-base font-black bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">
+                  Mr. Omar Meckawy
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم</span>
+                </span>
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500">
                 <X className="w-6 h-6" />
