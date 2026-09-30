@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { packages } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
-import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft } from 'lucide-react';
+import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 
@@ -36,7 +36,7 @@ export default function PackagesSection() {
 
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
-      const scrollAmount = direction === 'left' ? -340 : 340;
+      const scrollAmount = direction === 'left' ? -310 : 310;
       sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -63,11 +63,11 @@ export default function PackagesSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider with Unblocked 2D Vertical Scroll & Scale Animations */}
+        {/* Horizontal Touch Slider */}
         <div
           ref={sliderRef}
           onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {activePackages.map((pkg, index) => (
@@ -77,65 +77,84 @@ export default function PackagesSection() {
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ amount: 0.55 }}
               transition={{ duration: 0.45, ease: 'easeOut' }}
-              className={`snap-center shrink-0 w-[290px] sm:w-[340px] relative flex flex-col bg-white dark:bg-stone-900 border ${
+              className={`snap-center shrink-0 w-[270px] sm:w-[310px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border ${
                 pkg.isPopular
                   ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
                   : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
-              } rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] touch-pan-y`}
+              } rounded-3xl overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] hover:shadow-xl hover:border-[#0d6e4f]/50 dark:hover:border-emerald-500/50 touch-pan-y`}
               style={{ touchAction: 'pan-x pan-y' }}
             >
-              {pkg.isPopular && (
-                <div className="absolute -top-3.5 start-1/2 -translate-x-1/2 bg-[#0d6e4f] text-white px-4 py-1 rounded-full text-xs font-black shadow-md font-cairo">
-                  الأكثر طلباً ⭐
-                </div>
-              )}
-
-              <div className="w-16 h-16 bg-[#e2ede5] dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-6 mx-auto">
-                <PackageIcon className="w-8 h-8" />
-              </div>
-
-              <h3 className="text-xl sm:text-2xl font-extrabold text-center text-gray-900 dark:text-white mb-2">
-                {pkg.title}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-center mb-6 h-10 text-xs sm:text-sm font-medium">
-                {pkg.description}
-              </p>
-
-              <div className="text-center mb-6 bg-stone-50 dark:bg-stone-800/60 py-3 rounded-2xl">
-                <span className="text-3xl sm:text-4xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                  {pkg.price}
-                </span>
-                <span className="text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400 ms-1">
-                  جنيه مصرية
-                </span>
-              </div>
-
-              <ul className="flex-1 space-y-3 mb-8 text-start">
-                {pkg.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-5 h-5 text-[#0d6e4f] dark:text-emerald-400 shrink-0 mt-0.5" />
-                    <span className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-bold">
-                      {feature}
+              {/* Top Image / Banner Header Area */}
+              <div className="relative h-32 sm:h-36 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-4 flex flex-col justify-between text-white overflow-hidden">
+                <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+                
+                {/* Popular Badge */}
+                <div className="flex items-center justify-between relative z-10">
+                  <span className="bg-white/20 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
+                    <span>باقة معتمدة</span>
+                  </span>
+                  {pkg.isPopular && (
+                    <span className="bg-amber-400 text-stone-950 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-sm">
+                      الأكثر طلباً ⭐
                     </span>
-                  </li>
-                ))}
-              </ul>
+                  )}
+                </div>
 
-              <button
-                onClick={() => handleSubscribe(pkg.id)}
-                className={`w-full py-3.5 rounded-full font-extrabold text-sm transition-all shadow-md ${
-                  pkg.isPopular
-                    ? 'bg-[#0d6e4f] hover:bg-[#0a4834] text-white shadow-[#0d6e4f]/20'
-                    : 'bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-gray-900 dark:text-white'
-                }`}
-              >
-                اشترك الآن
-              </button>
+                {/* Title */}
+                <div className="relative z-10">
+                  <h3 className="text-base sm:text-lg font-black leading-snug line-clamp-1">
+                    {pkg.title}
+                  </h3>
+                  <p className="text-emerald-100 text-[11px] font-medium line-clamp-1 opacity-90">
+                    {pkg.description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+                
+                {/* Price Pill */}
+                <div className="text-center mb-4 bg-emerald-50 dark:bg-emerald-950/40 py-2 px-3 rounded-2xl border border-emerald-100 dark:border-emerald-900/50">
+                  <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                    {pkg.price}
+                  </span>
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 ms-1">
+                    ج.م / شهرياً
+                  </span>
+                </div>
+
+                {/* Features List */}
+                <ul className="flex-1 space-y-2 mb-5 text-start">
+                  {pkg.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400 shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300 text-xs font-bold line-clamp-1">
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Subscribe Button - turns emerald green on hover / click / card hover */}
+                <button
+                  onClick={() => handleSubscribe(pkg.id)}
+                  className={`w-full py-2.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
+                    pkg.isPopular
+                      ? 'bg-[#0d6e4f] hover:bg-[#0a4834] text-white shadow-[#0d6e4f]/20'
+                      : 'bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-[#0d6e4f] dark:hover:text-white'
+                  }`}
+                >
+                  <span>اشترك الآن</span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Bottom Slider Controls with Dynamic Animated Indicator */}
+        {/* Bottom Slider Controls */}
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
