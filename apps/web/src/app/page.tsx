@@ -7,6 +7,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import HeroBanner from '@/components/home/HeroBanner';
+import PackagesSection from '@/components/home/PackagesSection';
+import HomeCoursesSection from '@/components/home/HomeCoursesSection';
+import HomeBooksSection from '@/components/home/HomeBooksSection';
+import FeaturesSection from '@/components/home/FeaturesSection';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -22,7 +26,20 @@ export default function HomePage() {
       <Navbar />
 
       <div className="flex-1">
+        {/* 1. Hero Visual Banner */}
         <HeroBanner />
+
+        {/* 2. الباقات الشهرية */}
+        <PackagesSection />
+
+        {/* 3. الكورسات */}
+        <HomeCoursesSection />
+
+        {/* 4. الكتب والمذكرات */}
+        <HomeBooksSection />
+
+        {/* 5. ما يميّزنا */}
+        <FeaturesSection />
       </div>
 
       <Footer />
