@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, Bell, LogOut, GraduationCap, Home, Package, BookOpen, Video, LogIn, UserPlus, ChevronLeft } from 'lucide-react';
+import { Menu, X, User, Bell, LogOut, GraduationCap, Home, Package, BookOpen, Video, LogIn, UserPlus, ChevronLeft, Wallet, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
@@ -256,48 +256,163 @@ export default function Navbar() {
           {/* Drawer Body Links & Bottom Actions */}
           <div className="overflow-y-auto py-5 px-4 flex-grow flex flex-col justify-between space-y-6">
             
-            {/* Navigation Cards Section */}
-            <div className="space-y-3">
-              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d6e4f] dark:text-emerald-400 px-1 block text-start">
-                {t('nav.menuHeading', 'أقسام المنصة')}
-              </span>
-              <ul className="space-y-2.5">
-                {navLinks.map((link) => {
-                  const Icon = link.icon;
-                  const isActive = pathname === link.href;
-                  return (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        onClick={(e) => {
-                          handleAnchorClick(e, link.href);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`group w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-200 shadow-xs ${
-                          isActive
-                            ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/20'
-                            : 'bg-[#f7f8f6] dark:bg-[#121620] hover:bg-[#e2ede5] dark:hover:bg-stone-800 text-gray-800 dark:text-stone-200 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                            isActive
-                              ? 'bg-white/20 text-white'
-                              : 'bg-white dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 border border-stone-200/60 dark:border-stone-700/60 shadow-xs group-hover:scale-105'
-                          }`}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <span className="font-extrabold text-sm tracking-tight">{link.name}</span>
-                        </div>
-                        <ChevronLeft className={`w-4 h-4 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            {isAuthenticated ? (
+              <div className="space-y-6">
+                {/* Logged in Student Info Header Card */}
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-900/10 via-[#0d6e4f]/10 to-transparent dark:from-emerald-950/40 dark:to-stone-900/50 border border-[#0d6e4f]/20 dark:border-emerald-500/20 flex items-center justify-between shadow-xs">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-[#0d6e4f] text-white flex items-center justify-center font-black text-base shrink-0 shadow-sm">
+                      {student?.fullName?.charAt(0) || 'S'}
+                    </div>
+                    <div className="flex-1 min-w-0 text-start">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-black text-gray-900 dark:text-white truncate">{student?.fullName}</p>
+                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[9px] font-black shrink-0">
+                          طالب نشط
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] font-bold text-gray-500 dark:text-gray-400 truncate mt-0.5">{student?.email}</p>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Drawer Bottom Actions (Login & Register or User Account) */}
+                {/* Section 1: خدمات الطالب */}
+                <div className="space-y-2.5">
+                  <span className="text-[10.5px] font-black uppercase tracking-wider text-[#0d6e4f] dark:text-emerald-400 px-1 block text-start">
+                    خدمات الطالب والتعلم
+                  </span>
+                  <ul className="space-y-2">
+                    {[
+                      { name: 'الملف الشخصي', href: '/profile', icon: User },
+                      { name: 'محاضراتي والكورسات', href: '/student/lectures', icon: Video },
+                      { name: 'الامتحانات والواجبات', href: '/student/exams', icon: GraduationCap },
+                      { name: 'اشتراكاتي الباقات', href: '/student/subscriptions', icon: Package },
+                      { name: 'المحفظة والرصيد', href: '/student/wallet', icon: Wallet },
+                      { name: 'الإشعارات والتنبيهات', href: '/student/notifications', icon: Bell },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname === item.href;
+                      return (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={(e) => {
+                              handleAnchorClick(e, item.href);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className={`group w-full flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 shadow-xs ${
+                              isActive
+                                ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/20'
+                                : 'bg-[#f7f8f6] dark:bg-[#121620] hover:bg-[#e2ede5] dark:hover:bg-stone-800 text-gray-800 dark:text-stone-200 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                isActive
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-white dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 border border-stone-200/60 dark:border-stone-700/60 shadow-xs group-hover:scale-105'
+                              }`}>
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              <span className="font-extrabold text-xs tracking-tight">{item.name}</span>
+                            </div>
+                            <ChevronLeft className={`w-3.5 h-3.5 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+
+                {/* Section 2: أقسام المنصة */}
+                <div className="space-y-2.5">
+                  <span className="text-[10.5px] font-black uppercase tracking-wider text-[#0d6e4f] dark:text-emerald-400 px-1 block text-start">
+                    تصفح المنصة
+                  </span>
+                  <ul className="space-y-2">
+                    {[
+                      { name: t('nav.home', 'الرئيسية'), href: '/', icon: Home },
+                      { name: t('nav.books', 'المتجر والكتب'), href: '/#books', icon: BookOpen },
+                      { name: 'الدعم والمساعدة', href: '/student/support', icon: HelpCircle },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname === item.href;
+                      return (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={(e) => {
+                              handleAnchorClick(e, item.href);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className={`group w-full flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 shadow-xs ${
+                              isActive
+                                ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/20'
+                                : 'bg-[#f7f8f6] dark:bg-[#121620] hover:bg-[#e2ede5] dark:hover:bg-stone-800 text-gray-800 dark:text-stone-200 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                isActive
+                                  ? 'bg-white/20 text-white'
+                                  : 'bg-white dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 border border-stone-200/60 dark:border-stone-700/60 shadow-xs group-hover:scale-105'
+                              }`}>
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              <span className="font-extrabold text-xs tracking-tight">{item.name}</span>
+                            </div>
+                            <ChevronLeft className={`w-3.5 h-3.5 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              /* Navigation Cards Section for Guests */
+              <div className="space-y-3">
+                <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d6e4f] dark:text-emerald-400 px-1 block text-start">
+                  {t('nav.menuHeading', 'أقسام المنصة')}
+                </span>
+                <ul className="space-y-2.5">
+                  {navLinks.map((link) => {
+                    const Icon = link.icon;
+                    const isActive = pathname === link.href;
+                    return (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          onClick={(e) => {
+                            handleAnchorClick(e, link.href);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={`group w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-200 shadow-xs ${
+                            isActive
+                              ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/20'
+                              : 'bg-[#f7f8f6] dark:bg-[#121620] hover:bg-[#e2ede5] dark:hover:bg-stone-800 text-gray-800 dark:text-stone-200 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                              isActive
+                                ? 'bg-white/20 text-white'
+                                : 'bg-white dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 border border-stone-200/60 dark:border-stone-700/60 shadow-xs group-hover:scale-105'
+                            }`}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <span className="font-extrabold text-sm tracking-tight">{link.name}</span>
+                          </div>
+                          <ChevronLeft className={`w-4 h-4 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* Drawer Bottom Actions (Login & Register or Logout Button Card) */}
             <div className="pt-4 border-t border-stone-200/90 dark:border-stone-800/90 space-y-2.5">
               {!isAuthenticated ? (
                 <>
@@ -320,27 +435,21 @@ export default function Navbar() {
                   </Link>
                 </>
               ) : (
-                <div className="space-y-2">
-                  <div className="p-3 rounded-2xl bg-[#f7f8f6] dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#0d6e4f] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                      {student?.fullName?.charAt(0) || 'S'}
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full p-3 rounded-2xl bg-red-50 hover:bg-red-100/80 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-extrabold text-xs flex items-center justify-between border border-red-200/80 dark:border-red-900/50 shadow-xs transition-all active:scale-[0.98]"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/60 flex items-center justify-center text-red-600 dark:text-red-300 shrink-0">
+                      <LogOut className="w-4 h-4" />
                     </div>
-                    <div className="flex-1 min-w-0 text-start">
-                      <p className="text-xs font-black text-gray-900 dark:text-white truncate">{student?.fullName}</p>
-                      <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 truncate">{student?.email}</p>
-                    </div>
+                    <span>تسجيل الخروج من الحساب</span>
                   </div>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full py-2.5 px-4 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-extrabold text-xs flex items-center justify-center gap-2 border border-red-200 dark:border-red-900/50 hover:bg-red-100 transition-all"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>تسجيل الخروج</span>
-                  </button>
-                </div>
+                  <ChevronLeft className={`w-4 h-4 ${isRtl ? '' : 'rotate-180'}`} />
+                </button>
               )}
             </div>
 
