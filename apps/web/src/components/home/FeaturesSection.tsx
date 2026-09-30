@@ -48,7 +48,7 @@ export default function FeaturesSection() {
       id: 3,
       title: t('features.storeTitle', 'متجر الكتب والمذكرات'),
       description: t('features.storeDesc', 'اطلب مذكرات وكتب المنهج الرسمية تصلك حتى باب المنزل أو حملها بصيغة PDF.'),
-      image: '/assets/features/feature-4-cutout.png?v=20261001_v50'
+      image: '/assets/features/feature-4-cutout.png?v=20261001_v60'
     },
     {
       id: 4,
