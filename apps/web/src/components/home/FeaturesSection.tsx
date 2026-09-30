@@ -63,11 +63,11 @@ export default function FeaturesSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
+        {/* Horizontal Touch Slider with Unblocked 2D Vertical Scroll */}
         <div
           ref={sliderRef}
-          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {featureItems.map((feature, index) => {
             const Icon = feature.icon;
@@ -78,7 +78,8 @@ export default function FeaturesSection() {
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: '-30px' }}
                 transition={{ duration: 0.5, delay: index * 0.1, ease: 'easeOut' }}
-                className="snap-center shrink-0 w-[260px] sm:w-[280px] bg-[#f7f6ed]/60 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg flex flex-col justify-between"
+                className="snap-center shrink-0 w-[260px] sm:w-[280px] bg-[#f7f6ed]/60 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg flex flex-col justify-between touch-pan-y"
+                style={{ touchAction: 'pan-x pan-y' }}
               >
                 <div>
                   <div className="w-14 h-14 rounded-2xl bg-[#0d6e4f]/10 dark:bg-emerald-500/10 text-[#0d6e4f] dark:text-emerald-400 flex items-center justify-center mb-5">

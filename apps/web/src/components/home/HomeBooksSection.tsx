@@ -49,11 +49,11 @@ export default function HomeBooksSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
+        {/* Horizontal Touch Slider with Unblocked 2D Vertical Scroll */}
         <div
           ref={sliderRef}
-          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {activeBooks.map((book, index) => (
             <motion.div
@@ -63,7 +63,8 @@ export default function HomeBooksSection() {
               viewport={{ once: true, margin: '-30px' }}
               transition={{ duration: 0.5, delay: index * 0.08, ease: 'easeOut' }}
               onClick={() => handleBookClick(book.id)}
-              className="snap-center shrink-0 w-[260px] sm:w-[300px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-5 sm:p-6 shadow-sm hover:shadow-xl hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-1.5"
+              className="snap-center shrink-0 w-[260px] sm:w-[300px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-5 sm:p-6 shadow-sm hover:shadow-xl hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-1.5 touch-pan-y"
+              style={{ touchAction: 'pan-x pan-y' }}
             >
               {/* Top Category Badge & Price */}
               <div className="flex items-center justify-between mb-4">

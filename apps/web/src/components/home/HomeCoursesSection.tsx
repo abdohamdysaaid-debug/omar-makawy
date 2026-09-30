@@ -49,11 +49,11 @@ export default function HomeCoursesSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
+        {/* Horizontal Touch Slider with Unblocked 2D Vertical Scroll */}
         <div
           ref={sliderRef}
-          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {activeCourses.map((course, index) => (
             <motion.div
@@ -63,7 +63,8 @@ export default function HomeCoursesSection() {
               viewport={{ once: true, margin: '-30px' }}
               transition={{ duration: 0.5, delay: index * 0.08, ease: 'easeOut' }}
               onClick={() => handleCourseClick(course.id)}
-              className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-1.5"
+              className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-1.5 touch-pan-y"
+              style={{ touchAction: 'pan-x pan-y' }}
             >
               {/* Card Header Banner */}
               <div className="relative h-40 bg-[#0d6e4f] p-5 flex flex-col justify-between text-white overflow-hidden">

@@ -49,11 +49,11 @@ export default function PackagesSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
+        {/* Horizontal Touch Slider with Unblocked 2D Vertical Scroll */}
         <div
           ref={sliderRef}
-          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {activePackages.map((pkg, index) => (
             <motion.div
@@ -66,7 +66,8 @@ export default function PackagesSection() {
                 pkg.isPopular
                   ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
                   : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
-              } rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:-translate-y-1.5`}
+              } rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:-translate-y-1.5 touch-pan-y`}
+              style={{ touchAction: 'pan-x pan-y' }}
             >
               {pkg.isPopular && (
                 <div className="absolute -top-3.5 start-1/2 -translate-x-1/2 bg-[#0d6e4f] text-white px-4 py-1 rounded-full text-xs font-black shadow-md font-cairo">
