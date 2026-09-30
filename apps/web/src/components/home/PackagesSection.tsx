@@ -75,13 +75,15 @@ export default function PackagesSection() {
               key={pkg.id}
               initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              whileHover={{ scale: 1.05, y: -10 }}
+              whileTap={{ scale: 0.98 }}
               viewport={{ amount: 0.55 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
               className={`snap-center shrink-0 w-[270px] sm:w-[310px] md:w-full group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border ${
                 pkg.isPopular
-                  ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
+                  ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/15'
                   : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
-              } rounded-3xl overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] hover:shadow-xl hover:border-[#0d6e4f]/50 dark:hover:border-emerald-500/50 touch-pan-y`}
+              } rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 touch-pan-y`}
               style={{ touchAction: 'pan-x pan-y' }}
             >
               {/* Top Image / Banner Header Area */}

@@ -75,10 +75,12 @@ export default function HomeBooksSection() {
               key={book.id}
               initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              whileHover={{ scale: 1.05, y: -10 }}
+              whileTap={{ scale: 0.98 }}
               viewport={{ amount: 0.55 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
               onClick={() => handleBookClick(book.id)}
-              className="snap-center shrink-0 w-[260px] sm:w-[300px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-5 sm:p-6 shadow-sm hover:shadow-xl hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] touch-pan-y"
+              className="snap-center shrink-0 w-[260px] sm:w-[300px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-5 sm:p-6 shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
               style={{ touchAction: 'pan-x pan-y' }}
             >
               {/* Top Category Badge & Price */}
@@ -92,8 +94,8 @@ export default function HomeBooksSection() {
               </div>
 
               {/* Book Icon Illustration */}
-              <div className="w-full h-36 bg-gradient-to-br from-[#0d6e4f]/10 to-[#0d6e4f]/20 dark:from-emerald-950/40 dark:to-stone-800 rounded-2xl flex flex-col items-center justify-center mb-4 group-hover:scale-[1.02] transition-transform">
-                <BookOpen className="w-12 h-12 text-[#0d6e4f] dark:text-emerald-400 mb-1" />
+              <div className="w-full h-36 bg-gradient-to-br from-[#0d6e4f]/10 to-[#0d6e4f]/20 dark:from-emerald-950/40 dark:to-stone-800 rounded-2xl flex flex-col items-center justify-center mb-4 group-hover:scale-[1.04] group-hover:-rotate-1 transition-all duration-300">
+                <BookOpen className="w-12 h-12 text-[#0d6e4f] dark:text-emerald-400 mb-1 group-hover:scale-110 transition-transform duration-300" />
                 <span className="text-[11px] font-bold text-gray-500 dark:text-gray-400">نسخة معتمدة الأصالة</span>
               </div>
 
