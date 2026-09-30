@@ -111,7 +111,7 @@ export default function Footer() {
             &quot;&gt;
           </div>
           <div className="text-xs sm:text-sm text-gray-300 dark:text-gray-400 font-medium">
-            حقوق الطبع والنشر © ELHDAD TECH
+            حقوق الطبع والنشر © 2026 ELHDAD TECH
           </div>
         </div>
       </div>
