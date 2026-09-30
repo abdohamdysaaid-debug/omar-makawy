@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { Student } from '@/types';
 import { mockStudent } from '@/data/mock';
 import { apiClient } from '@/lib/api';
@@ -42,12 +42,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);
 
+  useEffect(() => {
+    try {
+      const storedAuth = localStorage.getItem('omar_student_auth');
+      const storedStudent = localStorage.getItem('omar_student_data');
+      if (storedAuth === 'true' && storedStudent) {
+        setIsAuthenticated(true);
+        setStudent(JSON.parse(storedStudent));
+      }
+    } catch {
+      // Fallback
+    }
+  }, []);
+
   const login = useCallback((email: string, _password: string) => {
     void email;
     void _password;
     setStudent(mockStudent);
     setIsAuthenticated(true);
     setShowAuthGate(false);
+    try {
+      localStorage.setItem('omar_student_auth', 'true');
+      localStorage.setItem('omar_student_data', JSON.stringify(mockStudent));
+    } catch {}
     return true;
   }, []);
 
@@ -64,6 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStudent(newStudent);
     setIsAuthenticated(true);
     setShowAuthGate(false);
+    try {
+      localStorage.setItem('omar_student_auth', 'true');
+      localStorage.setItem('omar_student_data', JSON.stringify(newStudent));
+    } catch {}
     return true;
   }, []);
 
@@ -71,6 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStudent(null);
     setIsAuthenticated(false);
     setReturnUrl(null);
+    try {
+      localStorage.removeItem('omar_student_auth');
+      localStorage.removeItem('omar_student_data');
+    } catch {}
     if (typeof window !== 'undefined') {
       window.location.href = '/';
     }
@@ -86,9 +111,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateStudentAvatar = useCallback(async (avatarUrl: string) => {
-    setStudent((prev) => (prev ? { ...prev, avatarUrl } : prev));
+    setStudent((prev) => {
+      const updated = prev ? { ...prev, avatarUrl } : prev;
+      if (updated) {
+        try {
+          localStorage.setItem('omar_student_data', JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
     try {
-      // Backend avatar upload / Drive integration endpoint
       await apiClient.post('/students/avatar', { avatarUrl }).catch(() => null);
     } catch {
       // Keep state fallback
