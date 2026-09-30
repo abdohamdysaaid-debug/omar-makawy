@@ -21,10 +21,11 @@ export default function HeroBanner() {
       {/* 2. Responsive Hero Composition Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
         
-        {/* MOBILE VISUAL COMPOSITION WITH OVERLAID RECTANGLES & STACKED BUTTONS */}
-        <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-1 py-1 relative">
+        {/* MOBILE VISUAL COMPOSITION WITH OVERLAID RECTANGLES & ENLARGED BOTTOM BUTTONS */}
+        <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-2 relative z-20 space-y-4">
           
-          <div className="relative w-full max-w-[380px] xs:max-w-[440px] flex items-center justify-center">
+          {/* Image & Floating Teacher Name/Subject Badges */}
+          <div className="relative w-full max-w-[380px] xs:max-w-[420px] flex flex-col items-center justify-center">
             {/* Mobile Light Mode Visual */}
             <img
               src="/assets/hero/hero-visual-mobile-seamless.png?v=20260930_v5"
@@ -39,41 +40,42 @@ export default function HeroBanner() {
               className="hidden dark:block w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none"
             />
 
-            {/* Overlaid Rectangles & Buttons directly over the bottom tie / chest area */}
-            <div className="absolute bottom-1 xs:bottom-2 inset-x-2 z-30 flex flex-col items-center text-center space-y-2">
-              
+            {/* Floating Brand Badges shifted down near the end of the tie */}
+            <div className="absolute bottom-1 xs:bottom-2 inset-x-0 z-30 flex flex-col items-center text-center space-y-1.5 px-2">
               {/* 1. First Rectangle: "مستر عمر مكاوي" */}
-              <div className="px-5 py-1.5 rounded-2xl bg-[#e2ede5]/95 dark:bg-[#064e3b]/95 text-[#0d6e4f] dark:text-emerald-200 border border-[#c2dbc9] dark:border-emerald-500/50 shadow-md backdrop-blur-md">
-                <span className="text-sm font-black tracking-tight">
+              <div className="px-5 py-1.5 rounded-xl bg-[#0d6e4f]/95 dark:bg-[#064e3b]/95 text-white dark:text-emerald-100 border border-emerald-400/40 dark:border-emerald-500/50 shadow-lg backdrop-blur-md">
+                <span className="text-sm xs:text-base font-black tracking-wide">
                   مستر عمر مكاوي
                 </span>
               </div>
 
               {/* 2. Second Rectangle: "مدرس اللغة الإنجليزية" */}
-              <div className="px-4 py-1.5 rounded-2xl bg-white/95 dark:bg-stone-900/95 text-gray-800 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-md backdrop-blur-md">
+              <div className="px-4 py-1 rounded-xl bg-white/95 dark:bg-stone-900/95 text-gray-900 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-md backdrop-blur-md">
                 <span className="text-xs font-extrabold tracking-tight">
                   مدرس اللغة الإنجليزية
                 </span>
               </div>
-
-              {/* 3. Stacked Action Buttons: "إنشاء حساب" & "تسجيل الدخول" */}
-              <div className="w-full max-w-[270px] xs:max-w-[300px] space-y-2 pt-1">
-                <Link
-                  href="/register"
-                  className="w-full py-2.5 px-4 rounded-full bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0d6e4f]/30 transition-all active:scale-95"
-                >
-                  <span>إنشاء حساب</span>
-                </Link>
-
-                <Link
-                  href="/login"
-                  className="w-full py-2.5 px-4 rounded-full bg-white dark:bg-stone-800/95 hover:bg-stone-100 dark:hover:bg-stone-700 text-gray-800 dark:text-white border border-stone-300/80 dark:border-stone-700 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
-                >
-                  <span>تسجيل الدخول</span>
-                </Link>
-              </div>
-
             </div>
+          </div>
+
+          {/* Enriched & Enlarged Action Area Directly Below the Image */}
+          <div className="w-full max-w-[320px] xs:max-w-[360px] flex flex-col space-y-3 pt-2 pb-1">
+            <Link
+              href="/register"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-black text-sm xs:text-base flex items-center justify-center gap-2 shadow-xl shadow-[#0d6e4f]/25 border border-emerald-500/30 transition-all active:scale-[0.98]"
+            >
+              <span>إنشاء حساب</span>
+              <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+
+            <Link
+              href="/login"
+              className="w-full py-3.5 px-6 rounded-2xl bg-white dark:bg-[#071d15] hover:bg-stone-50 dark:hover:bg-[#0a271d] text-gray-900 dark:text-emerald-100 border-2 border-stone-200 dark:border-emerald-500/40 font-extrabold text-sm xs:text-base flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]"
+            >
+              <span>تسجيل الدخول</span>
+            </Link>
           </div>
 
         </div>
