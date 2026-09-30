@@ -65,26 +65,12 @@ export default function HeroBanner() {
             className="dark:hidden w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_10px_30px_rgba(17,105,78,0.06)]"
           />
 
-          {/* Desktop Dark Mode Visual (AI Dark Artwork + Teacher Cutout Composite) */}
-          <div className="hidden dark:flex relative w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1150px] aspect-[16/9] rounded-3xl overflow-hidden shadow-[0_0_60px_rgba(13,110,79,0.3)] border border-emerald-500/20 items-center justify-center transition-all duration-300">
-            {/* AI Dark Desktop Background Artwork */}
-            <img
-              src="/assets/hero/hero-bg-dark-desktop.jpg"
-              alt="Dark Mode Desktop Hero Background Artwork"
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-            />
-
-            {/* Ambient Dark Edges Gradient Masking */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-transparent to-[#0b0f19]/60 pointer-events-none z-10" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f19]/70 via-transparent to-[#0b0f19]/70 pointer-events-none z-10" />
-
-            {/* Teacher Cutout Layer */}
-            <img
-              src="/assets/hero/teacher-cutout.png"
-              alt="Mr. Omar Makawy Cutout"
-              className="relative z-20 h-[88%] w-auto object-contain max-h-[88%] translate-y-2 filter drop-shadow-[0_16px_36px_rgba(0,0,0,0.85)] pointer-events-none select-none"
-            />
-          </div>
+          {/* Desktop Dark Mode Visual (Exact User Image, Blended Seamlessly, NO Frame) */}
+          <img
+            src="/assets/hero/hero-visual-desktop-dark.png"
+            alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
+            className="hidden dark:block w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none"
+          />
 
         </div>
 
