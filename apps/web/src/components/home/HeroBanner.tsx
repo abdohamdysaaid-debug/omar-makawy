@@ -28,7 +28,7 @@ export default function HeroBanner() {
           className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden"
         >
           {/* LEFT SIDE WATERCOLOR TYPOGRAPHY COLUMN (Spanning Top to Bottom) */}
-          <div className="absolute inset-y-4 left-1 xs:left-3 sm:left-8 md:left-12 flex flex-col justify-between items-start py-4 opacity-45 dark:opacity-30 max-w-[35vw] sm:max-w-[28vw]">
+          <div className="absolute inset-y-4 left-1 xs:left-3 sm:left-6 md:left-10 lg:left-14 flex flex-col justify-between items-start py-4 opacity-45 dark:opacity-30 max-w-[35vw] sm:max-w-[28vw] lg:max-w-[25vw] xl:max-w-[22vw]">
             <span className="font-serif italic text-lg xs:text-2xl sm:text-4xl lg:text-5xl font-black text-[#0d6e4f] dark:text-emerald-400 transform -rotate-12 tracking-wide drop-shadow-sm">
               Mr. Omar Meckawy
             </span>
@@ -50,7 +50,7 @@ export default function HeroBanner() {
           </div>
 
           {/* RIGHT SIDE WATERCOLOR TYPOGRAPHY COLUMN (Spanning Top to Bottom) */}
-          <div className="absolute inset-y-4 right-1 xs:right-3 sm:right-8 md:right-12 flex flex-col justify-between items-end py-4 opacity-45 dark:opacity-30 max-w-[35vw] sm:max-w-[28vw]">
+          <div className="absolute inset-y-4 right-1 xs:right-3 sm:right-6 md:right-10 lg:right-14 flex flex-col justify-between items-end py-4 opacity-45 dark:opacity-30 max-w-[35vw] sm:max-w-[28vw] lg:max-w-[25vw] xl:max-w-[22vw]">
             <span className="font-serif italic text-lg xs:text-2xl sm:text-4xl lg:text-5xl font-black text-[#0d6e4f] dark:text-emerald-400 transform rotate-12 tracking-wide drop-shadow-sm">
               Mr. Omar Meckawy
             </span>
@@ -100,7 +100,7 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.35, ease: 'easeOut' },
             y: { duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.95 }
           }}
-          className="absolute top-12 xs:top-14 sm:top-20 left-2 xs:left-3 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
+          className="absolute top-8 xs:top-10 sm:top-16 md:top-20 lg:top-24 left-2 xs:left-3 sm:left-6 md:left-12 lg:left-20 xl:left-28 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
             <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
@@ -119,7 +119,7 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.5, ease: 'easeOut' },
             y: { duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 1.1 }
           }}
-          className="absolute top-32 xs:top-36 sm:top-44 left-2 xs:left-3 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
+          className="absolute top-28 xs:top-32 sm:top-40 md:top-48 lg:top-56 left-2 xs:left-3 sm:left-6 md:left-12 lg:left-20 xl:left-28 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-emerald-900/90 via-[#0d6e4f]/90 to-emerald-800/90 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1.5 font-cairo">
             <span className="text-xs sm:text-sm lg:text-base font-black tracking-tight drop-shadow-sm">
@@ -138,7 +138,7 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.4, ease: 'easeOut' },
             y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.0 }
           }}
-          className="absolute top-16 xs:top-18 sm:top-24 right-2 xs:right-3 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
+          className="absolute top-10 xs:top-12 sm:top-18 md:top-24 lg:top-28 right-2 xs:right-3 sm:right-6 md:right-12 lg:right-20 xl:right-28 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
             <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
@@ -157,7 +157,7 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.55, ease: 'easeOut' },
             y: { duration: 4.8, repeat: Infinity, ease: 'easeInOut', delay: 1.15 }
           }}
-          className="absolute top-36 xs:top-40 sm:top-48 right-2 xs:right-3 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
+          className="absolute top-32 xs:top-36 sm:top-44 md:top-52 lg:top-60 right-2 xs:right-3 sm:right-6 md:right-12 lg:right-20 xl:right-28 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-emerald-800/90 via-[#0d6e4f]/90 to-emerald-900/90 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1.5 font-cairo">
             <span className="text-xs sm:text-sm lg:text-base font-black tracking-tight drop-shadow-sm">
