@@ -54,7 +54,7 @@ export default function FeaturesSection() {
       id: 4,
       title: t('features.walletTitle', 'محفظة شحن كروت المنصة'),
       description: t('features.walletDesc', 'سهولة الاشتراك وشحن الحساب عبر جميع وسائل الدفع المباشرة أو المحافظ الإلكترونية.'),
-      image: '/assets/features/feature-1-cutout.png?v=20261001_v50'
+      image: '/assets/features/feature-1-cutout.png?v=20261001_v80'
     }
   ];
 
