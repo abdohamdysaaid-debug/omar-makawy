@@ -153,16 +153,14 @@ html, body, *, *::before, *::after {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
 @keyframes slideUp {
@@ -172,10 +170,35 @@ html, body, *, *::before, *::after {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .animate-slide-up {
   animation: slideUp 0.35s ease-out;
+}
+
+@keyframes drawerSlideFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawerSlideFromLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-right {
+  animation: drawerSlideFromRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-left {
+  animation: drawerSlideFromLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

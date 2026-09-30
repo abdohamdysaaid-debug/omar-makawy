@@ -177,9 +177,9 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex justify-end">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="relative w-72 max-w-sm bg-white dark:bg-[#080808] h-full shadow-xl flex flex-col border-s dark:border-stone-800 animate-fade-in">
+        <div className="lg:hidden fixed inset-0 z-50 flex justify-start">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-fade-in" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="relative w-72 max-w-sm bg-white dark:bg-[#080808] h-full shadow-2xl flex flex-col start-0 border-e dark:border-stone-800 rtl:animate-slide-right ltr:animate-slide-left">
             <div className="p-4 border-b border-gray-200 dark:border-stone-800 flex justify-between items-center">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-start text-start">
                 <span className="text-base font-black bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">
