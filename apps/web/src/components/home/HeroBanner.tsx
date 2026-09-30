@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 export default function HeroBanner() {
   return (
-    <section className="relative w-full overflow-hidden bg-[#f7f6ed] dark:bg-[#020d08] transition-colors duration-300 min-h-[65vh] sm:min-h-[75vh] lg:min-h-[88vh] flex items-center justify-center py-4 sm:py-10 lg:py-14">
+    <section className="relative w-full overflow-hidden bg-[#f7f6ed] dark:bg-[#020d08] transition-colors duration-300 min-h-[65vh] sm:min-h-[75vh] lg:min-h-[88vh] flex items-center justify-center pt-6 pb-4 sm:py-10 lg:py-14">
       
       {/* 1. Ambient Background Glow & Edge Blending Layers */}
       <div className="absolute inset-0 w-full h-full pointer-events-none select-none z-0">
@@ -27,12 +27,12 @@ export default function HeroBanner() {
         {/* MOBILE VISUAL COMPOSITION WITH OVERLAID RECTANGLES & COMPACT FLOATING BUTTONS */}
         <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-2 relative z-20">
           
-          {/* Image Container (lowered slightly as requested) */}
+          {/* Image Container (lowered to start comfortably right under top navbar) */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.94, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.215, 0.61, 0.355, 1] }}
-            className="relative w-full max-w-[380px] xs:max-w-[420px] flex flex-col items-center justify-center pt-3"
+            className="relative w-full max-w-[380px] xs:max-w-[420px] flex flex-col items-center justify-center pt-6 xs:pt-8"
           >
             {/* Mobile Light Mode Visual */}
             <img
@@ -48,7 +48,7 @@ export default function HeroBanner() {
               className="hidden dark:block w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none"
             />
 
-            {/* Floating Brand Badges (shifted up higher over the tie area) */}
+            {/* Floating Brand Badges (positioned gracefully over tie area) */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -77,7 +77,7 @@ export default function HeroBanner() {
             </motion.div>
           </motion.div>
 
-          {/* Enriched & Enlarged Action Area Pulled UP (~2cm) to overlap and eliminate white space */}
+          {/* Enriched & Enlarged Action Area Pulled UP to overlap and eliminate white space */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
