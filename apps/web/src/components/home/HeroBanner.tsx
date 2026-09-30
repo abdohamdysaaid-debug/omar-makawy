@@ -1,191 +1,40 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { ArrowLeft, ArrowRight, GraduationCap } from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
 
 export default function HeroBanner() {
-  const { t, language } = useLanguage();
-  const isRtl = language === 'ar';
-  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
-
   return (
-    <section className="relative w-full overflow-hidden bg-[#f4f1ec] dark:bg-[#0b0f19] text-gray-900 dark:text-white pt-24 pb-16 sm:pt-28 sm:pb-20 lg:pt-32 lg:pb-24 font-cairo transition-colors duration-300 min-h-[90vh] flex flex-col justify-center">
+    <section className="relative w-full overflow-hidden bg-[#f7f6ed] dark:bg-[#0b0f19] transition-colors duration-300 min-h-[70vh] sm:min-h-[80vh] lg:min-h-[88vh] flex items-center justify-center py-8 sm:py-12 lg:py-16">
       
-      {/* 1. Left Side Organic Green Fluid Wave SVG (Desktop) */}
-      <div className="absolute top-0 start-0 bottom-0 w-64 lg:w-96 pointer-events-none z-0 hidden lg:block opacity-90">
-        <svg viewBox="0 0 350 800" fill="none" className="w-full h-full text-[#11694e]">
-          <path 
-            d="M -50 -50 C 150 100 250 300 120 500 C 0 700 180 850 -50 900 Z" 
-            fill="currentColor" 
-            opacity="0.9"
-          />
-          <path 
-            d="M -80 50 C 80 200 180 350 70 550 C -30 750 100 850 -80 900 Z" 
-            fill="#094d38" 
-            opacity="0.8"
-          />
-        </svg>
-        {/* Floating Leaves */}
-        <div className="absolute top-1/4 start-24 text-emerald-300 animate-pulse text-2xl">🍃</div>
-        <div className="absolute top-2/3 start-16 text-emerald-200 text-xl">🍃</div>
+      {/* 1. Background Artwork Environment — Fills hero section responsively across screen sizes */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0">
+        <img
+          src="/assets/hero/hero-bg-artwork.png"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover object-center scale-105 sm:scale-100 transition-transform duration-500 ease-out"
+        />
+        {/* Soft edge blending overlays to visually integrate with top Navbar and section bottom */}
+        <div className="absolute inset-x-0 top-0 h-16 sm:h-20 bg-gradient-to-b from-[#f7f6ed]/40 to-transparent dark:from-[#0b0f19]/60 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-16 sm:h-20 bg-gradient-to-t from-[#f7f6ed]/40 to-transparent dark:from-[#0b0f19]/60 pointer-events-none" />
       </div>
 
-      {/* 2. Right Side Organic Green Fluid Wave SVG (Desktop) */}
-      <div className="absolute top-0 end-0 bottom-0 w-64 lg:w-96 pointer-events-none z-0 hidden lg:block opacity-90">
-        <svg viewBox="0 0 350 800" fill="none" className="w-full h-full text-[#11694e]">
-          <path 
-            d="M 400 -50 C 200 100 100 300 230 500 C 350 700 170 850 400 900 Z" 
-            fill="currentColor" 
-            opacity="0.9"
-          />
-          <path 
-            d="M 430 50 C 270 200 170 350 280 550 C 380 750 250 850 430 900 Z" 
-            fill="#094d38" 
-            opacity="0.8"
-          />
-        </svg>
-        {/* Floating Leaves */}
-        <div className="absolute top-1/3 end-20 text-emerald-300 animate-pulse text-2xl">🍃</div>
-        <div className="absolute top-3/4 end-28 text-emerald-200 text-xl">🍃</div>
-      </div>
-
-      {/* Mobile Subtle Background Ambient Gradient */}
-      <div className="absolute inset-0 pointer-events-none lg:hidden z-0 bg-gradient-to-b from-[#e7e3d8]/60 via-[#f4f1ec] to-[#f4f1ec] opacity-80" />
-
-      {/* Main Hero Container */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+      {/* 2. Single Responsive Hero Composition Container */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
         
-        {/* ------------------------------------------------------------- */}
-        {/* DESKTOP LAYOUT (Matches media_1790734163204.jpg)               */}
-        {/* ------------------------------------------------------------- */}
-        <div className="hidden lg:flex flex-col items-center text-center">
+        {/* Main Visual Centerpiece — Mr. Omar Makawy Cutout integrated naturally into the background artwork */}
+        <div className="relative flex items-center justify-center w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto min-h-[340px] sm:min-h-[440px] md:min-h-[500px] lg:min-h-[560px] xl:min-h-[620px]">
           
-          {/* Hero Teacher Artwork Center Image (Organic Blob + Teacher + Doodles) */}
-          <div className="relative w-full max-w-2xl mx-auto mb-6 flex justify-center items-center">
-            <img
-              src="/mr-omar-hero-desktop.png"
-              alt="Mr. Omar Meckawy"
-              className="w-auto h-[380px] object-contain drop-shadow-xl hover:scale-102 transition-transform duration-300"
-            />
-          </div>
-
-          {/* Main Headline with Green Curved Underline */}
-          <h1 className="text-4xl lg:text-5xl font-black text-[#00251e] dark:text-white leading-tight mb-4 tracking-tight">
-            {isRtl ? (
-              <>
-                مستقبلك{' '}
-                <span className="relative inline-block text-[#00251e] dark:text-emerald-400">
-                  يبدأ من هنا
-                  {/* Curved underline SVG matching screenshot */}
-                  <svg className="absolute -bottom-2 start-0 w-full h-3.5 text-[#11694e] dark:text-emerald-400" viewBox="0 0 200 20" fill="none">
-                    <path d="M5,14 Q100,2 195,14" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
-                  </svg>
-                </span>
-              </>
-            ) : (
-              <span>Your Future Starts Here</span>
-            )}
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-lg text-gray-700 dark:text-gray-300 font-bold max-w-2xl mb-8 leading-relaxed">
-            {t('hero.description', 'تعلم اللغة الإنجليزية بأسلوب مختلف مع مستر عمر مكاوي.')}
-          </p>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-center gap-4 w-full max-w-md mx-auto">
-            {/* Primary Dark Green Pill Button */}
-            <Link
-              href="/courses"
-              className="px-8 py-3.5 bg-[#11694e] hover:bg-[#0a4d38] text-white font-extrabold rounded-full flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-[#11694e]/30 text-base"
-            >
-              <span>{t('hero.exploreCourses', 'ابدأ رحلتك الآن')}</span>
-              <ArrowIcon className="w-5 h-5 text-white" />
-            </Link>
-
-            {/* Secondary Off-White Pill Button */}
-            <Link
-              href="/login"
-              className="px-8 py-3.5 bg-white dark:bg-stone-800 hover:bg-stone-100 text-gray-900 dark:text-white font-bold rounded-full border border-stone-300/80 dark:border-stone-700 flex items-center justify-center gap-2 transition-all shadow-sm text-base"
-            >
-              <GraduationCap className="w-5 h-5 text-[#11694e] dark:text-emerald-400" />
-              <span>{t('nav.login', 'تسجيل الدخول للطلاب')}</span>
-            </Link>
-          </div>
-
-        </div>
-
-        {/* ------------------------------------------------------------- */}
-        {/* MOBILE LAYOUT (Matches media_1790734164208.png)               */}
-        {/* ------------------------------------------------------------- */}
-        <div className="flex lg:hidden flex-col items-center text-center">
-          
-          {/* Top Platform Pill Badge */}
-          <div className="inline-flex items-center gap-2 bg-[#e2ede5] dark:bg-stone-800 text-[#11694e] dark:text-emerald-400 font-extrabold text-xs px-4 py-1.5 rounded-full mb-4 border border-[#c5dbc9] dark:border-stone-700 shadow-xs">
-            <GraduationCap className="w-4 h-4 text-[#11694e]" />
-            <span>{t('teacher.title', 'Mr. Omar Meckawy')} {t('hero.platformSuffix', 'التعليمية')}</span>
-          </div>
-
-          {/* Main Headline */}
-          <h1 className="text-3xl font-black text-[#00251e] dark:text-white leading-tight mb-3 tracking-tight">
-            {isRtl ? (
-              <>
-                مستقبلك{' '}
-                <span className="relative inline-block text-[#00251e] dark:text-emerald-400">
-                  يبدأ من هنا
-                  <svg className="absolute -bottom-1.5 start-0 w-full h-3 text-[#11694e] dark:text-emerald-400" viewBox="0 0 200 20" fill="none">
-                    <path d="M5,14 Q100,2 195,14" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                  </svg>
-                </span>
-              </>
-            ) : (
-              <span>Your Future Starts Here</span>
-            )}
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-bold max-w-xs mb-4 leading-relaxed">
-            تعلم اللغة الإنجليزية بأسلوب مختلف مع مستر عمر مكاوي.
-            <span className="block text-[11px] text-gray-600 dark:text-gray-400 font-medium mt-0.5">
-              شرح بسيط، متابعة مستمرة، وخطوة بخطوة نحو مستواك الأفضل.
-            </span>
-          </p>
-
-          {/* Center Mobile Teacher Artwork */}
-          <div className="relative w-full max-w-sm mx-auto my-2 flex justify-center items-center">
-            <img
-              src="/mr-omar-hero-mobile.png"
-              alt="Mr. Omar Meckawy"
-              className="w-full max-w-[340px] h-auto object-contain drop-shadow-lg"
-            />
-          </div>
-
-          {/* Stacked Mobile Action Buttons */}
-          <div className="flex flex-col gap-3 w-full max-w-xs mx-auto mt-4">
-            {/* Primary Dark Green Pill Button */}
-            <Link
-              href="/courses"
-              className="w-full py-3.5 bg-[#11694e] hover:bg-[#0a4d38] text-white font-extrabold rounded-full flex items-center justify-center gap-2 transition-all shadow-md text-sm"
-            >
-              <span>{t('hero.exploreCourses', 'ابدأ رحلتك الآن')}</span>
-              <ArrowIcon className="w-4 h-4 text-white" />
-            </Link>
-
-            {/* Secondary Off-White Pill Button */}
-            <Link
-              href="/login"
-              className="w-full py-3.5 bg-white dark:bg-stone-800 hover:bg-stone-100 text-gray-900 dark:text-white font-bold rounded-full border border-stone-300/80 dark:border-stone-700 flex items-center justify-center gap-2 transition-all shadow-xs text-sm"
-            >
-              <GraduationCap className="w-4.5 h-4.5 text-[#11694e] dark:text-emerald-400" />
-              <span>{t('nav.login', 'تسجيل الدخول للطلاب')}</span>
-            </Link>
-          </div>
+          <img
+            src="/assets/hero/teacher-cutout.png"
+            alt="Mr. Omar Makawy"
+            className="w-auto h-[310px] sm:h-[420px] md:h-[480px] lg:h-[540px] xl:h-[600px] max-w-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_16px_32px_rgba(0,0,0,0.45)] transition-all duration-300 pointer-events-none select-none"
+          />
 
         </div>
 
       </div>
+
     </section>
   );
 }
