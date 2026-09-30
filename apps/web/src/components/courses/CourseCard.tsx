@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { BookOpen, Clock, PlayCircle } from 'lucide-react';
 import { Course } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { academicYears } from '@/data/mock';
 
 interface CourseCardProps {
@@ -15,9 +16,10 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
   const router = useRouter();
   const { isAuthenticated, openAuthGate } = useAuth();
+  const { t } = useLanguage();
 
   const academicYear = academicYears.find((y) => y.id === course.academicYearId);
-  const yearTitle = academicYear?.title || 'عام';
+  const yearTitle = academicYear?.title || t('courses.allYears', 'عام');
 
   const handleCTA = () => {
     if (!isAuthenticated && openAuthGate) {
@@ -53,7 +55,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         </h3>
 
         <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-          مستر عمر مكاوي
+          {t('teacher.title', 'Mr. Omar Meckawy')}
         </p>
 
         {course.description && (
@@ -66,11 +68,11 @@ export default function CourseCard({ course }: CourseCardProps) {
         <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-1">
             <PlayCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{course.lectureCount || 0} محاضرة</span>
+            <span>{course.lectureCount || 0} {t('courses.lecturesCount', 'محاضرة')}</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{course.duration || '0 ساعة'}</span>
+            <span>{course.duration || '0 h'}</span>
           </div>
         </div>
 
@@ -80,10 +82,10 @@ export default function CourseCard({ course }: CourseCardProps) {
             {course.price > 0 ? (
               <>
                 <span className="text-emerald-600 dark:text-emerald-400">{course.price}</span>{' '}
-                <span className="text-xs text-gray-500 font-normal">جنيه</span>
+                <span className="text-xs text-gray-500 font-normal">{t('ui.currency', 'ج.م')}</span>
               </>
             ) : (
-              <span className="text-emerald-600 font-bold">مجاني</span>
+              <span className="text-emerald-600 font-bold">{t('courses.free', 'مجاني')}</span>
             )}
           </div>
 
@@ -91,7 +93,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             onClick={handleCTA}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
           >
-            تصفح الكورس
+            {t('courses.viewDetails', 'عرض الكورس')}
           </button>
         </div>
       </div>

@@ -5,20 +5,22 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, PlaySquare, BookOpen, FileText, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   // Only render Mobile Bottom Navigation when student is logged in
   if (!isAuthenticated) return null;
 
   const navItems = [
-    { label: 'الرئيسية', icon: Home, href: '/' },
-    { label: 'المحاضرات', icon: PlaySquare, href: '/courses' },
-    { label: 'الكتب', icon: BookOpen, href: '/bookstore' },
-    { label: 'الامتحانات', icon: FileText, href: '/exams' },
-    { label: 'حسابي', icon: User, href: '/profile' },
+    { label: t('bottomNav.home', 'الرئيسية'), icon: Home, href: '/' },
+    { label: t('bottomNav.courses', 'المحاضرات'), icon: PlaySquare, href: '/courses' },
+    { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: '/bookstore' },
+    { label: t('bottomNav.exams', 'الامتحانات'), icon: FileText, href: '/exams' },
+    { label: t('bottomNav.profile', 'حسابي'), icon: User, href: '/profile' },
   ];
 
   return (

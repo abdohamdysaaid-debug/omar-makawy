@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { courses as mockCourses, academicYears } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import CourseCard from '@/components/courses/CourseCard';
 import EmptyState from '@/components/ui/EmptyState';
 import StudentLayout from '@/components/layout/StudentLayout';
@@ -13,6 +14,7 @@ import { apiClient } from '@/lib/api';
 function CoursesContent() {
   const searchParams = useSearchParams();
   const { isAuthenticated, student } = useAuth();
+  const { t } = useLanguage();
   const initialYear = searchParams.get('year');
   const searchQuery = searchParams.get('search')?.toLowerCase();
 
@@ -83,12 +85,12 @@ function CoursesContent() {
       <div className="space-y-6 animate-fade-in">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
-            المحاضرات والكورسات المتاحة
+            {t('courses.title', 'المحاضرات والكورسات المتاحة')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {isAuthenticated && student
-              ? `يتم عرض الكورسات المتاحة لـ ${student.academicYearName || selectedYearObj?.title || 'مرحلتك الدراسية'}`
-              : 'تصفح الكورسات والمراحل الدراسية'}
+              ? `${t('courses.showingFor', 'يتم عرض الكورسات المتاحة لـ')} ${student.academicYearName || selectedYearObj?.title || ''}`
+              : t('courses.subtitle', 'تصفح جميع الكورسات والمراحل الدراسية')}
           </p>
         </div>
 
@@ -103,7 +105,7 @@ function CoursesContent() {
                   : 'bg-white dark:bg-[#131b2e] text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-800'
               }`}
             >
-              جميع المراحل
+              {t('courses.allYears', 'جميع المراحل')}
             </button>
           )}
 
@@ -122,7 +124,7 @@ function CoursesContent() {
               >
                 {year.title}
                 {isAssigned && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block ms-1" title="مرحلتك الحالية" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block ms-1" />
                 )}
               </button>
             );
@@ -149,9 +151,9 @@ function CoursesContent() {
           <div className="py-8">
             <EmptyState
               icon="BookOpen"
-              title="لا توجد كورسات متاحة حالياً"
-              description="لم يتم العثور على كورسات تطابق هذا الفلتر أو هذه المرحلة الدراسية حالياً."
-              actionText="تصفح جميع الكورسات"
+              title={t('courses.noCoursesFound', 'لا توجد كورسات متاحة حالياً')}
+              description={t('courses.noCoursesDesc', 'لم يتم العثور على كورسات تطابق هذا الفلتر أو هذه المرحلة الدراسية حالياً.')}
+              actionText={t('courses.allYears', 'جميع الكورسات')}
               actionUrl="/courses"
             />
           </div>

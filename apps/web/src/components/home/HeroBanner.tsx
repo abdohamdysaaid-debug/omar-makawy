@@ -2,10 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Play, GraduationCap, Sparkles } from 'lucide-react';
-import { heroBanner } from '@/data/mock';
+import { ArrowLeft, ArrowRight, GraduationCap, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function HeroBanner() {
+  const { t, language } = useLanguage();
+  const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
+
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-gray-900 text-white pt-20 pb-12 sm:pt-24 sm:pb-16 lg:pt-28 lg:pb-24">
       {/* Decorative Text */}
@@ -22,15 +25,15 @@ export default function HeroBanner() {
           <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
             <span className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 font-semibold text-xs px-4 py-2 rounded-full mb-6 border border-emerald-400/20 backdrop-blur-xs">
               <Sparkles className="w-4 h-4 text-emerald-400" />
-              منصة مستر عمر مكاوي التعليمية
+              {t('teacher.title', 'Mr. Omar Meckawy')} {t('hero.platformSuffix', 'Educational Platform')}
             </span>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 font-cairo">
-              {heroBanner.title}
+              {t('hero.title', 'تعلم الإنجليزي بأسلوب مختلف مع مستر عمر مكاوي')}
             </h1>
 
             <p className="text-lg sm:text-xl text-emerald-100/90 mb-8 max-w-2xl leading-relaxed font-cairo">
-              {heroBanner.subtitle}
+              {t('hero.description', 'شرح تفصيلي للمنهج، متابعة مستمرة، وامتحانات تفاعلية للوصول إلى الدرجة النهائية بثقة وسهولة.')}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
@@ -38,8 +41,8 @@ export default function HeroBanner() {
                 href="/courses"
                 className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-extrabold flex items-center justify-center gap-2 transition-all shadow-xl shadow-emerald-600/30 text-base font-cairo"
               >
-                {heroBanner.buttonText}
-                <ArrowLeft className="w-5 h-5" />
+                {t('hero.exploreCourses', 'استكشف الكورسات')}
+                <ArrowIcon className="w-5 h-5" />
               </Link>
 
               <Link
@@ -47,7 +50,7 @@ export default function HeroBanner() {
                 className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all backdrop-blur-md text-base font-cairo"
               >
                 <GraduationCap className="w-5 h-5 text-emerald-400" />
-                تسجيل الدخول للطالب
+                {t('nav.login', 'تسجيل الدخول للطالب')}
               </Link>
             </div>
           </div>
@@ -59,10 +62,10 @@ export default function HeroBanner() {
                 <div className="w-24 h-24 rounded-full bg-emerald-600 text-white flex items-center justify-center mb-4 shadow-lg">
                   <GraduationCap className="w-12 h-12" />
                 </div>
-                <h3 className="text-2xl font-extrabold text-white">Mr. Omar Makawy</h3>
-                <p className="text-sm font-semibold text-emerald-300 mt-1">خبير تدريس اللغة الإنجليزية</p>
+                <h3 className="text-2xl font-extrabold text-white">{t('teacher.title', 'Mr. Omar Meckawy')}</h3>
+                <p className="text-sm font-semibold text-emerald-300 mt-1">{t('teacher.expertTitle', 'English Language Specialist')}</p>
                 <span className="text-xs text-white/70 mt-3 max-w-xs">
-                  تبسيط المنهج وشرح القواعد والمهارات بأحدث الطرق التعليمية
+                  {t('hero.cardSub', 'Simplified curriculum explanations, grammar mastery & skills development')}
                 </span>
               </div>
             </div>
