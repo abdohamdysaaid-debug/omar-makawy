@@ -8,6 +8,18 @@ import { useLanguage } from '@/context/LanguageContext';
 export default function Footer() {
   const { t } = useLanguage();
 
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      const targetId = href.replace('/#', '');
+      const elem = document.getElementById(targetId);
+      if (elem) {
+        e.preventDefault();
+        elem.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', href);
+      }
+    }
+  };
+
   return (
     <footer className="bg-brand-700 dark:bg-black text-white font-cairo mt-auto border-t border-brand-800 dark:border-stone-800">
       <div className="container mx-auto px-4 py-12">
@@ -37,9 +49,31 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-bold mb-4 border-b border-white/20 dark:border-stone-800 pb-2 inline-block">{t('footer.quickLinks', 'روابط سريعة')}</h4>
             <ul className="space-y-3">
-              <li><Link href="/" className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">{t('nav.home', 'الرئيسية')}</Link></li>
-              <li><Link href="/courses" className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">{t('nav.courses', 'الكورسات')}</Link></li>
-              <li><Link href="/bookstore" className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">{t('nav.store', 'المتجر')}</Link></li>
+              <li>
+                <Link href="/" className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">
+                  {t('nav.home', 'الرئيسية')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/#packages" onClick={(e) => handleAnchorClick(e, '/#packages')} className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">
+                  {t('nav.packages', 'الباقات')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/#courses" onClick={(e) => handleAnchorClick(e, '/#courses')} className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">
+                  {t('nav.courses', 'الكورسات')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/#books" onClick={(e) => handleAnchorClick(e, '/#books')} className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">
+                  {t('nav.books', 'الكتب')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/profile" className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm">
+                  {t('bottomNav.profile', 'حسابي')}
+                </Link>
+              </li>
             </ul>
           </div>
 

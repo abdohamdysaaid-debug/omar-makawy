@@ -71,6 +71,18 @@ export default function Navbar() {
     { name: t('nav.account', 'حسابي'), href: '/profile' },
   ];
 
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      const targetId = href.replace('/#', '');
+      const elem = document.getElementById(targetId);
+      if (elem) {
+        e.preventDefault();
+        elem.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', href);
+      }
+    }
+  };
+
   return (
     <nav className="fixed top-2 sm:top-4 start-2 end-2 sm:start-4 sm:end-4 max-w-7xl mx-auto z-50 transition-all duration-300 font-cairo">
       <div className={`w-full rounded-full transition-all duration-300 px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between border shadow-lg ${
@@ -113,6 +125,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={(e) => handleAnchorClick(e, link.href)}
                 className={`text-sm font-bold transition-all relative py-1 ${
                   isActive 
                     ? 'text-[#0d6e4f] dark:text-emerald-400 font-extrabold border-b-2 border-[#0d6e4f] dark:border-emerald-400' 

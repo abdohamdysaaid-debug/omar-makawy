@@ -18,6 +18,18 @@ export default function MobileBottomNav() {
     { label: t('bottomNav.profile', 'حسابي'), icon: User, href: '/profile' },
   ];
 
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      const targetId = href.replace('/#', '');
+      const elem = document.getElementById(targetId);
+      if (elem) {
+        e.preventDefault();
+        elem.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', href);
+      }
+    }
+  };
+
   return (
     <div className="lg:hidden fixed bottom-3 start-3 end-3 z-40 max-w-lg mx-auto bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-full shadow-2xl py-1.5 px-2 font-cairo transition-all">
       <div className="flex justify-between items-center h-12 px-1">
@@ -29,6 +41,7 @@ export default function MobileBottomNav() {
             <Link
               key={item.label}
               href={item.href}
+              onClick={(e) => handleAnchorClick(e, item.href)}
               className={`flex flex-col items-center justify-center flex-1 h-full space-y-0.5 transition-all ${
                 isActive
                   ? 'text-[#0d6e4f] dark:text-emerald-400 font-extrabold'
