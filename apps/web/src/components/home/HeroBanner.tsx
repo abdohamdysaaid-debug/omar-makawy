@@ -24,15 +24,15 @@ export default function HeroBanner() {
       {/* 2. Responsive Hero Composition Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
         
-        {/* MOBILE VISUAL COMPOSITION WITH OVERLAID RECTANGLES & ENLARGED BOTTOM BUTTONS */}
-        <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-2 relative z-20 space-y-4">
+        {/* MOBILE VISUAL COMPOSITION WITH OVERLAID RECTANGLES & COMPACT FLOATING BUTTONS */}
+        <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-2 relative z-20">
           
-          {/* Image & Floating Teacher Name/Subject Badges */}
+          {/* Image Container (lowered slightly as requested) */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.94, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.215, 0.61, 0.355, 1] }}
-            className="relative w-full max-w-[380px] xs:max-w-[420px] flex flex-col items-center justify-center"
+            className="relative w-full max-w-[380px] xs:max-w-[420px] flex flex-col items-center justify-center pt-3"
           >
             {/* Mobile Light Mode Visual */}
             <img
@@ -48,12 +48,12 @@ export default function HeroBanner() {
               className="hidden dark:block w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none"
             />
 
-            {/* Floating Brand Badges shifted down near the end of the tie */}
+            {/* Floating Brand Badges (shifted up higher over the tie area) */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-              className="absolute bottom-1 xs:bottom-2 inset-x-0 z-30 flex flex-col items-center text-center space-y-1.5 px-2"
+              className="absolute bottom-5 xs:bottom-6 inset-x-0 z-30 flex flex-col items-center text-center space-y-1 px-2"
             >
               {/* 1. First Rectangle: "مستر عمر مكاوي" */}
               <motion.div 
@@ -77,16 +77,16 @@ export default function HeroBanner() {
             </motion.div>
           </motion.div>
 
-          {/* Enriched & Enlarged Action Area Directly Below the Image */}
+          {/* Enriched & Enlarged Action Area Pulled UP (~2cm) to overlap and eliminate white space */}
           <motion.div 
-            initial={{ opacity: 0, y: 25 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.45, ease: 'easeOut' }}
-            className="w-full max-w-[320px] xs:max-w-[360px] flex flex-col space-y-3 pt-2 pb-1"
+            className="w-full max-w-[320px] xs:max-w-[360px] flex flex-col space-y-2.5 -mt-3 xs:-mt-4 relative z-30 pb-2"
           >
             <Link
               href="/register"
-              className="w-full py-3.5 px-6 rounded-2xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-black text-sm xs:text-base flex items-center justify-center gap-2 shadow-xl shadow-[#0d6e4f]/25 border border-emerald-500/30 transition-all active:scale-[0.98] hover:scale-[1.01]"
+              className="w-full py-3 px-6 rounded-2xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-black text-sm xs:text-base flex items-center justify-center gap-2 shadow-xl shadow-[#0d6e4f]/25 border border-emerald-500/30 transition-all active:scale-[0.98] hover:scale-[1.01]"
             >
               <span>إنشاء حساب</span>
               <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@ export default function HeroBanner() {
 
             <Link
               href="/login"
-              className="w-full py-3.5 px-6 rounded-2xl bg-white dark:bg-[#071d15] hover:bg-stone-50 dark:hover:bg-[#0a271d] text-gray-900 dark:text-emerald-100 border-2 border-stone-200 dark:border-emerald-500/40 font-extrabold text-sm xs:text-base flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] hover:scale-[1.01]"
+              className="w-full py-3 px-6 rounded-2xl bg-white dark:bg-[#071d15] hover:bg-stone-50 dark:hover:bg-[#0a271d] text-gray-900 dark:text-emerald-100 border-2 border-stone-200 dark:border-emerald-500/40 font-extrabold text-sm xs:text-base flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] hover:scale-[1.01]"
             >
               <span>تسجيل الدخول</span>
             </Link>
