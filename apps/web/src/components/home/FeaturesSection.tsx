@@ -35,25 +35,25 @@ export default function FeaturesSection() {
       id: 1,
       title: t('features.lecturesTitle', 'محاضرات فيديو عالية الجودة'),
       description: t('features.lecturesDesc', 'شرح تفصيلي للمنهج مع سيناريوهات توضيحية وأمثلة واقعية لبناء فهم عميق.'),
-      image: '/assets/hero/hero-visual-mobile-seamless.png?v=20260930_v5'
+      image: '/assets/features/feature-3-cutout.png?v=20260930_v6'
     },
     {
       id: 2,
       title: t('features.examsTitle', 'امتحانات تفاعلية وتقييم فوري'),
       description: t('features.examsDesc', 'اختبر مستواك بعد كل درس مع إظهار الإجابات النموذجية والتحليل الفوري لأدائك.'),
-      image: '/assets/hero/hero-visual-mobile-dark-seamless.png?v=20260930_v5'
+      image: '/assets/features/feature-2-cutout.png?v=20260930_v6'
     },
     {
       id: 3,
       title: t('features.storeTitle', 'متجر الكتب والمذكرات الرسمية'),
       description: t('features.storeDesc', 'اطلب مذكرات وكتب المنهج الرسمية لتصلك حتى باب المنزل أو حملها بصيغة PDF.'),
-      image: '/assets/hero/hero-visual-seamless.png?v=20260930_v5'
+      image: '/assets/features/feature-4-cutout.png?v=20260930_v6'
     },
     {
       id: 4,
       title: t('features.walletTitle', 'متابعة ودعم مستمر'),
       description: t('features.walletDesc', 'دعم فني وتدريسي مباشر للرد على كافة أسئلتكم ومساعدتكم في كل خطوة.'),
-      image: '/assets/hero/hero-visual-desktop-dark-seamless.png?v=20260930_v5'
+      image: '/assets/features/feature-1-cutout.png?v=20260930_v6'
     }
   ];
 
@@ -93,30 +93,32 @@ export default function FeaturesSection() {
               key={feature.id}
               initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              whileHover={{ scale: 1.05, y: -10 }}
+              whileHover={{ scale: 1.04, y: -8 }}
               whileTap={{ scale: 0.98 }}
               viewport={{ amount: 0.55 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="snap-center shrink-0 w-[270px] sm:w-[290px] md:w-full group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
+              className="snap-center shrink-0 w-[270px] sm:w-[290px] md:w-full group cursor-pointer flex flex-col rounded-3xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#0d6e4f]/30 dark:hover:shadow-emerald-500/20 transition-all duration-300 touch-pan-y"
               style={{ touchAction: 'pan-x pan-y' }}
             >
-              {/* Seamless PNG Photo Container without background boxes */}
-              <div className="relative w-full h-40 flex items-center justify-center mb-4 overflow-hidden pointer-events-none select-none">
+              {/* Top White Container with Standing Photo emerging out */}
+              <div className="relative bg-white dark:bg-[#161f2e] rounded-t-3xl pt-4 pb-0 overflow-visible flex items-end justify-center h-48 sm:h-52 border-t border-x border-stone-200/90 dark:border-stone-800">
                 <img
                   src={feature.image}
                   alt={feature.title}
-                  className="h-36 w-auto object-contain transition-transform duration-500 ease-out group-hover:scale-110 filter drop-shadow-md"
+                  className="relative -mb-2 z-10 h-44 sm:h-48 w-auto object-contain transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-2 filter drop-shadow-[0_10px_16px_rgba(0,0,0,0.15)] pointer-events-none select-none"
                 />
               </div>
 
-              {/* Title & Description */}
-              <div className="flex-1 flex flex-col text-start">
-                <h3 className="text-base sm:text-lg font-black text-[#00251e] dark:text-white mb-2 leading-snug group-hover:text-[#0d6e4f] dark:group-hover:text-emerald-400 transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-xs font-medium leading-relaxed">
-                  {feature.description}
-                </p>
+              {/* Bottom Emerald Green Container with Title & Description */}
+              <div className="bg-[#0d6e4f] dark:bg-[#084d37] text-white rounded-b-3xl p-5 sm:p-6 shadow-md border-b border-x border-[#0d6e4f] dark:border-emerald-700/60 flex-1 flex flex-col justify-between text-start">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-white mb-2 leading-snug tracking-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-emerald-100 dark:text-emerald-200 text-xs sm:text-sm font-medium leading-relaxed opacity-95">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
             </motion.div>
           ))}
