@@ -36,7 +36,8 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Mobile Bottom Navigation
     'bottomNav.home': 'الرئيسية',
-    'bottomNav.courses': 'المحاضرات',
+    'bottomNav.packages': 'الباقات',
+    'bottomNav.courses': 'الكورسات',
     'bottomNav.exams': 'الامتحانات',
     'bottomNav.store': 'الكتب',
     'bottomNav.profile': 'حسابي',
@@ -250,7 +251,8 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Mobile Bottom Navigation
     'bottomNav.home': 'Home',
-    'bottomNav.courses': 'Lectures',
+    'bottomNav.packages': 'Packages',
+    'bottomNav.courses': 'Courses',
     'bottomNav.exams': 'Exams',
     'bottomNav.store': 'Books',
     'bottomNav.profile': 'Profile',

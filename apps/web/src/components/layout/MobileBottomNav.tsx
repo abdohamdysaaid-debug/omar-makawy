@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Sparkles, GraduationCap, BookOpen, User } from 'lucide-react';
+import { Home, Package, GraduationCap, BookOpen, User } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function MobileBottomNav() {
@@ -12,7 +12,7 @@ export default function MobileBottomNav() {
 
   const navItems = [
     { label: t('bottomNav.home', 'الرئيسية'), icon: Home, href: '/' },
-    { label: t('bottomNav.packages', 'الباقات'), icon: Sparkles, href: '/packages' },
+    { label: t('bottomNav.packages', 'الباقات'), icon: Package, href: '/packages' },
     { label: t('bottomNav.courses', 'الكورسات'), icon: GraduationCap, href: '/courses' },
     { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: '/bookstore' },
     { label: t('bottomNav.profile', 'حسابي'), icon: User, href: '/profile' },
