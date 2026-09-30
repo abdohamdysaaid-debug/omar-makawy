@@ -32,24 +32,12 @@ export default function HeroBanner() {
             className="dark:hidden w-full max-w-[360px] xs:max-w-[420px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_8px_24px_rgba(17,105,78,0.06)]"
           />
 
-          {/* Mobile Dark Mode Visual (AI Dark Artwork + Teacher Cutout Composite) */}
-          <div className="hidden dark:flex relative w-full max-w-[340px] xs:max-w-[380px] aspect-[9/16] rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(13,110,79,0.25)] border border-emerald-500/20 items-center justify-center transition-all duration-300">
-            {/* AI Dark Background Artwork */}
+          {/* Mobile Dark Mode Visual (Exact User Image, Blended Seamlessly with Radial Alpha Mask) */}
+          <div className="hidden dark:block relative w-full max-w-[360px] xs:max-w-[420px] h-auto transition-all duration-300 pointer-events-none select-none">
             <img
-              src="/assets/hero/hero-bg-dark-mobile.jpg"
-              alt="Dark Mode Hero Background Artwork"
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-            />
-
-            {/* Ambient Inner Dark Shadow Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-transparent to-[#0b0f19]/60 pointer-events-none z-10" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f19]/60 via-transparent to-[#0b0f19]/60 pointer-events-none z-10" />
-
-            {/* Teacher Cutout Layer */}
-            <img
-              src="/assets/hero/teacher-cutout.png"
-              alt="Mr. Omar Makawy Cutout"
-              className="relative z-20 w-[84%] h-auto object-contain max-h-[84%] translate-y-3 filter drop-shadow-[0_12px_28px_rgba(0,0,0,0.75)] pointer-events-none select-none"
+              src="/assets/hero/hero-visual-mobile-dark.png"
+              alt="Mr. Omar Makawy - Mobile Dark Mode Hero Visual Composition"
+              className="w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none [mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_98%)] [-webkit-mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_98%)]"
             />
           </div>
 
