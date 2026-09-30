@@ -97,21 +97,22 @@ export default function Footer() {
         </div>
         
         {/* Footer Developer & Copyright Section */}
-        <div className="border-t border-white/10 dark:border-stone-800/80 mt-12 pt-8 pb-4 text-center text-sm text-gray-300 dark:text-gray-400 flex flex-col items-center justify-center space-y-2">
-          <span className="text-xs text-emerald-400 dark:text-emerald-400 font-extrabold uppercase tracking-widest">
-            Developer
-          </span>
-          <a
-            href="https://www.facebook.com/share/1BwtYMEFcW/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 dark:bg-stone-900 border border-white/20 dark:border-stone-800 hover:border-emerald-400 dark:hover:border-emerald-500 text-white dark:text-gray-200 font-extrabold text-xs sm:text-sm transition-all duration-300 hover:scale-105 active:scale-95 group shadow-md"
-          >
-            <span>حقوق الطبع والنشر © ELHDAD TECH</span>
-            <svg className="w-4 h-4 text-emerald-400 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
+        <div className="border-t border-white/10 dark:border-stone-800/80 mt-12 pt-8 text-center text-sm text-gray-300 dark:text-gray-400 flex flex-col items-center justify-center space-y-1.5">
+          <div className="text-xs sm:text-sm text-emerald-400 dark:text-emerald-400 font-mono font-bold" dir="ltr">
+            &lt;Developed by=&quot;
+            <a
+              href="https://www.facebook.com/share/1BwtYMEFcW/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white hover:text-emerald-300 underline underline-offset-4 decoration-emerald-400 font-extrabold transition-colors mx-0.5"
+            >
+              Abdelrhman
+            </a>
+            &quot;&gt;
+          </div>
+          <div className="text-xs sm:text-sm text-gray-300 dark:text-gray-400 font-medium">
+            حقوق الطبع والنشر © ELHDAD TECH
+          </div>
         </div>
       </div>
     </footer>
