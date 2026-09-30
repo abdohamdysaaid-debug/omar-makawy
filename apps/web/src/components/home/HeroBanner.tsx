@@ -49,7 +49,7 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.35, ease: 'easeOut' },
             y: { duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.95 }
           }}
-          className="absolute top-6 left-2 xs:left-3 sm:top-12 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
+          className="absolute top-12 xs:top-14 sm:top-20 left-2 xs:left-3 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
             <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
@@ -58,7 +58,7 @@ export default function HeroBanner() {
           </div>
         </motion.div>
 
-        {/* 2. Middle-Left Floating Slogan Part 1: "لو على التقفيل ناوي.. 🎯" */}
+        {/* 2. Middle-Left Floating Slogan Badge: "يبقى خليك مع مكاوي! 🔥" */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.75, x: -30, y: 15 }}
           animate={{ opacity: 1, scale: 1, x: 0, y: [0, -6, 0] }}
@@ -68,11 +68,11 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.5, ease: 'easeOut' },
             y: { duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 1.1 }
           }}
-          className="absolute top-24 left-2 xs:left-3 sm:top-36 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
+          className="absolute top-32 xs:top-36 sm:top-44 left-2 xs:left-3 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-emerald-900/90 via-[#0d6e4f]/90 to-emerald-800/90 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1.5 font-cairo">
             <span className="text-xs sm:text-sm lg:text-base font-black tracking-tight drop-shadow-sm">
-              لو على التقفيل ناوي.. 🎯
+              يبقى خليك مع مكاوي! 🔥
             </span>
           </div>
         </motion.div>
@@ -87,7 +87,7 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.4, ease: 'easeOut' },
             y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.0 }
           }}
-          className="absolute top-10 right-2 xs:right-3 sm:top-20 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
+          className="absolute top-16 xs:top-18 sm:top-24 right-2 xs:right-3 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
             <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
@@ -96,7 +96,7 @@ export default function HeroBanner() {
           </div>
         </motion.div>
 
-        {/* 4. Middle-Right Floating Slogan Part 2: "يبقى خليك مع مكاوي! 🔥" */}
+        {/* 4. Middle-Right Floating Slogan Badge: "لو على التقفيل ناوي.. 🎯" */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.75, x: 30, y: 15 }}
           animate={{ opacity: 1, scale: 1, x: 0, y: [0, 6, 0] }}
@@ -106,11 +106,11 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.55, ease: 'easeOut' },
             y: { duration: 4.8, repeat: Infinity, ease: 'easeInOut', delay: 1.15 }
           }}
-          className="absolute top-28 right-2 xs:right-3 sm:top-44 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
+          className="absolute top-36 xs:top-40 sm:top-48 right-2 xs:right-3 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-emerald-800/90 via-[#0d6e4f]/90 to-emerald-900/90 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1.5 font-cairo">
             <span className="text-xs sm:text-sm lg:text-base font-black tracking-tight drop-shadow-sm">
-              يبقى خليك مع مكاوي! 🔥
+              لو على التقفيل ناوي.. 🎯
             </span>
           </div>
         </motion.div>
