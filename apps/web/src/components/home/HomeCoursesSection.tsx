@@ -32,34 +32,14 @@ export default function HomeCoursesSection() {
     <section id="courses" className="py-14 sm:py-20 bg-white dark:bg-[#080b11] transition-colors font-cairo scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header with Navigation Controls */}
-        <div className="flex items-end justify-between mb-8 sm:mb-10">
-          <div className="text-start">
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
-              {t('courses.title', 'الكورسات المتاحة')}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mt-1 font-medium">
-              {t('courses.subtitle', 'شرح تفصيلي ومتكامل لجميع المراحل الدراسية مع حل تدريبات وامتحانات شفرية.')}
-            </p>
-          </div>
-
-          {/* Desktop Slider Controls */}
-          <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => scroll('right')}
-              className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-gray-700 dark:text-white flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white transition-colors shadow-xs"
-              aria-label="Previous"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => scroll('left')}
-              className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-gray-700 dark:text-white flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white transition-colors shadow-xs"
-              aria-label="Next"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-          </div>
+        {/* Header */}
+        <div className="text-center sm:text-start mb-8 sm:mb-10">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
+            {t('courses.title', 'الكورسات المتاحة')}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mt-1 font-medium">
+            {t('courses.subtitle', 'شرح تفصيلي ومتكامل لجميع المراحل الدراسية مع حل تدريبات وامتحانات شفرية.')}
+          </p>
         </div>
 
         {/* Horizontal Touch Slider */}
@@ -118,6 +98,31 @@ export default function HomeCoursesSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Bottom Slider Controls (Centered International Style) */}
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <button
+            onClick={() => scroll('right')}
+            className="w-11 h-11 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+            aria-label="Previous"
+            title="السابق"
+          >
+            <ChevronRight className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
+          </button>
+          
+          <div className="h-1.5 w-10 rounded-full bg-stone-300/80 dark:bg-stone-800 overflow-hidden">
+            <div className="h-full w-1/2 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full" />
+          </div>
+
+          <button
+            onClick={() => scroll('left')}
+            className="w-11 h-11 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+            aria-label="Next"
+            title="التالي"
+          >
+            <ChevronLeft className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+          </button>
         </div>
 
       </div>
