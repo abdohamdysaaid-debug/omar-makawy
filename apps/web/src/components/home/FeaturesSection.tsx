@@ -36,7 +36,7 @@ export default function FeaturesSection() {
       id: 1,
       title: t('features.lecturesTitle', 'محاضرات فيديو عالية الجودة'),
       description: t('features.lecturesDesc', 'شرح تفصيلي للمنهج مع سلايدات توضيحية وأمثلة واقعية لبناء فهم عميق.'),
-      image: '/assets/features/feature-3-cutout.png?v=20261001_v60'
+      image: '/assets/features/feature-3-cutout.png?v=20261001_v140'
     },
     {
       id: 2,
