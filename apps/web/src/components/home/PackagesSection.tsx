@@ -1,14 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { packages } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
-import { CheckCircle2, Package as PackageIcon, Sparkles } from 'lucide-react';
+import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function PackagesSection() {
   const { openAuthGate, isAuthenticated } = useAuth();
   const { t } = useLanguage();
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   const handleSubscribe = (packageId: number) => {
     if (!isAuthenticated) {
@@ -18,28 +19,59 @@ export default function PackagesSection() {
     }
   };
 
+  const scroll = (direction: 'left' | 'right') => {
+    if (sliderRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   const activePackages = packages.filter((pkg) => pkg.isActive);
 
   return (
     <section id="packages" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
-            {t('packages.title', 'الباقات الشهرية المتاحة')}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base mt-2 max-w-xl mx-auto font-medium">
-            {t('packages.subtitle', 'اختر الباقة المناسبة لك للاشتراك المباشر والوصول إلى كافة المحاضرات والمذكرات.')}
-          </p>
+        {/* Header with Navigation Controls */}
+        <div className="flex items-end justify-between mb-8 sm:mb-10">
+          <div className="text-start">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
+              {t('packages.title', 'الباقات الشهرية المتاحة')}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mt-1 font-medium">
+              {t('packages.subtitle', 'اختر الباقة المناسبة لك للاشتراك المباشر والوصول إلى كافة المحاضرات والمذكرات.')}
+            </p>
+          </div>
+
+          {/* Desktop Slider Controls */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => scroll('right')}
+              className="w-10 h-10 rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-gray-700 dark:text-white flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white transition-colors shadow-xs"
+              aria-label="Previous"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scroll('left')}
+              className="w-10 h-10 rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-gray-700 dark:text-white flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white transition-colors shadow-xs"
+              aria-label="Next"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Packages Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {/* Horizontal Touch Slider */}
+        <div
+          ref={sliderRef}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {activePackages.map((pkg) => (
             <div
               key={pkg.id}
-              className={`relative flex flex-col bg-white dark:bg-stone-900 border ${
+              className={`snap-center shrink-0 w-[290px] sm:w-[340px] relative flex flex-col bg-white dark:bg-stone-900 border ${
                 pkg.isPopular
                   ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
                   : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
