@@ -67,10 +67,11 @@ export default function Navbar() {
 
   const navLinks = [
     { name: t('nav.home', 'الرئيسية'), href: '/' },
-    { name: t('nav.courses', 'الكورسات'), href: '/courses' },
-    { name: t('nav.features', 'مميزات المنصة'), href: '/#features' },
-    { name: t('nav.testimonials', 'آراء الطلاب'), href: '/#testimonials' },
-    { name: t('nav.contact', 'تواصل معنا'), href: '/#contact' },
+    { name: t('nav.courses', 'المحاضرات'), href: '/courses' },
+    { name: t('nav.books', 'الكتب'), href: '/bookstore' },
+    { name: t('nav.exams', 'الامتحانات'), href: '/exams' },
+    { name: t('nav.packages', 'الباقات'), href: '/#packages' },
+    { name: t('nav.about', 'من نحن'), href: '/#features' },
   ];
 
   return (
@@ -170,8 +171,9 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <Link href="/login" className="hidden lg:inline-flex px-5 py-2 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition-colors text-sm">
-              ابدأ الآن
+            <Link href="/login" className="hidden lg:inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#121212] text-[#064e3b] dark:text-emerald-300 font-extrabold border border-stone-200/90 dark:border-stone-800 rounded-full hover:bg-emerald-50 dark:hover:bg-stone-800 transition-colors text-xs shadow-2xs">
+              <User className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+              <span>{t('nav.login', 'تسجيل الدخول')}</span>
             </Link>
           )}
 
