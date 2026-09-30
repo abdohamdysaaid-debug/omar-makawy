@@ -12,12 +12,12 @@ export default function LanguageToggle() {
       onClick={toggleLanguage}
       aria-label="Toggle language"
       title={language === 'ar' ? 'Switch to English' : 'التحويل إلى العربية'}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 hover:bg-emerald-50 dark:hover:bg-stone-800 border border-emerald-500/30 dark:border-stone-800 text-gray-800 dark:text-gray-200 focus:outline-none shadow-xs"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 bg-[#e2ede5] dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 hover:bg-[#d5e5da] dark:hover:bg-stone-700 border border-[#c5dbc9] dark:border-stone-700 focus:outline-none shadow-xs shrink-0"
     >
-      <Globe className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
       <span className="uppercase tracking-wider text-[11px] font-black">
         {language === 'ar' ? 'EN' : 'عربي'}
       </span>
+      <Globe className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400 shrink-0" />
     </button>
   );
 }

@@ -47,13 +47,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'teacher.expertTitle': 'خبير تدريس اللغة الإنجليزية',
 
     // Hero Section
-    'hero.badge': 'منصة مستر عمر مكاوي التعليمية',
-    'hero.headline': 'مستقبلك يبدأ من هنا',
+    'hero.badge': 'المرحلة الثانوية العامة والأزهرية',
     'hero.title': 'تعلم الإنجليزي بأسلوب مختلف مع مستر عمر مكاوي',
-    'hero.description': 'تعلم اللغة الإنجليزية بأسلوب مختلف مع مستر عمر مكاوي. شرح بسيط، متابعة مستمرة، وخطوة بخطوة نحو مستواك الأفضل.',
+    'hero.description': 'شرح تفصيلي للمنهج، متابعة مستمرة، وامتحانات تفاعلية للوصول إلى الدرجة النهائية بثقة وسهولة.',
     'hero.exploreCourses': 'استكشف الكورسات',
-    'hero.startJourney': 'ابدأ رحلتك الآن',
-    'hero.studentLogin': 'تسجيل الدخول للطلاب',
     'hero.registerStudent': 'سجل الآن كطالب',
     'hero.platformSuffix': 'التعليمية',
     'hero.cardSub': 'تبسيط المنهج وشرح القواعد والمهارات بأحدث الطرق التعليمية',
@@ -264,13 +261,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'teacher.expertTitle': 'English Teaching Expert',
 
     // Hero Section
-    'hero.badge': 'Mr. Omar Meckawy Educational Platform',
-    'hero.headline': 'Your Future Starts Here',
+    'hero.badge': 'General & Al-Azhar Secondary Stages',
     'hero.title': 'Learn English Differently with Mr. Omar Meckawy',
-    'hero.description': 'Learn English in a unique way with Mr. Omar Meckawy. Clear explanations, continuous follow-up, and step-by-step guidance toward your best performance.',
+    'hero.description': 'Comprehensive curriculum explanations, continuous follow-up, and interactive exams to achieve top grades with confidence.',
     'hero.exploreCourses': 'Explore Courses',
-    'hero.startJourney': 'Start Your Journey Now',
-    'hero.studentLogin': 'Student Login',
     'hero.registerStudent': 'Register as Student',
     'hero.platformSuffix': 'Educational Platform',
     'hero.cardSub': 'Simplified curriculum explanations, grammar mastery & skills development',
