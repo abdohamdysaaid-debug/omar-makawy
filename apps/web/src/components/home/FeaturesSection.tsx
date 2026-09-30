@@ -35,25 +35,25 @@ export default function FeaturesSection() {
       id: 1,
       title: t('features.lecturesTitle', 'محاضرات فيديو عالية الجودة'),
       description: t('features.lecturesDesc', 'شرح تفصيلي للمنهج مع سلايدات توضيحية وأمثلة واقعية لبناء فهم عميق.'),
-      image: '/assets/features/feature-3-cutout.png?v=20261001_v12'
+      image: '/assets/features/feature-3-cutout.png?v=20261001_v20'
     },
     {
       id: 2,
       title: t('features.examsTitle', 'امتحانات تفاعلية وتقييم فوري'),
       description: t('features.examsDesc', 'اختبر مستواك بعد كل درس مع إظهار الإجابات النموذجية والتحليل الفوري لأدائك.'),
-      image: '/assets/features/feature-2-cutout.png?v=20261001_v12'
+      image: '/assets/features/feature-2-cutout.png?v=20261001_v20'
     },
     {
       id: 3,
       title: t('features.storeTitle', 'متجر الكتب والمذكرات'),
       description: t('features.storeDesc', 'اطلب مذكرات وكتب المنهج الرسمية تصلك حتى باب المنزل أو حملها بصيغة PDF.'),
-      image: '/assets/features/feature-4-cutout.png?v=20261001_v12'
+      image: '/assets/features/feature-4-cutout.png?v=20261001_v20'
     },
     {
       id: 4,
       title: t('features.walletTitle', 'محفظة شحن كروت المنصة'),
       description: t('features.walletDesc', 'سهولة الاشتراك وشحن الحساب عبر جميع وسائل الدفع المباشرة أو المحافظ الإلكترونية.'),
-      image: '/assets/features/feature-1-cutout.png?v=20261001_v12'
+      image: '/assets/features/feature-1-cutout.png?v=20261001_v20'
     }
   ];
 
