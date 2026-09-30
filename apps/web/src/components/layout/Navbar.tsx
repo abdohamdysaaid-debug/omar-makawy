@@ -76,7 +76,6 @@ export default function Navbar() {
               <span className="text-base sm:text-lg md:text-xl font-black bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 dark:from-emerald-400 dark:via-emerald-300 dark:to-teal-300 bg-clip-text text-transparent leading-none tracking-tight">
                 Mr. Omar Meckawy
               </span>
-              <VerifiedBadge className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               {isAuthenticated && student && (
                 <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px] border border-emerald-400/30 shrink-0 shadow-xs">
                   {student.fullName ? student.fullName.charAt(0).toUpperCase() : 'OM'}
@@ -179,12 +178,9 @@ export default function Navbar() {
           <div className="relative w-72 max-w-sm bg-white dark:bg-[#080808] h-full shadow-xl flex flex-col start-0 border-e dark:border-stone-800">
             <div className="p-4 border-b border-gray-200 dark:border-stone-800 flex justify-between items-center">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-start text-start">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base font-black bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">
-                    Mr. Omar Meckawy
-                  </span>
-                  <VerifiedBadge className="w-4 h-4 shrink-0" />
-                </div>
+                <span className="text-base font-black bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">
+                  Mr. Omar Meckawy
+                </span>
                 <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">
                   <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
                   <span>مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم</span>
