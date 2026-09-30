@@ -247,26 +247,80 @@ export default function HeroBanner() {
 
         </div>
 
-        {/* DESKTOP / TABLET VISUAL COMPOSITION */}
+        {/* DESKTOP / TABLET VISUAL COMPOSITION WITH OVERLAID BADGES & DESKTOP CTA BUTTONS */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.215, 0.61, 0.355, 1] }}
           className="hidden sm:flex flex-col items-center justify-center w-full mx-auto relative pt-4"
         >
-          {/* Desktop Light Mode Visual */}
-          <img
-            src="/assets/hero/hero-visual-seamless.png?v=20260930_v5"
-            alt="Mr. Omar Makawy - Desktop Hero Visual Composition"
-            className="dark:hidden w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_10px_30px_rgba(17,105,78,0.06)]"
-          />
+          {/* Desktop Visual Container */}
+          <div className="relative w-full flex flex-col items-center justify-center">
+            {/* Desktop Light Mode Visual */}
+            <img
+              src="/assets/hero/hero-visual-seamless.png?v=20260930_v5"
+              alt="Mr. Omar Makawy - Desktop Hero Visual Composition"
+              className="dark:hidden w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_10px_30px_rgba(17,105,78,0.06)]"
+            />
 
-          {/* Desktop Dark Mode Visual (Exact Seamless Alpha Feathered PNG) */}
-          <img
-            src="/assets/hero/hero-visual-desktop-dark-seamless.png?v=20260930_v5"
-            alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
-            className="hidden dark:block w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none"
-          />
+            {/* Desktop Dark Mode Visual (Exact Seamless Alpha Feathered PNG) */}
+            <img
+              src="/assets/hero/hero-visual-desktop-dark-seamless.png?v=20260930_v5"
+              alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
+              className="hidden dark:block w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none"
+            />
+
+            {/* Desktop Floating Brand Badges */}
+            <div className="absolute bottom-8 sm:bottom-12 md:bottom-16 inset-x-0 z-30 flex flex-col items-center text-center space-y-2 px-4 pointer-events-none select-none">
+              <motion.div 
+                initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.35, ease: 'easeOut' }}
+                className="px-6 py-2 rounded-2xl bg-[#0d6e4f]/95 dark:bg-[#064e3b]/95 text-white dark:text-emerald-100 border border-emerald-400/40 dark:border-emerald-500/50 shadow-xl backdrop-blur-md"
+              >
+                <span className="text-base sm:text-lg md:text-xl font-black tracking-wide">
+                  مستر عمر مكاوي
+                </span>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.45, ease: 'easeOut' }}
+                className="px-5 py-1.5 rounded-2xl bg-white/95 dark:bg-stone-900/95 text-gray-900 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-md backdrop-blur-md"
+              >
+                <span className="text-xs sm:text-sm font-extrabold tracking-tight">
+                  مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم
+                </span>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Desktop Enriched CTA Action Buttons */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.65, ease: 'easeOut' }}
+            className="w-full max-w-md sm:max-w-lg flex flex-row items-center justify-center gap-4 mt-2 sm:mt-4 relative z-30 pb-4"
+          >
+            <Link
+              href="/register"
+              className="flex-1 py-3.5 px-8 rounded-2xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-black text-base flex items-center justify-center gap-2.5 shadow-xl shadow-[#0d6e4f]/25 border border-emerald-500/30 transition-all active:scale-[0.98] hover:scale-[1.03]"
+            >
+              <span>إنشاء حساب جديد</span>
+              <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+
+            <Link
+              href="/login"
+              className="flex-1 py-3.5 px-8 rounded-2xl bg-white dark:bg-[#071d15] hover:bg-stone-50 dark:hover:bg-[#0a271d] text-gray-900 dark:text-emerald-100 border-2 border-stone-200 dark:border-emerald-500/40 font-extrabold text-base flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] hover:scale-[1.03]"
+            >
+              <span>تسجيل الدخول</span>
+            </Link>
+          </motion.div>
+
         </motion.div>
 
       </div>

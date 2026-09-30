@@ -77,11 +77,11 @@ export default function FeaturesSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
+        {/* Horizontal Touch Slider on Mobile / Centered 4-Column Grid on Desktop */}
         <div
           ref={sliderRef}
           onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          className="flex md:grid md:grid-cols-4 overflow-x-auto md:overflow-visible snap-x snap-proximity md:snap-none scrollbar-none scroll-smooth py-6 -mx-4 px-4 md:mx-0 md:px-0 gap-5 sm:gap-6 justify-center max-w-6xl mx-auto touch-pan-x touch-pan-y"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {featureItems.map((feature, index) => {
@@ -93,7 +93,7 @@ export default function FeaturesSection() {
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ amount: 0.55 }}
                 transition={{ duration: 0.45, ease: 'easeOut' }}
-                className="snap-center shrink-0 w-[260px] sm:w-[280px] bg-[#f7f6ed]/60 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] hover:shadow-lg flex flex-col justify-between touch-pan-y"
+                className="snap-center shrink-0 w-[260px] sm:w-[280px] md:w-full bg-[#f7f6ed]/60 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] hover:shadow-lg flex flex-col justify-between touch-pan-y"
                 style={{ touchAction: 'pan-x pan-y' }}
               >
                 <div>
@@ -112,13 +112,13 @@ export default function FeaturesSection() {
           })}
         </div>
 
-        {/* Bottom Slider Controls with Dynamic Animated Indicator */}
+        {/* Bottom Slider Controls (Mobile Only) */}
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 flex items-center justify-center gap-3"
+          className="mt-8 flex md:hidden items-center justify-center gap-3"
         >
           <button
             onClick={() => scroll('right')}

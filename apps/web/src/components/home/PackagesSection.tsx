@@ -63,11 +63,11 @@ export default function PackagesSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
+        {/* Horizontal Touch Slider on Mobile / Centered 3-Column Grid on Desktop */}
         <div
           ref={sliderRef}
           onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-proximity md:snap-none scrollbar-none scroll-smooth py-4 -mx-4 px-4 md:mx-0 md:px-0 gap-5 sm:gap-6 justify-center max-w-5xl mx-auto touch-pan-x touch-pan-y"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {activePackages.map((pkg, index) => (
@@ -77,7 +77,7 @@ export default function PackagesSection() {
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ amount: 0.55 }}
               transition={{ duration: 0.45, ease: 'easeOut' }}
-              className={`snap-center shrink-0 w-[270px] sm:w-[310px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border ${
+              className={`snap-center shrink-0 w-[270px] sm:w-[310px] md:w-full group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border ${
                 pkg.isPopular
                   ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
                   : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
@@ -154,13 +154,13 @@ export default function PackagesSection() {
           ))}
         </div>
 
-        {/* Bottom Slider Controls */}
+        {/* Bottom Slider Controls (Mobile Only) */}
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 flex items-center justify-center gap-3"
+          className="mt-8 flex md:hidden items-center justify-center gap-3"
         >
           <button
             onClick={() => scroll('right')}
