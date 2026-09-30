@@ -4,9 +4,14 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, PlaySquare, BookOpen, FileText, User } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
+
+  // Only render Mobile Bottom Navigation when student is logged in
+  if (!isAuthenticated) return null;
 
   const navItems = [
     { label: 'الرئيسية', icon: Home, href: '/' },

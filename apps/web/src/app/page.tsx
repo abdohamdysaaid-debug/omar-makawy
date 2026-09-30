@@ -22,7 +22,7 @@ export default function HomePage() {
 
   // Otherwise, render the Public Platform Landing Page for visitors/guests
   return (
-    <main className="min-h-screen pb-20 lg:pb-0 flex flex-col font-cairo bg-white dark:bg-[#000000] text-gray-900 dark:text-gray-100 transition-colors">
+    <main className="min-h-screen flex flex-col font-cairo bg-white dark:bg-[#000000] text-gray-900 dark:text-gray-100 transition-colors">
       <Navbar />
 
       <div className="flex-1">

@@ -84,14 +84,16 @@ export default function Navbar() {
         <div className="flex items-center space-x-3 space-x-reverse">
           <ThemeToggle />
           
-          <Link href="/cart" className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-brand-500 transition-colors">
-            <ShoppingCart className="w-5 h-5" />
-            {totalItems > 0 && (
-              <span className="absolute top-0 end-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                {totalItems}
-              </span>
-            )}
-          </Link>
+          {isAuthenticated && (
+            <Link href="/cart" className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-brand-500 transition-colors" title="سلة التسوق">
+              <ShoppingCart className="w-5 h-5" />
+              {totalItems > 0 && (
+                <span className="absolute top-0 end-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          )}
 
           {isAuthenticated && student ? (
             <div className="relative hidden lg:block">
