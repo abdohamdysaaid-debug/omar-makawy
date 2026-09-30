@@ -20,49 +20,68 @@ export default function HeroBanner() {
         <div className="absolute inset-x-0 top-0 h-12 sm:h-24 bg-gradient-to-b from-[#f7f6ed] via-[#f7f6ed]/80 to-transparent dark:from-[#020d08] dark:via-[#020d08]/80 pointer-events-none z-10" />
         <div className="absolute inset-x-0 bottom-0 h-12 sm:h-24 bg-gradient-to-t from-[#f7f6ed] via-[#f7f6ed]/80 to-transparent dark:from-[#020d08] dark:via-[#020d08]/80 pointer-events-none z-10" />
 
-        {/* Balanced Creative Watercolor English Typography Canvas Layer */}
+        {/* Balanced Creative Watercolor English Typography Canvas Layer Spanning Top to Bottom */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, delay: 0.2 }}
           className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden"
         >
-          {/* LEFT SIDE WATERCOLOR TYPOGRAPHY COLUMN */}
-          <div className="absolute top-10 left-2 xs:left-4 sm:left-10 md:left-16 flex flex-col items-start space-y-12 sm:space-y-20 opacity-40 dark:opacity-25">
-            <span className="font-serif italic text-xl xs:text-3xl sm:text-5xl lg:text-6xl font-black text-[#0d6e4f] dark:text-emerald-400 transform -rotate-12 tracking-wide drop-shadow-sm">
+          {/* LEFT SIDE WATERCOLOR TYPOGRAPHY COLUMN (Spanning Top to Bottom) */}
+          <div className="absolute inset-y-4 left-1 xs:left-3 sm:left-8 md:left-12 flex flex-col justify-between items-start py-4 opacity-45 dark:opacity-30 max-w-[35vw] sm:max-w-[28vw]">
+            <span className="font-serif italic text-lg xs:text-2xl sm:text-4xl lg:text-5xl font-black text-[#0d6e4f] dark:text-emerald-400 transform -rotate-12 tracking-wide drop-shadow-sm">
               Mr. Omar Meckawy
             </span>
-            <span className="font-serif italic text-lg xs:text-2xl sm:text-4xl lg:text-5xl font-extrabold text-amber-700 dark:text-amber-300 transform rotate-6 tracking-wide">
+            <span className="font-serif italic text-base xs:text-xl sm:text-3xl lg:text-4xl font-extrabold text-amber-700 dark:text-amber-300 transform rotate-6 tracking-wide">
               Welcome 👋
             </span>
-            <span className="font-serif italic text-base xs:text-xl sm:text-3xl lg:text-4xl font-black text-teal-700 dark:text-teal-300 transform -rotate-6 tracking-wide">
-              English Mastery
+            <span className="font-serif italic text-sm xs:text-lg sm:text-2xl lg:text-3xl font-black text-teal-700 dark:text-teal-300 transform -rotate-6 tracking-wide">
+              English Mastery 🎓
             </span>
-            <span className="font-serif italic text-sm xs:text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-800 dark:text-emerald-400 transform rotate-12 tracking-wide">
+            <span className="font-serif italic text-xs xs:text-base sm:text-xl lg:text-2xl font-extrabold text-emerald-800 dark:text-emerald-400 transform rotate-12 tracking-wide">
               Speak Fluently 🚀
+            </span>
+            <span className="font-serif italic text-xs xs:text-sm sm:text-lg lg:text-xl font-bold text-amber-800 dark:text-amber-400 transform -rotate-6 tracking-wide">
+              Top English Teacher 🌟
+            </span>
+            <span className="font-serif italic text-[10px] xs:text-xs sm:text-base lg:text-lg font-black text-teal-800 dark:text-teal-400 transform rotate-6 tracking-wide">
+              Creative Learning ✨
             </span>
           </div>
 
-          {/* RIGHT SIDE WATERCOLOR TYPOGRAPHY COLUMN */}
-          <div className="absolute top-10 right-2 xs:right-4 sm:right-10 md:right-16 flex flex-col items-end space-y-12 sm:space-y-20 opacity-40 dark:opacity-25">
-            <span className="font-serif italic text-xl xs:text-3xl sm:text-5xl lg:text-6xl font-black text-[#0d6e4f] dark:text-emerald-400 transform rotate-12 tracking-wide drop-shadow-sm">
+          {/* RIGHT SIDE WATERCOLOR TYPOGRAPHY COLUMN (Spanning Top to Bottom) */}
+          <div className="absolute inset-y-4 right-1 xs:right-3 sm:right-8 md:right-12 flex flex-col justify-between items-end py-4 opacity-45 dark:opacity-30 max-w-[35vw] sm:max-w-[28vw]">
+            <span className="font-serif italic text-lg xs:text-2xl sm:text-4xl lg:text-5xl font-black text-[#0d6e4f] dark:text-emerald-400 transform rotate-12 tracking-wide drop-shadow-sm">
               Mr. Omar Meckawy
             </span>
-            <span className="font-serif italic text-lg xs:text-2xl sm:text-4xl lg:text-5xl font-extrabold text-amber-700 dark:text-amber-300 transform -rotate-6 tracking-wide">
+            <span className="font-serif italic text-base xs:text-xl sm:text-3xl lg:text-4xl font-extrabold text-amber-700 dark:text-amber-300 transform -rotate-6 tracking-wide">
               Hello! ✨
             </span>
-            <span className="font-serif italic text-base xs:text-xl sm:text-3xl lg:text-4xl font-black text-teal-700 dark:text-teal-300 transform rotate-6 tracking-wide">
-              Grammar & Vocab
+            <span className="font-serif italic text-sm xs:text-lg sm:text-2xl lg:text-3xl font-black text-teal-700 dark:text-teal-300 transform rotate-6 tracking-wide">
+              Grammar & Vocab 📚
             </span>
-            <span className="font-serif italic text-sm xs:text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-800 dark:text-emerald-400 transform -rotate-12 tracking-wide">
-              Excellence & Success
+            <span className="font-serif italic text-xs xs:text-base sm:text-xl lg:text-2xl font-extrabold text-emerald-800 dark:text-emerald-400 transform -rotate-12 tracking-wide">
+              Excellence & Success 🏆
+            </span>
+            <span className="font-serif italic text-xs xs:text-sm sm:text-lg lg:text-xl font-bold text-amber-800 dark:text-amber-400 transform rotate-6 tracking-wide">
+              Unlock Your Potential 🔑
+            </span>
+            <span className="font-serif italic text-[10px] xs:text-xs sm:text-base lg:text-lg font-black text-teal-800 dark:text-teal-400 transform -rotate-6 tracking-wide">
+              Interactive Lessons 💡
             </span>
           </div>
 
           {/* TOP CENTER WATERCOLOR ACCENT */}
-          <div className="absolute top-6 inset-x-0 flex justify-center opacity-30 dark:opacity-20">
-            <span className="font-serif italic text-lg xs:text-2xl sm:text-4xl font-black text-emerald-700 dark:text-emerald-300 transform -rotate-2">
-              Learn English with Confidence
+          <div className="absolute top-3 inset-x-0 flex justify-center opacity-35 dark:opacity-20 pointer-events-none">
+            <span className="font-serif italic text-sm xs:text-lg sm:text-3xl font-black text-emerald-800 dark:text-emerald-300 transform -rotate-1">
+              Learn English with Confidence 💫
+            </span>
+          </div>
+
+          {/* BOTTOM CENTER WATERCOLOR ACCENT */}
+          <div className="absolute bottom-3 inset-x-0 flex justify-center opacity-30 dark:opacity-20 pointer-events-none">
+            <span className="font-serif italic text-xs xs:text-sm sm:text-2xl font-bold text-amber-800 dark:text-amber-300 transform rotate-1">
+              Mr. Omar Meckawy English Platform 👑
             </span>
           </div>
         </motion.div>
