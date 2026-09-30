@@ -43,12 +43,12 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`fixed top-0 start-0 end-0 z-50 transition-all duration-300 font-cairo ${
-      isScrolled
-        ? 'bg-white/80 dark:bg-[#000000]/80 backdrop-blur-md shadow-xs py-2.5 border-b border-gray-200/40 dark:border-stone-800/60'
-        : 'bg-white/60 dark:bg-[#000000]/50 backdrop-blur-md py-2.5 border-b border-gray-200/20 dark:border-stone-800/40'
-    }`}>
-      <div className="container mx-auto px-4 flex items-center justify-between">
+    <nav className="fixed top-2 sm:top-3 start-3 end-3 max-w-7xl mx-auto z-50 transition-all duration-300 font-cairo">
+      <div className={`w-full rounded-2xl transition-all duration-300 px-4 py-2 flex items-center justify-between border shadow-lg ${
+        isScrolled
+          ? 'bg-white/85 dark:bg-[#000000]/85 backdrop-blur-md border-gray-200/60 dark:border-stone-800/80 shadow-black/15'
+          : 'bg-white/75 dark:bg-[#000000]/65 backdrop-blur-md border-gray-200/40 dark:border-stone-800/50 shadow-black/10'
+      }`}>
         
         {/* Logo & Avatar Circle */}
         <Link href="/" className="flex items-center gap-2.5">
