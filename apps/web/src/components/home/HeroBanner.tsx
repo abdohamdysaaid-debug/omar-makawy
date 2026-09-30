@@ -23,8 +23,19 @@ export default function HeroBanner() {
       <div className="relative z-10 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
         
         {/* MOBILE VISUAL COMPOSITION */}
-        <div className="flex sm:hidden items-center justify-center w-full mx-auto px-1 py-2">
+        <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-1 py-1">
           
+          {/* Mobile Title Block Above Teacher Head */}
+          <div className="mb-2.5 flex flex-col items-center text-center space-y-1 z-20">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-[#e2ede5] dark:bg-emerald-950/90 text-[#0d6e4f] dark:text-emerald-300 border border-[#c2dbc9] dark:border-emerald-500/40 shadow-xs backdrop-blur-xs">
+              <span className="w-2 h-2 rounded-full bg-[#0d6e4f] dark:bg-emerald-400 animate-pulse" />
+              <span>أ. عمر مكاوي</span>
+            </div>
+            <h1 className="text-base font-extrabold text-[#0a4834] dark:text-emerald-100 tracking-tight leading-tight">
+              مدرس اللغة الإنجليزية
+            </h1>
+          </div>
+
           {/* Mobile Light Mode Visual */}
           <img
             src="/assets/hero/hero-visual-mobile-seamless.png"
