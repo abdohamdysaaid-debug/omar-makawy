@@ -94,11 +94,11 @@ export default function FeaturesSection() {
               whileTap={{ scale: 0.98 }}
               viewport={{ amount: 0.55 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="snap-center shrink-0 w-[270px] sm:w-[290px] md:w-full group cursor-pointer flex flex-col rounded-3xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#005e46]/25 dark:hover:shadow-emerald-500/20 transition-all duration-300 touch-pan-y bg-white dark:bg-[#161f2e] border border-stone-200/80 dark:border-stone-800"
+              className="snap-center shrink-0 w-[270px] sm:w-[290px] md:w-full group cursor-pointer flex flex-col rounded-3xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#005e46]/25 dark:hover:shadow-emerald-500/20 transition-all duration-300 touch-pan-y bg-white dark:bg-black border border-stone-200/80 dark:border-emerald-950/60"
               style={{ touchAction: 'pan-x pan-y' }}
             >
               {/* Top White Container with Standing Photo slipping down behind green curve */}
-              <div className="relative bg-white dark:bg-[#161f2e] rounded-t-3xl pt-2 pb-0 overflow-hidden flex items-end justify-center h-52 sm:h-56 z-0">
+              <div className="relative bg-white dark:bg-black rounded-t-3xl pt-2 pb-0 overflow-hidden flex items-end justify-center h-52 sm:h-56 z-0">
                 <img
                   src={feature.image}
                   alt={feature.title}
