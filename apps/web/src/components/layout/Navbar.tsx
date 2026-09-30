@@ -275,71 +275,158 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Student Navigation Items (Exact 13 Items Requested) */}
-                <div className="space-y-2">
-                  <span className="text-[10.5px] font-black uppercase tracking-wider text-[#0d6e4f] dark:text-emerald-400 px-1 block text-start">
-                    قائمة الطالب
-                  </span>
-                  <ul className="space-y-1.5">
-                    {[
-                      { name: 'الرئيسية', href: '/', icon: Home },
-                      { name: 'اشتراكاتي', href: '/student/subscriptions', icon: CheckCircle2 },
-                      { name: 'امتحاناتي', href: '/student/exams', icon: GraduationCap },
-                      { name: 'الباقات الشهرية', href: '/#packages', icon: Award },
-                      { name: 'الكورسات', href: '/student/courses', icon: Video },
-                      { name: 'متجر الكتب', href: '/bookstore', icon: BookOpen },
-                      { name: 'طلباتي', href: '/student/orders', icon: ShoppingBag },
-                      { name: 'المحفظة', href: '/student/wallet', icon: Wallet },
-                      { name: 'الإشعارات', href: '/student/notifications', icon: Bell },
-                      { name: 'تقدمي في الدراسة', href: '/student/progress', icon: TrendingUp },
-                      { name: 'الدعم والمساعدة', href: '/student/support', icon: HelpCircle },
-                      { name: 'عمر مكاوي Ai', href: '/student/support', icon: Sparkles, isAi: true },
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      const isActive = pathname === item.href;
-                      const isAi = item.isAi;
-                      return (
-                        <li key={item.name}>
-                          <Link
-                            href={item.href}
-                            onClick={(e) => {
-                              handleAnchorClick(e, item.href);
-                              setIsMobileMenuOpen(false);
-                            }}
-                            className={`group w-full flex items-center justify-between p-2.5 rounded-2xl border transition-all duration-200 shadow-xs ${
-                              isActive
-                                ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/20'
-                                : isAi
-                                ? 'bg-gradient-to-r from-emerald-950/20 via-emerald-900/10 to-transparent dark:from-emerald-950/60 dark:to-stone-900 text-[#0d6e4f] dark:text-emerald-300 border-emerald-500/40 hover:border-emerald-500'
-                                : 'bg-[#f7f8f6] dark:bg-[#121620] hover:bg-[#e2ede5] dark:hover:bg-stone-800 text-gray-800 dark:text-stone-200 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                {/* Structured Student Navigation Drawer Cards */}
+                <div className="space-y-5">
+                  {/* Category 1: التعليم والمحتوى الدراسي */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-950/80 px-2 py-0.5 rounded-md inline-block">
+                      التعليم والمحتوى الدراسي
+                    </span>
+                    <ul className="space-y-2">
+                      {[
+                        { name: 'الرئيسية', href: '/', icon: Home },
+                        { name: 'اشتراكاتي', href: '/student/subscriptions', icon: CheckCircle2 },
+                        { name: 'امتحاناتي', href: '/student/exams', icon: GraduationCap },
+                        { name: 'الباقات الشهرية', href: '/#packages', icon: Award },
+                        { name: 'الكورسات', href: '/student/courses', icon: Video },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.href;
+                        return (
+                          <li key={item.name}>
+                            <Link
+                              href={item.href}
+                              onClick={(e) => {
+                                handleAnchorClick(e, item.href);
+                                setIsMobileMenuOpen(false);
+                              }}
+                              className={`group w-full flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 ${
                                 isActive
-                                  ? 'bg-white/20 text-white'
-                                  : isAi
-                                  ? 'bg-[#0d6e4f] text-white shadow-xs'
-                                  : 'bg-white dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 border border-stone-200/60 dark:border-stone-700/60 shadow-xs group-hover:scale-105'
-                              }`}>
-                                <Icon className="w-4 h-4" />
+                                  ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/25 font-black'
+                                  : 'bg-white dark:bg-[#111622] hover:bg-emerald-50/60 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-100 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/50 dark:hover:border-emerald-500/50 shadow-2xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                                  isActive
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[#0d6e4f]/10 text-[#0d6e4f] dark:bg-emerald-500/20 dark:text-emerald-300 border border-[#0d6e4f]/15 dark:border-emerald-500/30'
+                                }`}>
+                                  <Icon className="w-4.5 h-4.5" />
+                                </div>
+                                <span className="font-black text-xs tracking-tight">{item.name}</span>
                               </div>
-                              <span className="font-extrabold text-xs tracking-tight">{item.name}</span>
-                            </div>
-                            
-                            <div className="flex items-center gap-1.5">
-                              {isAi && (
-                                <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black text-[9.5px] shadow-xs animate-pulse">
-                                  AI ✨
-                                </span>
-                              )}
-                              <ChevronLeft className={`w-3.5 h-3.5 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
-                            </div>
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                              <ChevronLeft className={`w-4 h-4 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+
+                  {/* Category 2: المتجر والخدمات المالية */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-950/80 px-2 py-0.5 rounded-md inline-block">
+                      المتجر والحساب المالي
+                    </span>
+                    <ul className="space-y-2">
+                      {[
+                        { name: 'متجر الكتب', href: '/bookstore', icon: BookOpen },
+                        { name: 'طلباتي', href: '/student/orders', icon: ShoppingBag },
+                        { name: 'المحفظة', href: '/student/wallet', icon: Wallet },
+                        { name: 'الإشعارات', href: '/student/notifications', icon: Bell },
+                        { name: 'تقدمي في الدراسة', href: '/student/progress', icon: TrendingUp },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.href;
+                        return (
+                          <li key={item.name}>
+                            <Link
+                              href={item.href}
+                              onClick={(e) => {
+                                handleAnchorClick(e, item.href);
+                                setIsMobileMenuOpen(false);
+                              }}
+                              className={`group w-full flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 ${
+                                isActive
+                                  ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/25 font-black'
+                                  : 'bg-white dark:bg-[#111622] hover:bg-emerald-50/60 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-100 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/50 dark:hover:border-emerald-500/50 shadow-2xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                                  isActive
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-[#0d6e4f]/10 text-[#0d6e4f] dark:bg-emerald-500/20 dark:text-emerald-300 border border-[#0d6e4f]/15 dark:border-emerald-500/30'
+                                }`}>
+                                  <Icon className="w-4.5 h-4.5" />
+                                </div>
+                                <span className="font-black text-xs tracking-tight">{item.name}</span>
+                              </div>
+                              <ChevronLeft className={`w-4 h-4 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+
+                  {/* Category 3: المساعدة والتواصل الذكي */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-950/80 px-2 py-0.5 rounded-md inline-block">
+                      المساعدة والتواصل الذكي
+                    </span>
+                    <ul className="space-y-2">
+                      {[
+                        { name: 'الدعم والمساعدة', href: '/student/support', icon: HelpCircle },
+                        { name: 'عمر مكاوي Ai', href: '/student/support', icon: Sparkles, isAi: true },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.href;
+                        const isAi = item.isAi;
+                        return (
+                          <li key={item.name}>
+                            <Link
+                              href={item.href}
+                              onClick={(e) => {
+                                handleAnchorClick(e, item.href);
+                                setIsMobileMenuOpen(false);
+                              }}
+                              className={`group w-full flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 ${
+                                isActive
+                                  ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/25 font-black'
+                                  : isAi
+                                  ? 'bg-gradient-to-r from-emerald-950/20 via-emerald-900/10 to-teal-950/20 dark:from-emerald-950/60 dark:to-stone-900 text-[#0d6e4f] dark:text-emerald-300 border-emerald-500/50 hover:border-emerald-500 shadow-sm'
+                                  : 'bg-white dark:bg-[#111622] hover:bg-emerald-50/60 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-100 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/50 dark:hover:border-emerald-500/50 shadow-2xs'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                                  isActive
+                                    ? 'bg-white/20 text-white'
+                                    : isAi
+                                    ? 'bg-[#0d6e4f] text-white shadow-xs'
+                                    : 'bg-[#0d6e4f]/10 text-[#0d6e4f] dark:bg-emerald-500/20 dark:text-emerald-300 border border-[#0d6e4f]/15 dark:border-emerald-500/30'
+                                }`}>
+                                  <Icon className="w-4.5 h-4.5" />
+                                </div>
+                                <span className="font-black text-xs tracking-tight">{item.name}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-1.5">
+                                {isAi && (
+                                  <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black text-[9.5px] shadow-xs animate-pulse">
+                                    AI ✨
+                                  </span>
+                                )}
+                                <ChevronLeft className={`w-4 h-4 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
+                              </div>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </div>
               </div>
             ) : (

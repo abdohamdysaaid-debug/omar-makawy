@@ -30,20 +30,37 @@ interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
-export const navItems = [
-  { labelKey: 'nav.home', label: 'الرئيسية', href: '/student', aliases: ['/', '/student'], icon: Home },
-  { labelKey: 'nav.subscriptions', label: 'اشتراكاتي', href: '/student/subscriptions', aliases: ['/subscriptions', '/student/subscriptions'], icon: CheckCircle2 },
-  { labelKey: 'nav.exams', label: 'امتحاناتي', href: '/student/exams', aliases: ['/exams', '/student/exams'], icon: GraduationCap },
-  { labelKey: 'nav.packages', label: 'الباقات الشهرية', href: '/#packages', aliases: ['/#packages'], icon: Award },
-  { labelKey: 'nav.myLectures', label: 'الكورسات', href: '/student/courses', aliases: ['/courses', '/student/courses'], icon: Video },
-  { labelKey: 'nav.books', label: 'متجر الكتب', href: '/bookstore', aliases: ['/bookstore', '/student/books'], icon: BookOpen },
-  { labelKey: 'nav.orders', label: 'طلباتي', href: '/student/orders', aliases: ['/orders', '/student/orders'], icon: ShoppingBag },
-  { labelKey: 'nav.wallet', label: 'المحفظة', href: '/student/wallet', aliases: ['/wallet', '/student/wallet'], icon: Wallet },
-  { labelKey: 'nav.notifications', label: 'الإشعارات', href: '/student/notifications', aliases: ['/notifications', '/student/notifications'], icon: Bell },
-  { labelKey: 'nav.progress', label: 'تقدمي في الدراسة', href: '/student/progress', aliases: ['/progress', '/student/progress'], icon: TrendingUp },
-  { labelKey: 'nav.support', label: 'الدعم والمساعدة', href: '/student/support', aliases: ['/support', '/student/support'], icon: HelpCircle },
-  { labelKey: 'nav.ai', label: 'عمر مكاوي Ai', href: '/student/support', aliases: ['/student/ai'], icon: Sparkles, isAi: true },
+export const navSections = [
+  {
+    category: 'التعليم والمحتوى الدراسي',
+    items: [
+      { labelKey: 'nav.home', label: 'الرئيسية', href: '/student', aliases: ['/', '/student'], icon: Home },
+      { labelKey: 'nav.subscriptions', label: 'اشتراكاتي', href: '/student/subscriptions', aliases: ['/subscriptions', '/student/subscriptions'], icon: CheckCircle2 },
+      { labelKey: 'nav.exams', label: 'امتحاناتي', href: '/student/exams', aliases: ['/exams', '/student/exams'], icon: GraduationCap },
+      { labelKey: 'nav.packages', label: 'الباقات الشهرية', href: '/#packages', aliases: ['/#packages'], icon: Award },
+      { labelKey: 'nav.myLectures', label: 'الكورسات', href: '/student/courses', aliases: ['/courses', '/student/courses'], icon: Video },
+    ],
+  },
+  {
+    category: 'المتجر والخدمات المالية',
+    items: [
+      { labelKey: 'nav.books', label: 'متجر الكتب', href: '/bookstore', aliases: ['/bookstore', '/student/books'], icon: BookOpen },
+      { labelKey: 'nav.orders', label: 'طلباتي', href: '/student/orders', aliases: ['/orders', '/student/orders'], icon: ShoppingBag },
+      { labelKey: 'nav.wallet', label: 'المحفظة', href: '/student/wallet', aliases: ['/wallet', '/student/wallet'], icon: Wallet },
+      { labelKey: 'nav.notifications', label: 'الإشعارات', href: '/student/notifications', aliases: ['/notifications', '/student/notifications'], icon: Bell },
+      { labelKey: 'nav.progress', label: 'تقدمي في الدراسة', href: '/student/progress', aliases: ['/progress', '/student/progress'], icon: TrendingUp },
+    ],
+  },
+  {
+    category: 'المساعدة والتواصل الذكي',
+    items: [
+      { labelKey: 'nav.support', label: 'الدعم والمساعدة', href: '/student/support', aliases: ['/support', '/student/support'], icon: HelpCircle },
+      { labelKey: 'nav.ai', label: 'عمر مكاوي Ai', href: '/student/support', aliases: ['/student/ai'], icon: Sparkles, isAi: true },
+    ],
+  },
 ];
+
+export const navItems = navSections.flatMap((section) => section.items);
 
 export default function Sidebar({
   isCollapsed = false,
@@ -126,54 +143,65 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5 scrollbar-thin">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = item.aliases.some((alias) =>
-              alias === '/' || alias === '/student'
-                ? pathname === '/' || pathname === '/student'
-                : pathname === alias || pathname.startsWith(alias)
-            );
-
-            const isAi = (item as any).isAi;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onCloseMobile}
-                className={`relative group flex items-center gap-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
-                  isCollapsed ? 'px-3 py-3 justify-center' : 'px-4 py-3'
-                } ${
-                  isActive
-                    ? 'bg-emerald-700/90 dark:bg-emerald-600/90 text-white font-extrabold shadow-md shadow-emerald-950/40 border-s-4 border-emerald-300 dark:border-emerald-400'
-                    : isAi
-                    ? 'bg-emerald-950/40 dark:bg-emerald-950/60 text-emerald-200 border border-emerald-500/40 hover:bg-emerald-800/80 hover:text-white'
-                    : 'text-emerald-100/90 dark:text-gray-300 hover:bg-emerald-800/70 dark:hover:bg-gray-800/60 hover:text-white dark:hover:text-emerald-400'
-                }`}
-              >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : isAi ? 'text-emerald-300' : 'text-emerald-200/80 dark:text-gray-400 group-hover:text-white dark:group-hover:text-emerald-400'}`} />
-
-                <span className={`truncate flex-1 transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
-                  {t(item.labelKey, item.label)}
+        {/* Navigation Items (Grouped by Category) */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4 scrollbar-thin">
+          {navSections.map((section, idx) => (
+            <div key={idx} className="space-y-2">
+              {!isCollapsed && (
+                <span className="text-[9.5px] font-black uppercase tracking-wider text-emerald-300/80 dark:text-emerald-400/80 px-2 block text-start">
+                  {section.category}
                 </span>
+              )}
+              <div className="space-y-1.5">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = item.aliases.some((alias) =>
+                    alias === '/' || alias === '/student'
+                      ? pathname === '/' || pathname === '/student'
+                      : pathname === alias || pathname.startsWith(alias)
+                  );
 
-                {isAi && !isCollapsed && (
-                  <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 text-white font-black text-[9.5px] shadow-xs animate-pulse ms-auto">
-                    AI ✨
-                  </span>
-                )}
+                  const isAi = (item as any).isAi;
 
-                {/* Floating Tooltip on Desktop when Collapsed */}
-                {isCollapsed && (
-                  <div className="hidden lg:block pointer-events-none absolute start-full ms-2 px-3 py-1.5 bg-emerald-950 dark:bg-gray-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl z-50 border border-emerald-800/60 dark:border-gray-700">
-                    {t(item.labelKey, item.label)}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onCloseMobile}
+                      className={`relative group flex items-center gap-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                        isCollapsed ? 'px-3 py-3 justify-center' : 'px-3.5 py-2.5'
+                      } ${
+                        isActive
+                          ? 'bg-emerald-700/90 dark:bg-emerald-600/90 text-white font-extrabold shadow-md shadow-emerald-950/40 border-s-4 border-emerald-300 dark:border-emerald-400'
+                          : isAi
+                          ? 'bg-emerald-950/60 dark:bg-emerald-950/80 text-emerald-200 border border-emerald-500/50 hover:bg-emerald-800/80 hover:text-white'
+                          : 'bg-emerald-900/40 dark:bg-gray-900/40 text-emerald-100/90 dark:text-gray-300 hover:bg-emerald-800/70 dark:hover:bg-gray-800/60 hover:text-white border border-emerald-800/40 dark:border-gray-800/50'
+                      }`}
+                    >
+                      <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : isAi ? 'text-emerald-300' : 'text-emerald-200/80 dark:text-gray-400 group-hover:text-white dark:group-hover:text-emerald-400'}`} />
+
+                      <span className={`truncate flex-1 transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
+                        {t(item.labelKey, item.label)}
+                      </span>
+
+                      {isAi && !isCollapsed && (
+                        <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 text-white font-black text-[9.5px] shadow-xs animate-pulse ms-auto">
+                          AI ✨
+                        </span>
+                      )}
+
+                      {/* Floating Tooltip on Desktop when Collapsed */}
+                      {isCollapsed && (
+                        <div className="hidden lg:block pointer-events-none absolute start-full ms-2 px-3 py-1.5 bg-emerald-950 dark:bg-gray-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl z-50 border border-emerald-800/60 dark:border-gray-700">
+                          {t(item.labelKey, item.label)}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Sidebar Footer Teacher Card */}
