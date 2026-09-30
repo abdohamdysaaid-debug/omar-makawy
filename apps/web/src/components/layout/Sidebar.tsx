@@ -46,7 +46,7 @@ export default function Sidebar({
   onCloseMobile,
 }: SidebarProps) {
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Lock body scroll and handle Escape key on mobile drawer open
   React.useEffect(() => {
@@ -65,6 +65,8 @@ export default function Sidebar({
     }
   }, [isMobileOpen, onCloseMobile]);
 
+  const isRtl = language === 'ar';
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -78,11 +80,13 @@ export default function Sidebar({
 
       {/* Persistent Collapsible Sidebar Drawer */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#064e3b] dark:bg-[#0b0f19] border-e border-emerald-800/60 dark:border-gray-800/80 shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed top-0 bottom-0 start-0 z-50 flex flex-col bg-[#064e3b] dark:bg-[#0b0f19] border-e border-emerald-800/60 dark:border-gray-800/80 shadow-2xl transition-transform duration-300 ease-out ${
           isCollapsed ? 'lg:w-20' : 'lg:w-64'
         } ${
           isMobileOpen
             ? 'w-64 translate-x-0'
+            : isRtl
+            ? 'w-64 translate-x-full lg:translate-x-0'
             : 'w-64 -translate-x-full lg:translate-x-0'
         }`}
         role="dialog"
