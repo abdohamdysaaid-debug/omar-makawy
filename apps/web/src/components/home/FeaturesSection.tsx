@@ -40,10 +40,6 @@ export default function FeaturesSection() {
         
         {/* Section Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-[#e2ede5] dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 font-extrabold text-xs px-4 py-1.5 rounded-full mb-3 border border-[#c5dbc9] dark:border-stone-700 shadow-xs">
-            <Award className="w-4 h-4 text-[#0d6e4f]" />
-            <span>{t('features.badge', 'مميزات المنصة')}</span>
-          </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
             {t('features.heading', 'ما يميّزنا في منصة مستر عمر مكاوي')}
           </h2>
