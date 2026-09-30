@@ -35,25 +35,25 @@ export default function FeaturesSection() {
       id: 1,
       title: t('features.lecturesTitle', 'محاضرات فيديو عالية الجودة'),
       description: t('features.lecturesDesc', 'شرح تفصيلي للمنهج مع سلايدات توضيحية وأمثلة واقعية لبناء فهم عميق.'),
-      image: '/assets/features/feature-3-cutout.png?v=20260930_v7'
+      image: '/assets/features/feature-3-cutout.png?v=20261001_v10'
     },
     {
       id: 2,
       title: t('features.examsTitle', 'امتحانات تفاعلية وتقييم فوري'),
       description: t('features.examsDesc', 'اختبر مستواك بعد كل درس مع إظهار الإجابات النموذجية والتحليل الفوري لأدائك.'),
-      image: '/assets/features/feature-2-cutout.png?v=20260930_v7'
+      image: '/assets/features/feature-2-cutout.png?v=20261001_v10'
     },
     {
       id: 3,
       title: t('features.storeTitle', 'متجر الكتب والمذكرات'),
       description: t('features.storeDesc', 'اطلب مذكرات وكتب المنهج الرسمية تصلك حتى باب المنزل أو حملها بصيغة PDF.'),
-      image: '/assets/features/feature-4-cutout.png?v=20260930_v7'
+      image: '/assets/features/feature-4-cutout.png?v=20261001_v10'
     },
     {
       id: 4,
       title: t('features.walletTitle', 'محفظة شحن كروت المنصة'),
       description: t('features.walletDesc', 'سهولة الاشتراك وشحن الحساب عبر جميع وسائل الدفع المباشرة أو المحافظ الإلكترونية.'),
-      image: '/assets/features/feature-1-cutout.png?v=20260930_v7'
+      image: '/assets/features/feature-1-cutout.png?v=20261001_v10'
     }
   ];
 
@@ -100,17 +100,17 @@ export default function FeaturesSection() {
               className="snap-center shrink-0 w-[270px] sm:w-[290px] md:w-full group cursor-pointer flex flex-col rounded-3xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#005e46]/25 dark:hover:shadow-emerald-500/20 transition-all duration-300 touch-pan-y bg-white dark:bg-[#161f2e] border border-stone-200/80 dark:border-stone-800"
               style={{ touchAction: 'pan-x pan-y' }}
             >
-              {/* Top White Container with Standing Photo emerging out */}
-              <div className="relative bg-white dark:bg-[#161f2e] rounded-t-3xl pt-4 pb-6 overflow-visible flex items-end justify-center h-48 sm:h-52 z-0">
+              {/* Top White Container with Standing Photo slipping down behind green curve */}
+              <div className="relative bg-white dark:bg-[#161f2e] rounded-t-3xl pt-2 pb-0 overflow-hidden flex items-end justify-center h-52 sm:h-56 z-0">
                 <img
                   src={feature.image}
                   alt={feature.title}
-                  className="relative z-0 h-44 sm:h-48 w-auto object-contain transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-3 filter drop-shadow-[0_10px_16px_rgba(0,0,0,0.15)] pointer-events-none select-none"
+                  className="relative z-0 h-[195px] sm:h-[215px] w-auto object-contain object-bottom translate-y-4 transition-transform duration-500 ease-out group-hover:scale-105 group-hover:translate-y-1 filter drop-shadow-[0_8px_14px_rgba(0,0,0,0.12)] pointer-events-none select-none"
                 />
               </div>
 
               {/* Bottom Emerald Green Container with Title & Description */}
-              <div className="bg-[#005e46] dark:bg-[#004d39] text-white rounded-t-[28px] rounded-b-[24px] p-6 text-center shadow-lg -mt-6 relative z-10 flex-1 flex flex-col justify-between">
+              <div className="bg-[#005e46] dark:bg-[#004d39] text-white rounded-t-[28px] rounded-b-[24px] p-6 text-center shadow-lg -mt-8 relative z-10 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-white mb-2 leading-snug tracking-tight">
                     {feature.title}
