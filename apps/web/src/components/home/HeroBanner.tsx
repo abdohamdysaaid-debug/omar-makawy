@@ -10,66 +10,77 @@ export default function HeroBanner() {
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
 
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-gray-900 text-white pt-20 pb-12 sm:pt-24 sm:pb-16 lg:pt-28 lg:pb-24">
-      {/* Decorative Text */}
-      <div className="absolute top-10 right-10 -z-0 text-6xl font-black text-white/5 uppercase tracking-widest hidden lg:block rotate-[-10deg] select-none pointer-events-none">
-        English Opens New Worlds
-      </div>
-      <div className="absolute bottom-10 left-10 -z-0 text-6xl font-black text-white/5 uppercase tracking-widest hidden lg:block rotate-[10deg] select-none pointer-events-none">
-        Better English A Brighter You
-      </div>
+    <section className="relative w-full overflow-hidden bg-[#f6f8f5] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 pt-16 pb-12 sm:pt-20 sm:pb-16 lg:pt-24 lg:pb-20 transition-colors">
+      {/* Background Soft Organic Curves */}
+      <div className="absolute -top-24 start-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-b from-emerald-100/60 via-emerald-50/30 to-transparent dark:from-emerald-950/30 dark:via-emerald-950/10 dark:to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-8">
-          {/* Text Content */}
-          <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
-            <span className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 font-semibold text-xs px-4 py-2 rounded-full mb-6 border border-emerald-400/20 backdrop-blur-xs">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              {t('teacher.title', 'Mr. Omar Meckawy')} {t('hero.platformSuffix', 'Educational Platform')}
-            </span>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        {/* Top Badge matching mockup */}
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300/60 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-300 font-extrabold text-xs sm:text-sm shadow-xs mb-4 sm:mb-6 animate-fade-in">
+          <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>{t('hero.badge', 'منصة مستر عمر مكاوي التعليمية')}</span>
+        </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 font-cairo">
-              {t('hero.title', 'تعلم الإنجليزي بأسلوب مختلف مع مستر عمر مكاوي')}
-            </h1>
+        {/* Main Headline */}
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-emerald-950 dark:text-white leading-[1.2] tracking-tight max-w-3xl mx-auto mb-3 sm:mb-4 font-cairo">
+          {t('hero.headline', 'مستقبلك يبدأ من هنا')}
+        </h1>
 
-            <p className="text-lg sm:text-xl text-emerald-100/90 mb-8 max-w-2xl leading-relaxed font-cairo">
-              {t('hero.description', 'شرح تفصيلي للمنهج، متابعة مستمرة، وامتحانات تفاعلية للوصول إلى الدرجة النهائية بثقة وسهولة.')}
-            </p>
+        {/* Subtitle */}
+        <p className="text-sm sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mb-6 sm:mb-8 font-medium font-cairo">
+          {t('hero.description', 'تعلم اللغة الإنجليزية بأسلوب مختلف مع مستر عمر مكاوي. شرح بسيط، متابعة مستمرة، وخطوة بخطوة نحو مستواك الأفضل.')}
+        </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <Link
-                href="/courses"
-                className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-extrabold flex items-center justify-center gap-2 transition-all shadow-xl shadow-emerald-600/30 text-base font-cairo"
-              >
-                {t('hero.exploreCourses', 'استكشف الكورسات')}
-                <ArrowIcon className="w-5 h-5" />
-              </Link>
+        {/* Real Teacher Centered Portrait with Organic Background & Doodles */}
+        <div className="relative w-full max-w-xs sm:max-w-md lg:max-w-lg mx-auto mb-8 sm:mb-10">
+          {/* Organic Background Layer */}
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-200/60 via-emerald-100/40 to-transparent dark:from-emerald-900/40 dark:via-emerald-950/20 dark:to-transparent rounded-[48px] transform -rotate-1 scale-95" />
 
-              <Link
-                href="/login"
-                className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all backdrop-blur-md text-base font-cairo"
-              >
-                <GraduationCap className="w-5 h-5 text-emerald-400" />
-                {t('nav.login', 'تسجيل الدخول للطالب')}
-              </Link>
-            </div>
+          {/* Real Photo with Bottom Gradient Fade Mask */}
+          <div className="relative z-10 w-full overflow-hidden flex justify-center pt-3 sm:pt-4">
+            <img
+              src="/mr-omar-real.jpg"
+              alt="Mr. Omar Makawy"
+              className="w-full max-w-[290px] sm:max-w-[380px] lg:max-w-[420px] object-cover object-top rounded-t-3xl shadow-xs"
+            />
+            {/* Bottom Gradient Fade Overlay to blend portrait smoothly */}
+            <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 bg-gradient-to-t from-[#f6f8f5] via-[#f6f8f5]/80 to-transparent dark:from-[#090d16] dark:via-[#090d16]/80 dark:to-transparent" />
           </div>
 
-          {/* Teacher Photo Card Illustration */}
-          <div className="w-full lg:w-1/2 flex justify-center">
-            <div className="relative w-72 h-72 sm:w-96 sm:h-96 rounded-3xl bg-gradient-to-tr from-emerald-600 to-emerald-500 p-2 shadow-2xl flex items-center justify-center">
-              <div className="w-full h-full rounded-2xl bg-gray-900/60 backdrop-blur-md border border-white/20 flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-24 h-24 rounded-full bg-emerald-600 text-white flex items-center justify-center mb-4 shadow-lg">
-                  <GraduationCap className="w-12 h-12" />
-                </div>
-                <h3 className="text-2xl font-extrabold text-white">{t('teacher.title', 'Mr. Omar Meckawy')}</h3>
-                <p className="text-sm font-semibold text-emerald-300 mt-1">{t('teacher.expertTitle', 'English Language Specialist')}</p>
-                <span className="text-xs text-white/70 mt-3 max-w-xs">
-                  {t('hero.cardSub', 'Simplified curriculum explanations, grammar mastery & skills development')}
-                </span>
-              </div>
-            </div>
+          {/* Hand-drawn Doodles Matching Mockup */}
+          {/* Doodle Left: Learn Practice Improve */}
+          <div className="absolute top-10 start-0 sm:-start-4 z-20 bg-white/95 dark:bg-[#121212]/95 border-2 border-emerald-500/30 rounded-2xl px-3 py-1.5 shadow-lg flex flex-col items-center -rotate-6">
+            <span className="text-[11px] sm:text-xs font-black text-emerald-900 dark:text-emerald-300">Learn</span>
+            <span className="text-[10px] sm:text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400">Practice</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-gray-600 dark:text-gray-300">Improve</span>
           </div>
+
+          {/* Doodle Right: Hello! with Crown */}
+          <div className="absolute top-14 end-0 sm:-end-4 z-20 bg-white/95 dark:bg-[#121212]/95 border-2 border-emerald-500/30 rounded-2xl px-3.5 py-1.5 shadow-lg flex items-center gap-1.5 rotate-6">
+            <span className="text-sm">👑</span>
+            <span className="text-xs sm:text-sm font-black text-emerald-900 dark:text-emerald-200">Hello!</span>
+          </div>
+        </div>
+
+        {/* Action Buttons (CTAs) Matching Mockup */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-5 w-full max-w-md mx-auto">
+          {/* Primary CTA */}
+          <Link
+            href="/courses"
+            className="w-full sm:w-auto min-w-[220px] px-8 py-3.5 sm:py-4 bg-[#064e3b] hover:bg-[#047857] text-white rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-3 transition-all shadow-lg shadow-emerald-950/20 hover:scale-[1.02] font-cairo"
+          >
+            <span>{t('hero.startJourney', 'ابدأ رحلتك الآن')}</span>
+            <ArrowIcon className="w-5 h-5" />
+          </Link>
+
+          {/* Secondary CTA */}
+          <Link
+            href="/login"
+            className="w-full sm:w-auto min-w-[220px] px-8 py-3.5 sm:py-4 bg-white dark:bg-[#121212] text-gray-900 dark:text-white border-2 border-stone-300/90 dark:border-stone-800 hover:bg-emerald-50 dark:hover:bg-gray-800 rounded-2xl font-bold text-base flex items-center justify-center gap-2.5 transition-all shadow-xs font-cairo"
+          >
+            <GraduationCap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <span>{t('hero.studentLogin', 'تسجيل الدخول للطلاب')}</span>
+          </Link>
         </div>
       </div>
     </section>
