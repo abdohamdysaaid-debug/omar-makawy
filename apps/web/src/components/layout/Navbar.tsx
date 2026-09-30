@@ -3,9 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ShoppingCart, User, Bell, LogOut, GraduationCap } from 'lucide-react';
+import { Menu, X, User, Bell, LogOut, GraduationCap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useCart } from '@/context/CartContext';
 import { useLanguage } from '@/context/LanguageContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import LanguageToggle from '@/components/ui/LanguageToggle';
@@ -19,7 +18,7 @@ const VerifiedBadge = ({ className = "w-4 h-4" }: { className?: string }) => (
     xmlns="http://www.w3.org/2000/svg"
   >
     <path 
-      d="M22.5 12.5c0-1.58-.8-2.97-2-3.79.43-1.52.09-3.2-1.01-4.3-1.1-1.1-2.78-1.44-4.3-1.01C14.37 2.2 12.98 1.4 11.4 1.4c-1.58 0-2.97.8-3.79 2C6.09 2.97 4.41 3.31 3.31 4.41c-1.1 1.1-1.44 2.78-1.01 4.3C1.1 9.53.3 10.92.3 12.5c0 1.58.8 2.97 2 3.79-.43 1.52-.09 3.2 1.01 4.3 1.1 1.1 2.78 1.44 4.3 1.01.82 1.2 2.21 2 3.79 2 1.58 0 2.97-.8 3.79-2 1.52.43 3.2.09 4.3-1.01 1.1-1.1 1.44-2.78 1.01-4.3 1.2-.82 2-2.21 2-3.79z" 
+      d="M22.5 12.5c0-1.58-.8-2.97-2-3.79.43-1.52.09-3.2-1.01-4.3-1.1-1.1-2.78-1.44-4.3-1.01C14.37 2.2 12.98 1.4 11.4 1.4c-1.58 0-2.97.8-3.79 2C6.09 2.97 4.41 3.31 3.31 4.41c-1.1 1.1-1.44 2.78-1.01 4.3C1.1 9.53.3 10.92.3 12.5c0 1.58.8 2.97 2 3.79-.43 1.52.09 3.2 1.01 4.3 1.1 1.1 2.78 1.44 4.3 1.01.82 1.2 2.21 2 3.79 2 1.58 0 2.97-.8 3.79-2 1.52.43 3.2.09 4.3-1.01 1.1-1.1 1.44-2.78 1.01-4.3 1.2-.82 2-2.21 2-3.79z" 
       fill="#1D9BF0" 
     />
     <path 
@@ -36,7 +35,6 @@ export default function Navbar() {
   
   const pathname = usePathname();
   const { isAuthenticated, student, logout } = useAuth();
-  const { totalItems } = useCart();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
 
@@ -134,16 +132,6 @@ export default function Navbar() {
 
           {/* Theme Switcher */}
           <ThemeToggle />
-
-          {/* Shopping Cart Button */}
-          <Link href="/cart" className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-[#0d6e4f] transition-colors rounded-full hover:bg-stone-100 dark:hover:bg-stone-800" title="سلة التسوق">
-            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -end-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
-                {totalItems}
-              </span>
-            )}
-          </Link>
 
           {/* Login / Profile CTA */}
           {isAuthenticated && student ? (
