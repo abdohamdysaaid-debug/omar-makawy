@@ -5,6 +5,7 @@ import { packages } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
 import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { motion } from 'framer-motion';
 
 export default function PackagesSection() {
   const { isAuthenticated } = useAuth();
@@ -33,14 +34,20 @@ export default function PackagesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="text-center sm:text-start mb-8 sm:mb-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="text-center sm:text-start mb-8 sm:mb-10"
+        >
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
             {t('packages.title', 'الباقات الشهرية المتاحة')}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mt-1 font-medium">
             {t('packages.subtitle', 'اختر الباقة المناسبة لك للاشتراك المباشر والوصول إلى كافة المحاضرات والمذكرات.')}
           </p>
-        </div>
+        </motion.div>
 
         {/* Horizontal Touch Slider */}
         <div
@@ -48,9 +55,13 @@ export default function PackagesSection() {
           className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {activePackages.map((pkg) => (
-            <div
+          {activePackages.map((pkg, index) => (
+            <motion.div
               key={pkg.id}
+              initial={{ opacity: 0, y: 35, scale: 0.96 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, margin: '-30px' }}
+              transition={{ duration: 0.5, delay: index * 0.1, ease: 'easeOut' }}
               className={`snap-center shrink-0 w-[290px] sm:w-[340px] relative flex flex-col bg-white dark:bg-stone-900 border ${
                 pkg.isPopular
                   ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
@@ -104,12 +115,18 @@ export default function PackagesSection() {
               >
                 اشترك الآن
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* Bottom Slider Controls (Centered International Style) */}
-        <div className="mt-8 flex items-center justify-center gap-3">
+        {/* Bottom Slider Controls */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-8 flex items-center justify-center gap-3"
+        >
           <button
             onClick={() => scroll('right')}
             className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
@@ -131,7 +148,7 @@ export default function PackagesSection() {
           >
             <ChevronLeft className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
           </button>
-        </div>
+        </motion.div>
 
       </div>
     </section>

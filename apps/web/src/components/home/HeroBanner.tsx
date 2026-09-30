@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function HeroBanner() {
   return (
@@ -25,7 +28,12 @@ export default function HeroBanner() {
         <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-2 relative z-20 space-y-4">
           
           {/* Image & Floating Teacher Name/Subject Badges */}
-          <div className="relative w-full max-w-[380px] xs:max-w-[420px] flex flex-col items-center justify-center">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.94, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.215, 0.61, 0.355, 1] }}
+            className="relative w-full max-w-[380px] xs:max-w-[420px] flex flex-col items-center justify-center"
+          >
             {/* Mobile Light Mode Visual */}
             <img
               src="/assets/hero/hero-visual-mobile-seamless.png?v=20260930_v5"
@@ -41,28 +49,44 @@ export default function HeroBanner() {
             />
 
             {/* Floating Brand Badges shifted down near the end of the tie */}
-            <div className="absolute bottom-1 xs:bottom-2 inset-x-0 z-30 flex flex-col items-center text-center space-y-1.5 px-2">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+              className="absolute bottom-1 xs:bottom-2 inset-x-0 z-30 flex flex-col items-center text-center space-y-1.5 px-2"
+            >
               {/* 1. First Rectangle: "مستر عمر مكاوي" */}
-              <div className="px-5 py-1.5 rounded-xl bg-[#0d6e4f]/95 dark:bg-[#064e3b]/95 text-white dark:text-emerald-100 border border-emerald-400/40 dark:border-emerald-500/50 shadow-lg backdrop-blur-md">
+              <motion.div 
+                whileHover={{ scale: 1.03 }}
+                className="px-5 py-1.5 rounded-xl bg-[#0d6e4f]/95 dark:bg-[#064e3b]/95 text-white dark:text-emerald-100 border border-emerald-400/40 dark:border-emerald-500/50 shadow-lg backdrop-blur-md"
+              >
                 <span className="text-sm xs:text-base font-black tracking-wide">
                   مستر عمر مكاوي
                 </span>
-              </div>
+              </motion.div>
 
               {/* 2. Second Rectangle: "مدرس اللغة الإنجليزية" */}
-              <div className="px-4 py-1 rounded-xl bg-white/95 dark:bg-stone-900/95 text-gray-900 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-md backdrop-blur-md">
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="px-4 py-1 rounded-xl bg-white/95 dark:bg-stone-900/95 text-gray-900 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-md backdrop-blur-md"
+              >
                 <span className="text-xs font-extrabold tracking-tight">
                   مدرس اللغة الإنجليزية
                 </span>
-              </div>
-            </div>
-          </div>
+              </motion.div>
+            </motion.div>
+          </motion.div>
 
           {/* Enriched & Enlarged Action Area Directly Below the Image */}
-          <div className="w-full max-w-[320px] xs:max-w-[360px] flex flex-col space-y-3 pt-2 pb-1">
+          <motion.div 
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45, ease: 'easeOut' }}
+            className="w-full max-w-[320px] xs:max-w-[360px] flex flex-col space-y-3 pt-2 pb-1"
+          >
             <Link
               href="/register"
-              className="w-full py-3.5 px-6 rounded-2xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-black text-sm xs:text-base flex items-center justify-center gap-2 shadow-xl shadow-[#0d6e4f]/25 border border-emerald-500/30 transition-all active:scale-[0.98]"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-black text-sm xs:text-base flex items-center justify-center gap-2 shadow-xl shadow-[#0d6e4f]/25 border border-emerald-500/30 transition-all active:scale-[0.98] hover:scale-[1.01]"
             >
               <span>إنشاء حساب</span>
               <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,17 +96,21 @@ export default function HeroBanner() {
 
             <Link
               href="/login"
-              className="w-full py-3.5 px-6 rounded-2xl bg-white dark:bg-[#071d15] hover:bg-stone-50 dark:hover:bg-[#0a271d] text-gray-900 dark:text-emerald-100 border-2 border-stone-200 dark:border-emerald-500/40 font-extrabold text-sm xs:text-base flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]"
+              className="w-full py-3.5 px-6 rounded-2xl bg-white dark:bg-[#071d15] hover:bg-stone-50 dark:hover:bg-[#0a271d] text-gray-900 dark:text-emerald-100 border-2 border-stone-200 dark:border-emerald-500/40 font-extrabold text-sm xs:text-base flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] hover:scale-[1.01]"
             >
               <span>تسجيل الدخول</span>
             </Link>
-          </div>
+          </motion.div>
 
         </div>
 
         {/* DESKTOP / TABLET VISUAL COMPOSITION */}
-        <div className="hidden sm:flex items-center justify-center w-full mx-auto">
-          
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.15, ease: [0.215, 0.61, 0.355, 1] }}
+          className="hidden sm:flex items-center justify-center w-full mx-auto"
+        >
           {/* Desktop Light Mode Visual */}
           <img
             src="/assets/hero/hero-visual-seamless.png?v=20260930_v5"
@@ -96,8 +124,7 @@ export default function HeroBanner() {
             alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
             className="hidden dark:block w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none"
           />
-
-        </div>
+        </motion.div>
 
       </div>
 

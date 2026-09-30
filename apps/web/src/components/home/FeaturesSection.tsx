@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import { Video, FileText, BookOpen, Headphones, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { motion } from 'framer-motion';
 
 export default function FeaturesSection() {
   const { t } = useLanguage();
@@ -47,14 +48,20 @@ export default function FeaturesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="text-center sm:text-start mb-8 sm:mb-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="text-center sm:text-start mb-8 sm:mb-10"
+        >
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
             {t('features.heading', 'ما يميّزنا في منصة مستر عمر مكاوي')}
           </h2>
           <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mt-1 font-medium">
             {t('features.subheading', 'تجربة تعليمية متكاملة مصممة خصيصاً لمساعدتك على التفوق بأبسط الطرق وأحدث الأساليب.')}
           </p>
-        </div>
+        </motion.div>
 
         {/* Horizontal Touch Slider */}
         <div
@@ -62,29 +69,41 @@ export default function FeaturesSection() {
           className="flex overflow-x-auto snap-x snap-mandatory scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {featureItems.map((feature) => {
+          {featureItems.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div
+              <motion.div
                 key={feature.id}
-                className="snap-center shrink-0 w-[250px] sm:w-[280px] flex flex-col items-center text-center group p-6 sm:p-7 rounded-3xl bg-stone-50 dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800 hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-1"
+                initial={{ opacity: 0, y: 35, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: '-30px' }}
+                transition={{ duration: 0.5, delay: index * 0.1, ease: 'easeOut' }}
+                className="snap-center shrink-0 w-[260px] sm:w-[280px] bg-[#f7f6ed]/60 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg flex flex-col justify-between"
               >
-                <div className="w-14 h-14 bg-[#e2ede5] dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-[#0d6e4f] group-hover:text-white transition-all duration-300">
-                  <Icon className="w-7 h-7" />
+                <div>
+                  <div className="w-14 h-14 rounded-2xl bg-[#0d6e4f]/10 dark:bg-emerald-500/10 text-[#0d6e4f] dark:text-emerald-400 flex items-center justify-center mb-5">
+                    <Icon className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-[#00251e] dark:text-white mb-2 leading-snug">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-xs font-medium leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="text-base font-extrabold text-gray-900 dark:text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed font-medium">
-                  {feature.description}
-                </p>
-              </div>
+              </motion.div>
             );
           })}
         </div>
 
-        {/* Bottom Slider Controls (Centered International Style) */}
-        <div className="mt-8 flex items-center justify-center gap-3">
+        {/* Bottom Slider Controls */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-8 flex items-center justify-center gap-3"
+        >
           <button
             onClick={() => scroll('right')}
             className="w-11 h-11 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
@@ -106,7 +125,7 @@ export default function FeaturesSection() {
           >
             <ChevronLeft className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
           </button>
-        </div>
+        </motion.div>
 
       </div>
     </section>
