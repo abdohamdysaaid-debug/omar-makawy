@@ -19,15 +19,50 @@ export default function HeroBanner() {
         {/* Top and Bottom Gradient Blends */}
         <div className="absolute inset-x-0 top-0 h-12 sm:h-24 bg-gradient-to-b from-[#f7f6ed] via-[#f7f6ed]/80 to-transparent dark:from-[#020d08] dark:via-[#020d08]/80 pointer-events-none z-10" />
         <div className="absolute inset-x-0 bottom-0 h-12 sm:h-24 bg-gradient-to-t from-[#f7f6ed] via-[#f7f6ed]/80 to-transparent dark:from-[#020d08] dark:via-[#020d08]/80 pointer-events-none z-10" />
+
+        {/* Floating Creative English Cursive Typography Watermark */}
+        <div className="absolute inset-x-0 top-1/4 flex items-center justify-between px-4 sm:px-16 md:px-24 pointer-events-none select-none z-0 opacity-25 dark:opacity-20">
+          <span className="font-serif italic text-3xl xs:text-5xl sm:text-7xl lg:text-8xl font-black text-[#0d6e4f] dark:text-emerald-400 transform -rotate-12 tracking-wider">
+            Hello!
+          </span>
+          <span className="font-serif italic text-3xl xs:text-5xl sm:text-7xl lg:text-8xl font-black text-[#0d6e4f] dark:text-emerald-400 transform rotate-12 tracking-wider">
+            Welcome
+          </span>
+        </div>
       </div>
 
       {/* 2. Responsive Hero Composition Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
         
+        {/* Floating Creative English Cursive Badges */}
+        <motion.div 
+          animate={{ y: [-5, 5, -5], rotate: [-4, -2, -4] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-10 left-3 sm:top-16 sm:left-12 lg:left-24 z-30 pointer-events-none select-none"
+        >
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
+            <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
+              Hello English! 👋
+            </span>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          animate={{ y: [5, -5, 5], rotate: [4, 2, 4] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-16 right-3 sm:top-24 sm:right-12 lg:right-24 z-30 pointer-events-none select-none"
+        >
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
+            <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
+              Speak Confidently 🚀
+            </span>
+          </div>
+        </motion.div>
+
         {/* MOBILE VISUAL COMPOSITION WITH OVERLAID RECTANGLES & COMPACT FLOATING BUTTONS */}
         <div className="flex sm:hidden flex-col items-center justify-center w-full mx-auto px-2 relative z-20">
           
-          {/* Image Container (lowered to start comfortably right under top navbar) */}
+          {/* Image Container */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.94, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -109,7 +144,7 @@ export default function HeroBanner() {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.215, 0.61, 0.355, 1] }}
-          className="hidden sm:flex items-center justify-center w-full mx-auto"
+          className="hidden sm:flex items-center justify-center w-full mx-auto relative"
         >
           {/* Desktop Light Mode Visual */}
           <img
@@ -118,7 +153,7 @@ export default function HeroBanner() {
             className="dark:hidden w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_10px_30px_rgba(17,105,78,0.06)]"
           />
 
-          {/* Desktop Dark Mode Visual (Exact Seamless Alpha Feathered PNG) */}
+          {/* Desktop Dark Mode Visual */}
           <img
             src="/assets/hero/hero-visual-desktop-dark-seamless.png?v=20260930_v5"
             alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
