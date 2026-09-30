@@ -67,16 +67,12 @@ export default function FeaturesSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="text-center mb-10 sm:mb-14"
+          className="text-start max-w-6xl mx-auto mb-8 sm:mb-10"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#005e46]/10 dark:bg-emerald-500/15 text-[#005e46] dark:text-emerald-400 font-extrabold text-sm mb-3">
-            <Sparkles className="w-4 h-4 text-[#005e46] dark:text-emerald-400" />
-            <span>ــ لماذا تختار منصتنا؟ ــ</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-[#00251e] dark:text-white tracking-tight mb-3">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight mb-2">
             لماذا تشترك <span className="bg-[#005e46]/10 text-[#005e46] dark:bg-emerald-500/20 dark:text-emerald-300 px-3 py-1 rounded-xl inline-block">في منصتنا؟</span>
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base font-medium max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium max-w-2xl leading-relaxed">
             {t('features.subheading', 'تجربة تعليمية متكاملة مصممة خصيصاً لمساعدتك على التفوق بأبسط الطرق وأحدث الأساليب.')}
           </p>
         </motion.div>
