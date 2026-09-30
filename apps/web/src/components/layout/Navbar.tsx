@@ -93,14 +93,22 @@ export default function Navbar() {
         
         {/* Right Side (RTL): Brand Logo & Verified Teacher Credentials */}
         <Link href="/" className="flex items-center gap-2 text-start group">
-          {/* Desktop Logo */}
-          <div className="hidden lg:flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-[#0d6e4f] text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-105 transition-transform">
+          {/* Desktop Logo & Verified Subtitle */}
+          <div className="hidden lg:flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#0d6e4f] text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-105 transition-transform shrink-0">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-extrabold text-[#0a4834] dark:text-white tracking-tight">
-              Omar Meckawy
-            </span>
+            <div className="flex flex-col items-start justify-center">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-extrabold text-[#0a4834] dark:text-white tracking-tight leading-tight">
+                  Mr. Omar Meckawy
+                </span>
+                <VerifiedBadge className="w-4 h-4" />
+              </div>
+              <span className="text-[11px] font-bold text-gray-600 dark:text-emerald-400 leading-tight">
+                {t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}
+              </span>
+            </div>
           </div>
 
           {/* Mobile Logo & Verified Subtitle */}
