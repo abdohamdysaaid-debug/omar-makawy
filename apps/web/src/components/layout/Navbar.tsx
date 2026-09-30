@@ -223,14 +223,14 @@ export default function Navbar() {
           onClick={() => setIsMobileMenuOpen(false)} 
         />
         
-        {/* Dynamic Side Drawer (Right in RTL / Left in LTR) */}
+        {/* Dynamic Side Drawer (Opens from end-0 side matching the Hamburger Button) */}
         <div 
-          className={`fixed inset-y-0 start-0 w-72 max-w-[80vw] bg-white dark:bg-[#080808] h-full shadow-2xl flex flex-col border-e border-stone-200/80 dark:border-stone-800 transition-transform duration-300 ease-out z-10 ${
+          className={`fixed inset-y-0 end-0 w-72 max-w-[80vw] bg-white dark:bg-[#080808] h-full shadow-2xl flex flex-col border-s border-stone-200/80 dark:border-stone-800 transition-transform duration-300 ease-out z-10 ${
             isMobileMenuOpen 
               ? 'translate-x-0' 
               : isRtl 
-              ? 'translate-x-full' 
-              : '-translate-x-full'
+              ? '-translate-x-full' 
+              : 'translate-x-full'
           }`}
         >
           {/* Drawer Header */}
