@@ -7,13 +7,13 @@ import { PlaySquare, Clock, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function HomeCoursesSection() {
-  const { openAuthGate, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const handleCourseClick = (courseId: number) => {
     if (!isAuthenticated) {
-      openAuthGate(`/courses/${courseId}`);
+      window.location.href = `/login?returnUrl=${encodeURIComponent(`/courses/${courseId}`)}`;
     } else {
       window.location.href = `/courses/${courseId}`;
     }
@@ -29,7 +29,7 @@ export default function HomeCoursesSection() {
   const activeCourses = courses.filter((c) => c.isActive);
 
   return (
-    <section id="courses" className="py-14 sm:py-20 bg-white dark:bg-[#080b11] transition-colors font-cairo">
+    <section id="courses" className="py-14 sm:py-20 bg-white dark:bg-[#080b11] transition-colors font-cairo scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header with Navigation Controls */}

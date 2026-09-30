@@ -7,13 +7,13 @@ import { BookOpen, ShoppingBag, ArrowLeft, ChevronRight, ChevronLeft } from 'luc
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function HomeBooksSection() {
-  const { openAuthGate, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const handleBookClick = (bookId: number) => {
     if (!isAuthenticated) {
-      openAuthGate(`/bookstore/${bookId}`);
+      window.location.href = `/login?returnUrl=${encodeURIComponent(`/bookstore/${bookId}`)}`;
     } else {
       window.location.href = `/bookstore/${bookId}`;
     }
@@ -29,7 +29,7 @@ export default function HomeBooksSection() {
   const activeBooks = books.slice(0, 6);
 
   return (
-    <section id="books" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo">
+    <section id="books" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header with Navigation Controls */}

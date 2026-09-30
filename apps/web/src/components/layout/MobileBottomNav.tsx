@@ -12,9 +12,9 @@ export default function MobileBottomNav() {
 
   const navItems = [
     { label: t('bottomNav.home', 'الرئيسية'), icon: Home, href: '/' },
-    { label: t('bottomNav.packages', 'الباقات'), icon: Package, href: '/packages' },
-    { label: t('bottomNav.courses', 'الكورسات'), icon: GraduationCap, href: '/courses' },
-    { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: '/bookstore' },
+    { label: t('bottomNav.packages', 'الباقات'), icon: Package, href: '/#packages' },
+    { label: t('bottomNav.courses', 'الكورسات'), icon: GraduationCap, href: '/#courses' },
+    { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: '/#books' },
     { label: t('bottomNav.profile', 'حسابي'), icon: User, href: '/profile' },
   ];
 
@@ -27,7 +27,7 @@ export default function MobileBottomNav() {
 
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className={`flex flex-col items-center justify-center flex-1 h-full space-y-0.5 transition-all ${
                 isActive

@@ -7,13 +7,13 @@ import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft } from 
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function PackagesSection() {
-  const { openAuthGate, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const handleSubscribe = (packageId: number) => {
     if (!isAuthenticated) {
-      openAuthGate(`/packages/${packageId}`);
+      window.location.href = `/login?returnUrl=${encodeURIComponent(`/packages/${packageId}`)}`;
     } else {
       window.location.href = `/student/subscriptions`;
     }
@@ -29,7 +29,7 @@ export default function PackagesSection() {
   const activePackages = packages.filter((pkg) => pkg.isActive);
 
   return (
-    <section id="packages" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo">
+    <section id="packages" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header with Navigation Controls */}
