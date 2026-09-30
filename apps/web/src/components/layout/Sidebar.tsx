@@ -41,7 +41,6 @@ export const navItems = [
   { labelKey: 'nav.wallet', label: 'المحفظة', href: '/student/wallet', aliases: ['/wallet', '/student/wallet'], icon: Wallet },
   { labelKey: 'nav.notifications', label: 'الإشعارات', href: '/student/notifications', aliases: ['/notifications', '/student/notifications'], icon: Bell },
   { labelKey: 'nav.progress', label: 'تقدمي في الدراسة', href: '/student/progress', aliases: ['/progress', '/student/progress'], icon: TrendingUp },
-  { labelKey: 'nav.profile', label: 'الملف الشخصي', href: '/profile', aliases: ['/profile', '/student/profile'], icon: User },
   { labelKey: 'nav.support', label: 'الدعم والمساعدة', href: '/student/support', aliases: ['/support', '/student/support'], icon: HelpCircle },
   { labelKey: 'nav.ai', label: 'عمر مكاوي Ai', href: '/student/support', aliases: ['/student/ai'], icon: Sparkles, isAi: true },
 ];

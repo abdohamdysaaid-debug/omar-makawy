@@ -68,7 +68,6 @@ export default function Navbar() {
     { name: t('nav.packages', 'الباقات'), href: '/#packages', icon: Package },
     { name: t('nav.courses', 'الكورسات'), href: '/#courses', icon: Video },
     { name: t('nav.books', 'الكتب'), href: '/#books', icon: BookOpen },
-    { name: t('nav.account', 'حسابي'), href: '/profile', icon: User },
   ];
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -293,7 +292,6 @@ export default function Navbar() {
                       { name: 'المحفظة', href: '/student/wallet', icon: Wallet },
                       { name: 'الإشعارات', href: '/student/notifications', icon: Bell },
                       { name: 'تقدمي في الدراسة', href: '/student/progress', icon: TrendingUp },
-                      { name: 'الملف الشخصي', href: '/profile', icon: User },
                       { name: 'الدعم والمساعدة', href: '/student/support', icon: HelpCircle },
                       { name: 'عمر مكاوي Ai', href: '/student/support', icon: Sparkles, isAi: true },
                     ].map((item) => {
