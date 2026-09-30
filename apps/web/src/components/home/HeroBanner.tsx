@@ -32,14 +32,12 @@ export default function HeroBanner() {
             className="dark:hidden w-full max-w-[360px] xs:max-w-[420px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_8px_24px_rgba(17,105,78,0.06)]"
           />
 
-          {/* Mobile Dark Mode Visual (Exact User Image, Blended Seamlessly with Radial Alpha Mask) */}
-          <div className="hidden dark:block relative w-full max-w-[360px] xs:max-w-[420px] h-auto transition-all duration-300 pointer-events-none select-none">
-            <img
-              src="/assets/hero/hero-visual-mobile-dark.png"
-              alt="Mr. Omar Makawy - Mobile Dark Mode Hero Visual Composition"
-              className="w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none [mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_98%)] [-webkit-mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_98%)]"
-            />
-          </div>
+          {/* Mobile Dark Mode Visual (Exact Seamless Alpha Feathered PNG) */}
+          <img
+            src="/assets/hero/hero-visual-mobile-dark-seamless.png"
+            alt="Mr. Omar Makawy - Mobile Dark Mode Hero Visual Composition"
+            className="hidden dark:block w-full max-w-[360px] xs:max-w-[420px] h-auto object-contain transition-all duration-300 pointer-events-none select-none"
+          />
 
         </div>
 
@@ -53,14 +51,12 @@ export default function HeroBanner() {
             className="dark:hidden w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_10px_30px_rgba(17,105,78,0.06)]"
           />
 
-          {/* Desktop Dark Mode Visual (Exact User Image, Blended Seamlessly with Radial Alpha Mask) */}
-          <div className="hidden dark:block relative w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto transition-all duration-300 pointer-events-none select-none">
-            <img
-              src="/assets/hero/hero-visual-desktop-dark.png"
-              alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
-              className="w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none [mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_98%)] [-webkit-mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_98%)]"
-            />
-          </div>
+          {/* Desktop Dark Mode Visual (Exact Seamless Alpha Feathered PNG) */}
+          <img
+            src="/assets/hero/hero-visual-desktop-dark-seamless.png"
+            alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
+            className="hidden dark:block w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none"
+          />
 
         </div>
 
