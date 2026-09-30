@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, Bell, LogOut, GraduationCap } from 'lucide-react';
+import { Menu, X, User, Bell, LogOut, GraduationCap, Home, Package, BookOpen, Video, LogIn, UserPlus, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
@@ -64,11 +64,11 @@ export default function Navbar() {
   }, [isMobileMenuOpen]);
 
   const navLinks = [
-    { name: t('nav.home', 'الرئيسية'), href: '/' },
-    { name: t('nav.packages', 'الباقات'), href: '/#packages' },
-    { name: t('nav.courses', 'الكورسات'), href: '/#courses' },
-    { name: t('nav.books', 'الكتب'), href: '/#books' },
-    { name: t('nav.account', 'حسابي'), href: '/profile' },
+    { name: t('nav.home', 'الرئيسية'), href: '/', icon: Home },
+    { name: t('nav.packages', 'الباقات'), href: '/#packages', icon: Package },
+    { name: t('nav.courses', 'الكورسات'), href: '/#courses', icon: Video },
+    { name: t('nav.books', 'الكتب'), href: '/#books', icon: BookOpen },
+    { name: t('nav.account', 'حسابي'), href: '/profile', icon: User },
   ];
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -225,7 +225,7 @@ export default function Navbar() {
         
         {/* Dynamic Side Drawer (Opens from end-0 side matching the Hamburger Button) */}
         <div 
-          className={`fixed inset-y-0 end-0 w-72 max-w-[80vw] bg-white dark:bg-[#080808] h-full shadow-2xl flex flex-col border-s border-stone-200/80 dark:border-stone-800 transition-transform duration-300 ease-out z-10 ${
+          className={`fixed inset-y-0 end-0 w-80 max-w-[85vw] bg-white dark:bg-[#0c1017] h-full shadow-2xl flex flex-col border-s border-stone-200/80 dark:border-stone-800 transition-transform duration-300 ease-out z-10 ${
             isMobileMenuOpen 
               ? 'translate-x-0' 
               : isRtl 
@@ -234,7 +234,7 @@ export default function Navbar() {
           }`}
         >
           {/* Drawer Header */}
-          <div className="p-4 border-b border-stone-200/80 dark:border-stone-800 flex justify-between items-center">
+          <div className="p-4 border-b border-stone-200/80 dark:border-stone-800 flex justify-between items-center bg-[#f8faf7] dark:bg-[#080b11]">
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-start text-start">
               <span className="text-base font-black text-[#0a4834] dark:text-white">
                 Mr. Omar Meckawy
@@ -246,42 +246,108 @@ export default function Navbar() {
             </Link>
             <button 
               onClick={() => setIsMobileMenuOpen(false)} 
-              className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg transition-colors"
+              className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg transition-colors bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700"
               aria-label="إغلاق القائمة"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
           
-          {/* Drawer Body Links */}
-          <div className="overflow-y-auto py-4 px-4 flex-grow space-y-4">
-            {!isAuthenticated && (
-              <Link
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#0d6e4f] text-white rounded-full font-bold text-sm shadow-md"
-              >
-                <User className="w-4 h-4" />
-                <span>{t('auth.loginBtn', 'تسجيل الدخول للطالب')}</span>
-              </Link>
-            )}
+          {/* Drawer Body Links & Bottom Actions */}
+          <div className="overflow-y-auto py-5 px-4 flex-grow flex flex-col justify-between space-y-6">
+            
+            {/* Navigation Cards Section */}
+            <div className="space-y-3">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d6e4f] dark:text-emerald-400 px-1 block text-start">
+                {t('nav.menuHeading', 'أقسام المنصة')}
+              </span>
+              <ul className="space-y-2.5">
+                {navLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        onClick={(e) => {
+                          handleAnchorClick(e, link.href);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`group w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-200 shadow-xs ${
+                          isActive
+                            ? 'bg-[#0d6e4f] text-white border-[#0d6e4f] shadow-md shadow-[#0d6e4f]/20'
+                            : 'bg-[#f7f8f6] dark:bg-[#121620] hover:bg-[#e2ede5] dark:hover:bg-stone-800 text-gray-800 dark:text-stone-200 border-stone-200/90 dark:border-stone-800/90 hover:border-[#0d6e4f]/40 dark:hover:border-emerald-500/40'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            isActive
+                              ? 'bg-white/20 text-white'
+                              : 'bg-white dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 border border-stone-200/60 dark:border-stone-700/60 shadow-xs group-hover:scale-105'
+                          }`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span className="font-extrabold text-sm tracking-tight">{link.name}</span>
+                        </div>
+                        <ChevronLeft className={`w-4 h-4 transition-transform ${isRtl ? '' : 'rotate-180'} ${isActive ? 'text-white' : 'text-gray-400 group-hover:-translate-x-0.5'}`} />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
 
-            <ul className="space-y-1">
-              {navLinks.map((link) => (
-                <li key={link.href}>
+            {/* Drawer Bottom Actions (Login & Register or User Account) */}
+            <div className="pt-4 border-t border-stone-200/90 dark:border-stone-800/90 space-y-2.5">
+              {!isAuthenticated ? (
+                <>
                   <Link
-                    href={link.href}
+                    href="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-4 py-3 rounded-2xl text-gray-700 dark:text-gray-300 hover:bg-[#e2ede5] dark:hover:bg-stone-900 font-bold transition-colors text-sm"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white font-black text-sm flex items-center justify-center gap-2 shadow-md shadow-[#0d6e4f]/20 transition-all active:scale-[0.98]"
                   >
-                    {link.name}
+                    <UserPlus className="w-4.5 h-4.5" />
+                    <span>إنشاء حساب جديد</span>
                   </Link>
-                </li>
-              ))}
-            </ul>
+
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full py-3.5 px-4 rounded-2xl bg-white dark:bg-[#0f172a] text-[#0d6e4f] dark:text-emerald-400 border-2 border-[#0d6e4f]/80 dark:border-emerald-500/60 font-black text-sm flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.98] hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                  >
+                    <LogIn className="w-4.5 h-4.5" />
+                    <span>{t('auth.loginBtn', 'تسجيل الدخول')}</span>
+                  </Link>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <div className="p-3 rounded-2xl bg-[#f7f8f6] dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#0d6e4f] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                      {student?.fullName?.charAt(0) || 'S'}
+                    </div>
+                    <div className="flex-1 min-w-0 text-start">
+                      <p className="text-xs font-black text-gray-900 dark:text-white truncate">{student?.fullName}</p>
+                      <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 truncate">{student?.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-extrabold text-xs flex items-center justify-center gap-2 border border-red-200 dark:border-red-900/50 hover:bg-red-100 transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>تسجيل الخروج</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
     </nav>
   );
 }
+
