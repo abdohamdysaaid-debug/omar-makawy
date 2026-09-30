@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { packages } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
 import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -9,8 +9,22 @@ import { motion } from 'framer-motion';
 
 export default function PackagesSection() {
   const { isAuthenticated } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRtl = language === 'ar';
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  const handleScroll = () => {
+    if (sliderRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+      const maxScroll = scrollWidth - clientWidth;
+      if (maxScroll > 0) {
+        const currentScroll = Math.abs(scrollLeft);
+        const progress = Math.min(Math.max(currentScroll / maxScroll, 0), 1);
+        setScrollProgress(progress);
+      }
+    }
+  };
 
   const handleSubscribe = (packageId: number) => {
     if (!isAuthenticated) {
@@ -49,24 +63,25 @@ export default function PackagesSection() {
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider with Unblocked 2D Vertical Scroll */}
+        {/* Horizontal Touch Slider with Unblocked 2D Vertical Scroll & Scale Animations */}
         <div
           ref={sliderRef}
-          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-4 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+          onScroll={handleScroll}
+          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {activePackages.map((pkg, index) => (
             <motion.div
               key={pkg.id}
-              initial={{ opacity: 0, y: 35, scale: 0.96 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: '-30px' }}
-              transition={{ duration: 0.5, delay: index * 0.1, ease: 'easeOut' }}
+              initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              viewport={{ amount: 0.55 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
               className={`snap-center shrink-0 w-[290px] sm:w-[340px] relative flex flex-col bg-white dark:bg-stone-900 border ${
                 pkg.isPopular
                   ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
                   : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
-              } rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:-translate-y-1.5 touch-pan-y`}
+              } rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] touch-pan-y`}
               style={{ touchAction: 'pan-x pan-y' }}
             >
               {pkg.isPopular && (
@@ -120,7 +135,7 @@ export default function PackagesSection() {
           ))}
         </div>
 
-        {/* Bottom Slider Controls */}
+        {/* Bottom Slider Controls with Dynamic Animated Indicator */}
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -137,8 +152,14 @@ export default function PackagesSection() {
             <ChevronRight className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
           </button>
           
-          <div className="h-1.5 w-10 rounded-full bg-stone-300/80 dark:bg-stone-800 overflow-hidden">
-            <div className="h-full w-1/2 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full" />
+          {/* Dynamic Scroll Progress Bar */}
+          <div className="relative h-2 w-14 rounded-full bg-stone-200/90 dark:bg-stone-800 overflow-hidden shadow-inner">
+            <div 
+              className="absolute top-0 bottom-0 w-6 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full transition-all duration-200 ease-out shadow-sm"
+              style={{
+                [isRtl ? 'right' : 'left']: `${scrollProgress * 58}%`
+              }}
+            />
           </div>
 
           <button
