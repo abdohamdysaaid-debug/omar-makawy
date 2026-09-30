@@ -13,7 +13,9 @@ import {
   PanelRightOpen
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import LanguageToggle from '@/components/ui/LanguageToggle';
 import { academicYears } from '@/data/mock';
 
 interface HeaderProps {
@@ -30,6 +32,7 @@ export default function Header({
   unreadNotificationsCount = 0,
 }: HeaderProps) {
   const { isAuthenticated, student, logout } = useAuth();
+  const { t } = useLanguage();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -80,7 +83,7 @@ export default function Header({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث عن محاضرة أو كورس..."
+              placeholder={t('nav.searchPlaceholder', 'ابحث عن محاضرة أو كورس...')}
               className="w-full h-11 ps-11 pe-4 text-sm bg-gray-50 dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500 transition-colors"
             />
             <Search className="w-4 h-4 text-gray-400 absolute start-4 top-1/2 -translate-y-1/2" />
@@ -89,6 +92,7 @@ export default function Header({
 
         {/* Right Side: Theme toggle, Notifications, Student Profile */}
         <div className="flex items-center gap-2 sm:gap-4">
+          <LanguageToggle />
           <ThemeToggle />
 
           {/* Notifications Icon Button */}
@@ -153,14 +157,14 @@ export default function Header({
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <User className="w-4 h-4 text-gray-400" />
-                    الملف الشخصي
+                    {t('nav.profile', 'الملف الشخصي')}
                   </Link>
                   <Link
                     href="/wallet"
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                      المحفظة: {student.walletBalance ?? 0} ج.م
+                      {t('nav.wallet', 'المحفظة')}: {student.walletBalance ?? 0} {t('ui.currency', 'ج.م')}
                     </span>
                   </Link>
 
@@ -171,7 +175,7 @@ export default function Header({
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-start"
                   >
                     <LogOut className="w-4 h-4" />
-                    تسجيل الخروج
+                    {t('nav.logout', 'تسجيل الخروج')}
                   </button>
                 </div>
               )}
@@ -181,7 +185,7 @@ export default function Header({
               href="/login"
               className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-emerald-600/20"
             >
-              تسجيل الدخول
+              {t('nav.login', 'تسجيل الدخول')}
             </Link>
           )}
         </div>

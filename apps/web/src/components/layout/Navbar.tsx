@@ -6,7 +6,9 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, ShoppingCart, User, Bell, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import LanguageToggle from '@/components/ui/LanguageToggle';
 
 // Verified Badge Icon (Vibrant Blue scalloped badge with white checkmark)
 const VerifiedBadge = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -35,6 +37,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { isAuthenticated, student, logout } = useAuth();
   const { totalItems } = useCart();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,11 +57,11 @@ export default function Navbar() {
   }, [isProfileDropdownOpen]);
 
   const navLinks = [
-    { name: 'الرئيسية', href: '/' },
-    { name: 'الكورسات', href: '/courses' },
-    { name: 'مميزات المنصة', href: '/#features' },
-    { name: 'آراء الطلاب', href: '/#testimonials' },
-    { name: 'تواصل معنا', href: '/#contact' },
+    { name: t('nav.home', 'الرئيسية'), href: '/' },
+    { name: t('nav.courses', 'الكورسات'), href: '/courses' },
+    { name: t('nav.features', 'مميزات المنصة'), href: '/#features' },
+    { name: t('nav.testimonials', 'آراء الطلاب'), href: '/#testimonials' },
+    { name: t('nav.contact', 'تواصل معنا'), href: '/#contact' },
   ];
 
   return (
@@ -84,7 +87,7 @@ export default function Navbar() {
             </div>
             <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-400 leading-none mt-1">
               <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
-              <span>مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم</span>
+              <span>{t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}</span>
             </span>
           </div>
         </Link>
@@ -95,7 +98,7 @@ export default function Navbar() {
             const isActive = pathname === link.href;
             return (
               <Link
-                key={link.name}
+                key={link.href}
                 href={link.href}
                 className={`font-medium transition-colors hover:text-brand-500 ${
                   isActive ? 'text-brand-500 border-b-2 border-brand-500 pb-1' : 'text-gray-700 dark:text-gray-300'
@@ -109,6 +112,7 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center space-x-3 space-x-reverse">
+          <LanguageToggle />
           <ThemeToggle />
           
           {isAuthenticated && (
@@ -183,7 +187,7 @@ export default function Navbar() {
                 </span>
                 <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">
                   <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
-                  <span>مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم</span>
+                  <span>{t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}</span>
                 </span>
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500">
@@ -206,7 +210,7 @@ export default function Navbar() {
 
               <ul className="space-y-1">
                 {navLinks.map((link) => (
-                  <li key={link.name}>
+                  <li key={link.href}>
                     <Link
                       href={link.href}
                       onClick={() => setIsMobileMenuOpen(false)}
@@ -220,12 +224,12 @@ export default function Navbar() {
                   <>
                     <li>
                       <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-[#181818] font-medium">
-                        الملف الشخصي
+                        {t('nav.profile', 'الملف الشخصي')}
                       </Link>
                     </li>
                     <li>
                       <Link href="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-[#181818] font-medium">
-                        الإشعارات
+                        {t('nav.notifications', 'الإشعارات')}
                       </Link>
                     </li>
                   </>
@@ -236,11 +240,11 @@ export default function Navbar() {
             <div className="p-4 border-t border-gray-200 dark:border-stone-800">
               {isAuthenticated ? (
                 <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center py-3 text-red-600 font-medium hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors">
-                  <LogOut className="w-5 h-5 me-2" /> تسجيل الخروج
+                  <LogOut className="w-5 h-5 me-2" /> {t('nav.logout', 'تسجيل الخروج')}
                 </button>
               ) : (
                 <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block w-full text-center px-4 py-3 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600">
-                  ابدأ الآن
+                  {t('nav.startNow', 'ابدأ الآن')}
                 </Link>
               )}
             </div>
