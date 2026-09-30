@@ -17,6 +17,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (stored === 'dark') {
       setIsDark(true);
       document.documentElement.classList.add('dark');
+      document.documentElement.style.backgroundColor = '#020d08';
+    } else {
+      setIsDark(false);
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.backgroundColor = '#f7f6ed';
     }
   }, []);
 
@@ -25,9 +30,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const next = !prev;
       if (next) {
         document.documentElement.classList.add('dark');
+        document.documentElement.style.backgroundColor = '#020d08';
         localStorage.setItem('theme', 'dark');
       } else {
         document.documentElement.classList.remove('dark');
+        document.documentElement.style.backgroundColor = '#f7f6ed';
         localStorage.setItem('theme', 'light');
       }
       return next;

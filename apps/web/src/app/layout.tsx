@@ -14,8 +14,35 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-
-      <body className="font-cairo min-h-screen bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  var lang = localStorage.getItem('app_language');
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.backgroundColor = '#020d08';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.backgroundColor = '#f7f6ed';
+                  }
+                  if (lang === 'en') {
+                    document.documentElement.lang = 'en';
+                    document.documentElement.dir = 'ltr';
+                  } else {
+                    document.documentElement.lang = 'ar';
+                    document.documentElement.dir = 'rtl';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="font-cairo min-h-screen bg-background-light dark:bg-[#020d08] text-gray-900 dark:text-gray-100 transition-colors duration-300">
         <Providers>{children}</Providers>
       </body>
     </html>
