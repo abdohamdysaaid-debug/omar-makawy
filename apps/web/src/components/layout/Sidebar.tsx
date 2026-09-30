@@ -17,7 +17,11 @@ import {
   User,
   HelpCircle,
   X,
-  GraduationCap
+  GraduationCap,
+  CheckCircle2,
+  Award,
+  Video,
+  Sparkles
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -28,16 +32,18 @@ interface SidebarProps {
 
 export const navItems = [
   { labelKey: 'nav.home', label: 'الرئيسية', href: '/student', aliases: ['/', '/student'], icon: Home },
-  { labelKey: 'nav.myLectures', label: 'المحاضرات', href: '/student/courses', aliases: ['/courses', '/student/courses'], icon: PlaySquare },
-  { labelKey: 'nav.subscriptions', label: 'الاشتراكات والباقات', href: '/student/subscriptions', aliases: ['/subscriptions', '/student/subscriptions'], icon: Package },
-  { labelKey: 'nav.books', label: 'الكتب', href: '/student/books', aliases: ['/bookstore', '/student/books'], icon: BookOpen },
+  { labelKey: 'nav.subscriptions', label: 'اشتراكاتي', href: '/student/subscriptions', aliases: ['/subscriptions', '/student/subscriptions'], icon: CheckCircle2 },
+  { labelKey: 'nav.exams', label: 'امتحاناتي', href: '/student/exams', aliases: ['/exams', '/student/exams'], icon: GraduationCap },
+  { labelKey: 'nav.packages', label: 'الباقات الشهرية', href: '/#packages', aliases: ['/#packages'], icon: Award },
+  { labelKey: 'nav.myLectures', label: 'الكورسات', href: '/student/courses', aliases: ['/courses', '/student/courses'], icon: Video },
+  { labelKey: 'nav.books', label: 'متجر الكتب', href: '/bookstore', aliases: ['/bookstore', '/student/books'], icon: BookOpen },
   { labelKey: 'nav.orders', label: 'طلباتي', href: '/student/orders', aliases: ['/orders', '/student/orders'], icon: ShoppingBag },
-  { labelKey: 'nav.exams', label: 'الامتحانات', href: '/student/exams', aliases: ['/exams', '/student/exams'], icon: FileText },
   { labelKey: 'nav.wallet', label: 'المحفظة', href: '/student/wallet', aliases: ['/wallet', '/student/wallet'], icon: Wallet },
   { labelKey: 'nav.notifications', label: 'الإشعارات', href: '/student/notifications', aliases: ['/notifications', '/student/notifications'], icon: Bell },
-  { labelKey: 'nav.progress', label: 'تقدمي الدراسي', href: '/student/progress', aliases: ['/progress', '/student/progress'], icon: TrendingUp },
-  { labelKey: 'nav.profile', label: 'حسابي', href: '/student/profile', aliases: ['/profile', '/student/profile'], icon: User },
+  { labelKey: 'nav.progress', label: 'تقدمي في الدراسة', href: '/student/progress', aliases: ['/progress', '/student/progress'], icon: TrendingUp },
+  { labelKey: 'nav.profile', label: 'الملف الشخصي', href: '/profile', aliases: ['/profile', '/student/profile'], icon: User },
   { labelKey: 'nav.support', label: 'الدعم والمساعدة', href: '/student/support', aliases: ['/support', '/student/support'], icon: HelpCircle },
+  { labelKey: 'nav.ai', label: 'عمر مكاوي Ai', href: '/student/support', aliases: ['/student/ai'], icon: Sparkles, isAi: true },
 ];
 
 export default function Sidebar({
@@ -131,6 +137,8 @@ export default function Sidebar({
                 : pathname === alias || pathname.startsWith(alias)
             );
 
+            const isAi = (item as any).isAi;
+
             return (
               <Link
                 key={item.href}
@@ -141,14 +149,22 @@ export default function Sidebar({
                 } ${
                   isActive
                     ? 'bg-emerald-700/90 dark:bg-emerald-600/90 text-white font-extrabold shadow-md shadow-emerald-950/40 border-s-4 border-emerald-300 dark:border-emerald-400'
+                    : isAi
+                    ? 'bg-emerald-950/40 dark:bg-emerald-950/60 text-emerald-200 border border-emerald-500/40 hover:bg-emerald-800/80 hover:text-white'
                     : 'text-emerald-100/90 dark:text-gray-300 hover:bg-emerald-800/70 dark:hover:bg-gray-800/60 hover:text-white dark:hover:text-emerald-400'
                 }`}
               >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-emerald-200/80 dark:text-gray-400 group-hover:text-white dark:group-hover:text-emerald-400'}`} />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : isAi ? 'text-emerald-300' : 'text-emerald-200/80 dark:text-gray-400 group-hover:text-white dark:group-hover:text-emerald-400'}`} />
 
-                <span className={`truncate transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
+                <span className={`truncate flex-1 transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
                   {t(item.labelKey, item.label)}
                 </span>
+
+                {isAi && !isCollapsed && (
+                  <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 text-white font-black text-[9.5px] shadow-xs animate-pulse ms-auto">
+                    AI ✨
+                  </span>
+                )}
 
                 {/* Floating Tooltip on Desktop when Collapsed */}
                 {isCollapsed && (
