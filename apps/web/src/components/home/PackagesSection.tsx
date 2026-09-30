@@ -36,7 +36,8 @@ export default function PackagesSection() {
 
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
-      const scrollAmount = direction === 'left' ? -310 : 310;
+      const delta = direction === 'left' ? -310 : 310;
+      const scrollAmount = isRtl ? -delta : delta;
       sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -67,7 +68,7 @@ export default function PackagesSection() {
         <div
           ref={sliderRef}
           onScroll={handleScroll}
-          className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-proximity md:snap-none scrollbar-none scroll-smooth py-4 -mx-4 px-4 md:mx-0 md:px-0 gap-5 sm:gap-6 justify-center max-w-5xl mx-auto touch-pan-x touch-pan-y"
+          className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-proximity md:snap-none scrollbar-none scroll-smooth py-4 -mx-4 px-4 md:mx-0 md:px-0 gap-5 sm:gap-6 justify-start md:justify-center max-w-5xl mx-auto touch-pan-x touch-pan-y"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {activePackages.map((pkg, index) => (

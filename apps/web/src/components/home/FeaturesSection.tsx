@@ -25,7 +25,8 @@ export default function FeaturesSection() {
 
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
-      const scrollAmount = direction === 'left' ? -290 : 290;
+      const delta = direction === 'left' ? -290 : 290;
+      const scrollAmount = isRtl ? -delta : delta;
       sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -81,7 +82,7 @@ export default function FeaturesSection() {
         <div
           ref={sliderRef}
           onScroll={handleScroll}
-          className="flex md:grid md:grid-cols-4 overflow-x-auto md:overflow-visible snap-x snap-proximity md:snap-none scrollbar-none scroll-smooth py-6 -mx-4 px-4 md:mx-0 md:px-0 gap-5 sm:gap-6 justify-center max-w-6xl mx-auto touch-pan-x touch-pan-y"
+          className="flex md:grid md:grid-cols-4 overflow-x-auto md:overflow-visible snap-x snap-proximity md:snap-none scrollbar-none scroll-smooth py-6 -mx-4 px-4 md:mx-0 md:px-0 gap-5 sm:gap-6 justify-start md:justify-center max-w-6xl mx-auto touch-pan-x touch-pan-y"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
         >
           {featureItems.map((feature) => (
