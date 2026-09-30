@@ -23,6 +23,7 @@ import {
   Check
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 import { authApi, Governorate, RegisterPayload } from '@/lib/api/auth';
@@ -90,6 +91,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { register: setAuthContextState } = useAuth();
+  const { t, language } = useLanguage();
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [governorates, setGovernorates] = useState<Governorate[]>(FALLBACK_GOVERNORATES);

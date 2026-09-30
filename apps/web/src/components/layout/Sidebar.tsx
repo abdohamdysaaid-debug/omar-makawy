@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   Home,
   PlaySquare,
@@ -26,17 +27,17 @@ interface SidebarProps {
 }
 
 export const navItems = [
-  { label: 'الرئيسية', href: '/student', aliases: ['/', '/student'], icon: Home },
-  { label: 'المحاضرات', href: '/student/courses', aliases: ['/courses', '/student/courses'], icon: PlaySquare },
-  { label: 'الاشتراكات والباقات', href: '/student/subscriptions', aliases: ['/subscriptions', '/student/subscriptions'], icon: Package },
-  { label: 'الكتب', href: '/student/books', aliases: ['/bookstore', '/student/books'], icon: BookOpen },
-  { label: 'طلباتي', href: '/student/orders', aliases: ['/orders', '/student/orders'], icon: ShoppingBag },
-  { label: 'الامتحانات', href: '/student/exams', aliases: ['/exams', '/student/exams'], icon: FileText },
-  { label: 'المحفظة', href: '/student/wallet', aliases: ['/wallet', '/student/wallet'], icon: Wallet },
-  { label: 'الإشعارات', href: '/student/notifications', aliases: ['/notifications', '/student/notifications'], icon: Bell },
-  { label: 'تقدمي الدراسي', href: '/student/progress', aliases: ['/progress', '/student/progress'], icon: TrendingUp },
-  { label: 'حسابي', href: '/student/profile', aliases: ['/profile', '/student/profile'], icon: User },
-  { label: 'الدعم والمساعدة', href: '/student/support', aliases: ['/support', '/student/support'], icon: HelpCircle },
+  { labelKey: 'nav.home', label: 'الرئيسية', href: '/student', aliases: ['/', '/student'], icon: Home },
+  { labelKey: 'nav.myLectures', label: 'المحاضرات', href: '/student/courses', aliases: ['/courses', '/student/courses'], icon: PlaySquare },
+  { labelKey: 'nav.subscriptions', label: 'الاشتراكات والباقات', href: '/student/subscriptions', aliases: ['/subscriptions', '/student/subscriptions'], icon: Package },
+  { labelKey: 'nav.books', label: 'الكتب', href: '/student/books', aliases: ['/bookstore', '/student/books'], icon: BookOpen },
+  { labelKey: 'nav.orders', label: 'طلباتي', href: '/student/orders', aliases: ['/orders', '/student/orders'], icon: ShoppingBag },
+  { labelKey: 'nav.exams', label: 'الامتحانات', href: '/student/exams', aliases: ['/exams', '/student/exams'], icon: FileText },
+  { labelKey: 'nav.wallet', label: 'المحفظة', href: '/student/wallet', aliases: ['/wallet', '/student/wallet'], icon: Wallet },
+  { labelKey: 'nav.notifications', label: 'الإشعارات', href: '/student/notifications', aliases: ['/notifications', '/student/notifications'], icon: Bell },
+  { labelKey: 'nav.progress', label: 'تقدمي الدراسي', href: '/student/progress', aliases: ['/progress', '/student/progress'], icon: TrendingUp },
+  { labelKey: 'nav.profile', label: 'حسابي', href: '/student/profile', aliases: ['/profile', '/student/profile'], icon: User },
+  { labelKey: 'nav.support', label: 'الدعم والمساعدة', href: '/student/support', aliases: ['/support', '/student/support'], icon: HelpCircle },
 ];
 
 export default function Sidebar({
@@ -45,26 +46,48 @@ export default function Sidebar({
   onCloseMobile,
 }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  // Lock body scroll and handle Escape key on mobile drawer open
+  React.useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && onCloseMobile) onCloseMobile();
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [isMobileOpen, onCloseMobile]);
 
   return (
     <>
       {/* Mobile Backdrop */}
-      {isMobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden animate-fade-in"
-          onClick={onCloseMobile}
-        />
-      )}
+      <div
+        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-xs lg:hidden transition-opacity duration-300 ${
+          isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onCloseMobile}
+        role="presentation"
+      />
 
-      {/* Persistent Collapsible Sidebar */}
+      {/* Persistent Collapsible Sidebar Drawer */}
       <aside
-        className={`fixed top-0 bottom-0 start-0 z-50 flex flex-col bg-[#064e3b] dark:bg-[#0b0f19] border-e border-emerald-800/60 dark:border-gray-800/80 shadow-xl transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#064e3b] dark:bg-[#0b0f19] border-e border-emerald-800/60 dark:border-gray-800/80 shadow-2xl transition-transform duration-300 ease-out ${
           isCollapsed ? 'lg:w-20' : 'lg:w-64'
         } ${
           isMobileOpen
             ? 'w-64 translate-x-0'
-            : 'w-64 rtl:translate-x-full ltr:-translate-x-full lg:translate-x-0 lg:rtl:translate-x-0 lg:ltr:translate-x-0'
+            : 'w-64 -translate-x-full lg:translate-x-0'
         }`}
+        role="dialog"
+        aria-modal={isMobileOpen}
+        aria-label="Sidebar Menu"
       >
         {/* Brand Header */}
         <div className={`flex items-center h-20 border-b border-emerald-800/60 dark:border-gray-800/60 ${
@@ -120,13 +143,13 @@ export default function Sidebar({
                 <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-emerald-200/80 dark:text-gray-400 group-hover:text-white dark:group-hover:text-emerald-400'}`} />
 
                 <span className={`truncate transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
-                  {item.label}
+                  {t(item.labelKey, item.label)}
                 </span>
 
                 {/* Floating Tooltip on Desktop when Collapsed */}
                 {isCollapsed && (
                   <div className="hidden lg:block pointer-events-none absolute start-full ms-2 px-3 py-1.5 bg-emerald-950 dark:bg-gray-800 text-white text-xs font-bold rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl z-50 border border-emerald-800/60 dark:border-gray-700">
-                    {item.label}
+                    {t(item.labelKey, item.label)}
                   </div>
                 )}
               </Link>
@@ -144,10 +167,10 @@ export default function Sidebar({
             </div>
             <div className={`flex flex-col min-w-0 ${isCollapsed ? 'hidden' : 'block'}`}>
               <span className="text-xs font-bold text-white dark:text-white truncate">
-                مستر عمر مكاوي
+                {t('teacher.title', 'Mr. Omar Meckawy')}
               </span>
               <span className="text-[10px] text-emerald-200/80 dark:text-gray-400 truncate">
-                خبير اللغة الإنجليزية
+                {t('teacher.expertTitle', 'خبير تدريس اللغة الإنجليزية')}
               </span>
             </div>
           </div>
