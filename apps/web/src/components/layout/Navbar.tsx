@@ -8,8 +8,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
-// TikTok Verified Badge Icon (Cyan scalloped badge with white checkmark)
-const TikTokVerifiedBadge = ({ className = "w-4 h-4" }: { className?: string }) => (
+// Verified Badge Icon (Vibrant Blue scalloped badge with white checkmark)
+const VerifiedBadge = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg 
     className={`inline-block shrink-0 ${className}`} 
     viewBox="0 0 24 24" 
@@ -18,7 +18,7 @@ const TikTokVerifiedBadge = ({ className = "w-4 h-4" }: { className?: string }) 
   >
     <path 
       d="M22.5 12.5c0-1.58-.8-2.97-2-3.79.43-1.52.09-3.2-1.01-4.3-1.1-1.1-2.78-1.44-4.3-1.01C14.37 2.2 12.98 1.4 11.4 1.4c-1.58 0-2.97.8-3.79 2C6.09 2.97 4.41 3.31 3.31 4.41c-1.1 1.1-1.44 2.78-1.01 4.3C1.1 9.53.3 10.92.3 12.5c0 1.58.8 2.97 2 3.79-.43 1.52-.09 3.2 1.01 4.3 1.1 1.1 2.78 1.44 4.3 1.01.82 1.2 2.21 2 3.79 2 1.58 0 2.97-.8 3.79-2 1.52.43 3.2.09 4.3-1.01 1.1-1.1 1.44-2.78 1.01-4.3 1.2-.82 2-2.21 2-3.79z" 
-      fill="#20D5EC" 
+      fill="#1D9BF0" 
     />
     <path 
       d="M9.8 15.8l-3.6-3.6 1.41-1.41 2.19 2.19 6.4-6.4 1.41 1.41-7.81 7.81z" 
@@ -76,7 +76,7 @@ export default function Navbar() {
               <span className="text-base sm:text-lg md:text-xl font-black bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 dark:from-emerald-400 dark:via-emerald-300 dark:to-teal-300 bg-clip-text text-transparent leading-none tracking-tight">
                 Mr. Omar Meckawy
               </span>
-              <TikTokVerifiedBadge className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <VerifiedBadge className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               {isAuthenticated && student && (
                 <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px] border border-emerald-400/30 shrink-0 shadow-xs">
                   {student.fullName ? student.fullName.charAt(0).toUpperCase() : 'OM'}
@@ -84,9 +84,8 @@ export default function Navbar() {
               )}
             </div>
             <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-400 leading-none mt-1">
-              <span>مدرس اللغة الإنجليزية - موثق</span>
-              <TikTokVerifiedBadge className="w-3.5 h-3.5 shrink-0" />
-              <span>من وزارة التربية والتعليم</span>
+              <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
+              <span>مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم</span>
             </span>
           </div>
         </Link>
@@ -184,12 +183,11 @@ export default function Navbar() {
                   <span className="text-base font-black bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent">
                     Mr. Omar Meckawy
                   </span>
-                  <TikTokVerifiedBadge className="w-4 h-4 shrink-0" />
+                  <VerifiedBadge className="w-4 h-4 shrink-0" />
                 </div>
                 <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 mt-1">
-                  <span>مدرس اللغة الإنجليزية - موثق</span>
-                  <TikTokVerifiedBadge className="w-3.5 h-3.5 shrink-0" />
-                  <span>من وزارة التربية والتعليم</span>
+                  <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
+                  <span>مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم</span>
                 </span>
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500">
