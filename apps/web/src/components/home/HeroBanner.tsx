@@ -39,7 +39,7 @@ export default function HeroBanner() {
       {/* 2. Responsive Hero Composition Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex flex-col items-center justify-center text-center">
         
-        {/* Left Floating Creative English Cursive Badge */}
+        {/* 1. Top-Left Floating Badge: Hello English! */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.75, x: -30, y: -15 }}
           animate={{ opacity: 1, scale: 1, x: 0, y: [0, -5, 0] }}
@@ -49,7 +49,7 @@ export default function HeroBanner() {
             x: { duration: 0.6, delay: 0.35, ease: 'easeOut' },
             y: { duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.95 }
           }}
-          className="absolute top-10 left-3 sm:top-16 sm:left-12 lg:left-24 z-30 pointer-events-none select-none"
+          className="absolute top-6 left-2 xs:left-3 sm:top-12 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
             <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
@@ -58,21 +58,59 @@ export default function HeroBanner() {
           </div>
         </motion.div>
 
-        {/* Right Floating Creative English Cursive Badge */}
+        {/* 2. Middle-Left Floating Slogan Part 1: "لو على التقفيل ناوي.. 🎯" */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.75, x: -30, y: 15 }}
+          animate={{ opacity: 1, scale: 1, x: 0, y: [0, -6, 0] }}
+          transition={{
+            opacity: { duration: 0.6, delay: 0.5 },
+            scale: { duration: 0.6, delay: 0.5, ease: 'easeOut' },
+            x: { duration: 0.6, delay: 0.5, ease: 'easeOut' },
+            y: { duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 1.1 }
+          }}
+          className="absolute top-24 left-2 xs:left-3 sm:top-36 sm:left-10 lg:left-24 z-30 pointer-events-none select-none"
+        >
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-emerald-900/90 via-[#0d6e4f]/90 to-emerald-800/90 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1.5 font-cairo">
+            <span className="text-xs sm:text-sm lg:text-base font-black tracking-tight drop-shadow-sm">
+              لو على التقفيل ناوي.. 🎯
+            </span>
+          </div>
+        </motion.div>
+
+        {/* 3. Top-Right Floating Badge: Speak Confidently! */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.75, x: 30, y: -15 }}
           animate={{ opacity: 1, scale: 1, x: 0, y: [0, 5, 0] }}
           transition={{
-            opacity: { duration: 0.6, delay: 0.45 },
-            scale: { duration: 0.6, delay: 0.45, ease: 'easeOut' },
-            x: { duration: 0.6, delay: 0.45, ease: 'easeOut' },
-            y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.05 }
+            opacity: { duration: 0.6, delay: 0.4 },
+            scale: { duration: 0.6, delay: 0.4, ease: 'easeOut' },
+            x: { duration: 0.6, delay: 0.4, ease: 'easeOut' },
+            y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.0 }
           }}
-          className="absolute top-16 right-3 sm:top-24 sm:right-12 lg:right-24 z-30 pointer-events-none select-none"
+          className="absolute top-10 right-2 xs:right-3 sm:top-20 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
         >
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/85 dark:bg-[#07241a]/85 border border-emerald-400/40 dark:border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center gap-1.5">
             <span className="font-serif italic text-xs sm:text-base font-extrabold text-[#0d6e4f] dark:text-emerald-300">
               Speak Confidently 🚀
+            </span>
+          </div>
+        </motion.div>
+
+        {/* 4. Middle-Right Floating Slogan Part 2: "يبقى خليك مع مكاوي! 🔥" */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.75, x: 30, y: 15 }}
+          animate={{ opacity: 1, scale: 1, x: 0, y: [0, 6, 0] }}
+          transition={{
+            opacity: { duration: 0.6, delay: 0.55 },
+            scale: { duration: 0.6, delay: 0.55, ease: 'easeOut' },
+            x: { duration: 0.6, delay: 0.55, ease: 'easeOut' },
+            y: { duration: 4.8, repeat: Infinity, ease: 'easeInOut', delay: 1.15 }
+          }}
+          className="absolute top-28 right-2 xs:right-3 sm:top-44 sm:right-10 lg:right-24 z-30 pointer-events-none select-none"
+        >
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-gradient-to-r from-emerald-800/90 via-[#0d6e4f]/90 to-emerald-900/90 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1.5 font-cairo">
+            <span className="text-xs sm:text-sm lg:text-base font-black tracking-tight drop-shadow-sm">
+              يبقى خليك مع مكاوي! 🔥
             </span>
           </div>
         </motion.div>
@@ -101,7 +139,7 @@ export default function HeroBanner() {
               className="hidden dark:block w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none"
             />
 
-            {/* Floating Brand Badges & Slogan (positioned gracefully over tie area) */}
+            {/* Floating Brand Badges (positioned gracefully over tie area) */}
             <div className="absolute bottom-5 xs:bottom-6 inset-x-0 z-30 flex flex-col items-center text-center space-y-1 px-2">
               {/* 1. First Rectangle: "مستر عمر مكاوي" */}
               <motion.div 
@@ -126,19 +164,6 @@ export default function HeroBanner() {
               >
                 <span className="text-xs font-extrabold tracking-tight">
                   مدرس اللغة الإنجليزية
-                </span>
-              </motion.div>
-
-              {/* 3. Third Rectangle: Arabic Slogan "لو على التقفيل ناوي.. يبقى خليك مع مكاوي" */}
-              <motion.div 
-                initial={{ opacity: 0, y: 15, scale: 0.85 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.55, delay: 0.55, ease: 'easeOut' }}
-                whileHover={{ scale: 1.03 }}
-                className="px-3.5 py-1 rounded-xl bg-gradient-to-r from-emerald-800 via-[#0d6e4f] to-emerald-900 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1 mt-0.5"
-              >
-                <span className="text-[11px] xs:text-xs font-black tracking-tight drop-shadow-sm">
-                  لو على التقفيل ناوي.. يبقى خليك مع مكاوي 🔥
                 </span>
               </motion.div>
             </div>
@@ -176,20 +201,8 @@ export default function HeroBanner() {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.215, 0.61, 0.355, 1] }}
-          className="hidden sm:flex flex-col items-center justify-center w-full mx-auto relative"
+          className="hidden sm:flex flex-col items-center justify-center w-full mx-auto relative pt-4"
         >
-          {/* Desktop Slogan Badge Banner */}
-          <motion.div 
-            initial={{ opacity: 0, y: -18, scale: 0.85 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.25, ease: 'easeOut' }}
-            className="mb-3 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-[#0d6e4f] to-[#11694e] text-amber-300 border border-amber-400/40 shadow-lg"
-          >
-            <span className="text-sm font-black tracking-wide">
-              لو على التقفيل ناوي.. يبقى خليك مع مكاوي 🔥
-            </span>
-          </motion.div>
-
           {/* Desktop Light Mode Visual */}
           <img
             src="/assets/hero/hero-visual-seamless.png?v=20260930_v5"
