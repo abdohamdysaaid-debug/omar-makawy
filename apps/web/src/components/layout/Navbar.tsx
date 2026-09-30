@@ -67,11 +67,10 @@ export default function Navbar() {
 
   const navLinks = [
     { name: t('nav.home', 'الرئيسية'), href: '/' },
-    { name: t('nav.courses', 'المحاضرات'), href: '/courses' },
+    { name: t('nav.packages', 'الباقات'), href: '/packages' },
+    { name: t('nav.courses', 'الكورسات'), href: '/courses' },
     { name: t('nav.books', 'الكتب'), href: '/bookstore' },
-    { name: t('nav.exams', 'الامتحانات'), href: '/exams' },
-    { name: t('nav.packages', 'الباقات'), href: '/#packages' },
-    { name: t('nav.about', 'من نحن'), href: '/#features' },
+    { name: t('nav.account', 'حسابي'), href: '/profile' },
   ];
 
   return (
