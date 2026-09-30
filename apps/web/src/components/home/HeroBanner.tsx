@@ -83,7 +83,7 @@ export default function HeroBanner() {
               className="hidden dark:block w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none"
             />
 
-            {/* Floating Brand Badges (positioned gracefully over tie area) */}
+            {/* Floating Brand Badges & Slogan (positioned gracefully over tie area) */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -107,6 +107,16 @@ export default function HeroBanner() {
               >
                 <span className="text-xs font-extrabold tracking-tight">
                   مدرس اللغة الإنجليزية
+                </span>
+              </motion.div>
+
+              {/* 3. Third Rectangle: Arabic Slogan "لو على التقفيل ناوي.. يبقى خليك مع مكاوي" */}
+              <motion.div 
+                whileHover={{ scale: 1.03 }}
+                className="px-3.5 py-1 rounded-xl bg-gradient-to-r from-emerald-800 via-[#0d6e4f] to-emerald-900 text-amber-300 border border-amber-400/50 shadow-xl backdrop-blur-md flex items-center gap-1 mt-0.5"
+              >
+                <span className="text-[11px] xs:text-xs font-black tracking-tight drop-shadow-sm">
+                  لو على التقفيل ناوي.. يبقى خليك مع مكاوي 🔥
                 </span>
               </motion.div>
             </motion.div>
@@ -144,8 +154,19 @@ export default function HeroBanner() {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.215, 0.61, 0.355, 1] }}
-          className="hidden sm:flex items-center justify-center w-full mx-auto relative"
+          className="hidden sm:flex flex-col items-center justify-center w-full mx-auto relative"
         >
+          {/* Desktop Slogan Badge Banner */}
+          <motion.div 
+            animate={{ scale: [1, 1.02, 1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            className="mb-3 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-[#0d6e4f] to-[#11694e] text-amber-300 border border-amber-400/40 shadow-lg"
+          >
+            <span className="text-sm font-black tracking-wide">
+              لو على التقفيل ناوي.. يبقى خليك مع مكاوي 🔥
+            </span>
+          </motion.div>
+
           {/* Desktop Light Mode Visual */}
           <img
             src="/assets/hero/hero-visual-seamless.png?v=20260930_v5"
@@ -153,7 +174,7 @@ export default function HeroBanner() {
             className="dark:hidden w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_10px_30px_rgba(17,105,78,0.06)]"
           />
 
-          {/* Desktop Dark Mode Visual */}
+          {/* Desktop Dark Mode Visual (Exact Seamless Alpha Feathered PNG) */}
           <img
             src="/assets/hero/hero-visual-desktop-dark-seamless.png?v=20260930_v5"
             alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
