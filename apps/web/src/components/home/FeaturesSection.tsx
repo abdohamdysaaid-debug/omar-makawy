@@ -42,7 +42,7 @@ export default function FeaturesSection() {
       id: 2,
       title: t('features.examsTitle', 'امتحانات تفاعلية وتقييم فوري'),
       description: t('features.examsDesc', 'اختبر مستواك بعد كل درس مع إظهار الإجابات النموذجية والتحليل الفوري لأدائك.'),
-      image: '/assets/features/feature-2-cutout.png?v=20261001_v50'
+      image: '/assets/features/feature-2-cutout.png?v=20261001_v60'
     },
     {
       id: 3,
