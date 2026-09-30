@@ -71,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStudent(null);
     setIsAuthenticated(false);
     setReturnUrl(null);
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   }, []);
 
   const openAuthGate = useCallback((url?: string) => {
