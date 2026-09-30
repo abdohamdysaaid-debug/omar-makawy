@@ -34,31 +34,31 @@ export default function FeaturesSection() {
     {
       id: 1,
       title: t('features.lecturesTitle', 'محاضرات فيديو عالية الجودة'),
-      description: t('features.lecturesDesc', 'شرح تفصيلي للمنهج مع سيناريوهات توضيحية وأمثلة واقعية لبناء فهم عميق.'),
-      image: '/assets/features/feature-3-cutout.png?v=20260930_v6'
+      description: t('features.lecturesDesc', 'شرح تفصيلي للمنهج مع سلايدات توضيحية وأمثلة واقعية لبناء فهم عميق.'),
+      image: '/assets/features/feature-3-cutout.png?v=20260930_v7'
     },
     {
       id: 2,
       title: t('features.examsTitle', 'امتحانات تفاعلية وتقييم فوري'),
       description: t('features.examsDesc', 'اختبر مستواك بعد كل درس مع إظهار الإجابات النموذجية والتحليل الفوري لأدائك.'),
-      image: '/assets/features/feature-2-cutout.png?v=20260930_v6'
+      image: '/assets/features/feature-2-cutout.png?v=20260930_v7'
     },
     {
       id: 3,
-      title: t('features.storeTitle', 'متجر الكتب والمذكرات الرسمية'),
-      description: t('features.storeDesc', 'اطلب مذكرات وكتب المنهج الرسمية لتصلك حتى باب المنزل أو حملها بصيغة PDF.'),
-      image: '/assets/features/feature-4-cutout.png?v=20260930_v6'
+      title: t('features.storeTitle', 'متجر الكتب والمذكرات'),
+      description: t('features.storeDesc', 'اطلب مذكرات وكتب المنهج الرسمية تصلك حتى باب المنزل أو حملها بصيغة PDF.'),
+      image: '/assets/features/feature-4-cutout.png?v=20260930_v7'
     },
     {
       id: 4,
-      title: t('features.walletTitle', 'متابعة ودعم مستمر'),
-      description: t('features.walletDesc', 'دعم فني وتدريسي مباشر للرد على كافة أسئلتكم ومساعدتكم في كل خطوة.'),
-      image: '/assets/features/feature-1-cutout.png?v=20260930_v6'
+      title: t('features.walletTitle', 'محفظة شحن كروت المنصة'),
+      description: t('features.walletDesc', 'سهولة الاشتراك وشحن الحساب عبر جميع وسائل الدفع المباشرة أو المحافظ الإلكترونية.'),
+      image: '/assets/features/feature-1-cutout.png?v=20260930_v7'
     }
   ];
 
   return (
-    <section id="features" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo border-y border-stone-200/60 dark:border-stone-800/80">
+    <section id="features" className="py-14 sm:py-20 bg-stone-50/50 dark:bg-[#0c1017] transition-colors font-cairo border-y border-stone-200/60 dark:border-stone-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
@@ -67,16 +67,16 @@ export default function FeaturesSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="text-center sm:text-start mb-10 sm:mb-12"
+          className="text-center mb-10 sm:mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0d6e4f]/10 dark:bg-emerald-500/10 text-[#0d6e4f] dark:text-emerald-400 font-extrabold text-xs mb-3">
-            <Sparkles className="w-4 h-4 text-emerald-500" />
-            <span>لماذا تختار منصتنا؟</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#005e46]/10 dark:bg-emerald-500/15 text-[#005e46] dark:text-emerald-400 font-extrabold text-sm mb-3">
+            <Sparkles className="w-4 h-4 text-[#005e46] dark:text-emerald-400" />
+            <span>ــ لماذا تختار منصتنا؟ ــ</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-[#00251e] dark:text-white tracking-tight">
-            {t('features.heading', 'ما يميّزنا في منصة مستر عمر مكاوي')}
+          <h2 className="text-3xl sm:text-4xl font-black text-[#00251e] dark:text-white tracking-tight mb-3">
+            لماذا تشترك <span className="bg-[#005e46]/10 text-[#005e46] dark:bg-emerald-500/20 dark:text-emerald-300 px-3 py-1 rounded-xl inline-block">في منصتنا؟</span>
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm mt-1.5 font-medium max-w-2xl">
+          <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base font-medium max-w-2xl mx-auto leading-relaxed">
             {t('features.subheading', 'تجربة تعليمية متكاملة مصممة خصيصاً لمساعدتك على التفوق بأبسط الطرق وأحدث الأساليب.')}
           </p>
         </motion.div>
@@ -93,29 +93,29 @@ export default function FeaturesSection() {
               key={feature.id}
               initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              whileHover={{ scale: 1.04, y: -8 }}
+              whileHover={{ scale: 1.03, y: -6 }}
               whileTap={{ scale: 0.98 }}
               viewport={{ amount: 0.55 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="snap-center shrink-0 w-[270px] sm:w-[290px] md:w-full group cursor-pointer flex flex-col rounded-3xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#0d6e4f]/30 dark:hover:shadow-emerald-500/20 transition-all duration-300 touch-pan-y"
+              className="snap-center shrink-0 w-[270px] sm:w-[290px] md:w-full group cursor-pointer flex flex-col rounded-3xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-[#005e46]/25 dark:hover:shadow-emerald-500/20 transition-all duration-300 touch-pan-y bg-white dark:bg-[#161f2e] border border-stone-200/80 dark:border-stone-800"
               style={{ touchAction: 'pan-x pan-y' }}
             >
               {/* Top White Container with Standing Photo emerging out */}
-              <div className="relative bg-white dark:bg-[#161f2e] rounded-t-3xl pt-4 pb-0 overflow-visible flex items-end justify-center h-48 sm:h-52 border-t border-x border-stone-200/90 dark:border-stone-800">
+              <div className="relative bg-white dark:bg-[#161f2e] rounded-t-3xl pt-4 pb-6 overflow-visible flex items-end justify-center h-48 sm:h-52 z-0">
                 <img
                   src={feature.image}
                   alt={feature.title}
-                  className="relative -mb-2 z-10 h-44 sm:h-48 w-auto object-contain transition-all duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-2 filter drop-shadow-[0_10px_16px_rgba(0,0,0,0.15)] pointer-events-none select-none"
+                  className="relative z-0 h-44 sm:h-48 w-auto object-contain transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-3 filter drop-shadow-[0_10px_16px_rgba(0,0,0,0.15)] pointer-events-none select-none"
                 />
               </div>
 
               {/* Bottom Emerald Green Container with Title & Description */}
-              <div className="bg-[#0d6e4f] dark:bg-[#084d37] text-white rounded-b-3xl p-5 sm:p-6 shadow-md border-b border-x border-[#0d6e4f] dark:border-emerald-700/60 flex-1 flex flex-col justify-between text-start">
+              <div className="bg-[#005e46] dark:bg-[#004d39] text-white rounded-t-[28px] rounded-b-[24px] p-6 text-center shadow-lg -mt-6 relative z-10 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-white mb-2 leading-snug tracking-tight">
                     {feature.title}
                   </h3>
-                  <p className="text-emerald-100 dark:text-emerald-200 text-xs sm:text-sm font-medium leading-relaxed opacity-95">
+                  <p className="text-emerald-50 dark:text-emerald-100 text-xs sm:text-sm font-medium leading-relaxed opacity-95">
                     {feature.description}
                   </p>
                 </div>
@@ -134,7 +134,7 @@ export default function FeaturesSection() {
         >
           <button
             onClick={() => scroll('right')}
-            className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+            className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#005e46] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#005e46] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
             aria-label="Previous"
             title="السابق"
           >
@@ -144,7 +144,7 @@ export default function FeaturesSection() {
           {/* Dynamic Scroll Progress Bar */}
           <div className="relative h-2 w-14 rounded-full bg-stone-200/90 dark:bg-stone-800 overflow-hidden shadow-inner">
             <div 
-              className="absolute top-0 bottom-0 w-6 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full transition-all duration-200 ease-out shadow-sm"
+              className="absolute top-0 bottom-0 w-6 bg-[#005e46] dark:bg-emerald-500 rounded-full transition-all duration-200 ease-out shadow-sm"
               style={{
                 [isRtl ? 'right' : 'left']: `${scrollProgress * 58}%`
               }}
@@ -153,7 +153,7 @@ export default function FeaturesSection() {
 
           <button
             onClick={() => scroll('left')}
-            className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+            className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#005e46] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#005e46] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
             aria-label="Next"
             title="التالي"
           >
@@ -165,3 +165,4 @@ export default function FeaturesSection() {
     </section>
   );
 }
+
