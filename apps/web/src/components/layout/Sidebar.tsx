@@ -120,8 +120,8 @@ export default function Sidebar({
           isCollapsed ? 'px-3 justify-center' : 'px-6 justify-between'
         }`}>
           <Link href="/student" className="flex items-center gap-3 group" onClick={onCloseMobile}>
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-400/40 shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform shrink-0 bg-white dark:bg-stone-900">
-              <img src="/assets/omar-avatar.jpg" alt="Omar Makawy" className="w-full h-full object-cover" />
+            <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
+              <img src="/assets/om-logo.png" alt="OM Logo" className="w-full h-full object-contain" />
             </div>
             <div className={`flex flex-col transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
               <span className="text-base font-bold text-white dark:text-white leading-tight">
