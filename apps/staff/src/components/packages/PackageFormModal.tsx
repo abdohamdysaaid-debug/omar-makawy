@@ -335,7 +335,7 @@ export function PackageFormModal({
                   </option>
                   {availableYears.map((year: AcademicYear) => (
                     <option key={year.id} value={year.id}>
-                      {isArabic ? year.name_ar : year.name_en} ({year.code})
+                      {isArabic ? year.name_ar : year.name_en}
                     </option>
                   ))}
                 </select>

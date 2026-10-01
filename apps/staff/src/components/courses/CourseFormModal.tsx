@@ -330,7 +330,7 @@ export function CourseFormModal({
               >
                 {availableYears.map((year) => (
                   <option key={year.id} value={year.id}>
-                    {isArabic ? year.name_ar : year.name_en} ({year.code})
+                    {isArabic ? year.name_ar : year.name_en}
                   </option>
                 ))}
               </select>
