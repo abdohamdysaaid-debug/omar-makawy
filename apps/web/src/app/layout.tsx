@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from './providers';
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://omarmakawy.com';
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://omarmeckawy.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
