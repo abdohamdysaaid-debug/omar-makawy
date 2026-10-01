@@ -36,8 +36,7 @@ export default function PackagesSection() {
 
   const scroll = (direction: 'left' | 'right') => {
     if (sliderRef.current) {
-      const delta = direction === 'left' ? -310 : 310;
-      const scrollAmount = isRtl ? -delta : delta;
+      const scrollAmount = direction === 'left' ? -340 : 340;
       sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
