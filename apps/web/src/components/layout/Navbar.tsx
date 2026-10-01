@@ -286,8 +286,8 @@ export default function Navbar() {
                       {[
                         { name: 'الرئيسية', href: '/', icon: Home },
                         { name: 'اشتراكاتي', href: '/student/subscriptions', icon: CheckCircle2 },
-                        { name: 'امتحاناتي', href: '/student/exams', icon: GraduationCap },
                         { name: 'الكورسات', href: '/student/courses', icon: Video },
+                        { name: 'امتحاناتي', href: '/student/exams', icon: GraduationCap },
                       ].map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
