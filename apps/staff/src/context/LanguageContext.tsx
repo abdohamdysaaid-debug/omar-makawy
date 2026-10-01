@@ -15,7 +15,7 @@ export const translations: Translations = {
   // Navigation
   'nav.dashboard': { ar: 'لوحة التحكم', en: 'Dashboard' },
   'nav.logout': { ar: 'تسجيل الخروج', en: 'Sign Out' },
-  'nav.academic': { ar: 'الكورسات', en: 'Courses' },
+  'nav.academic': { ar: 'المحتوى التعليمي', en: 'Educational Content' },
   'nav.courses': { ar: 'الكورسات', en: 'Courses' },
   'nav.lectures': { ar: 'المحاضرات والدروس', en: 'Lectures' },
   'nav.videos': { ar: 'الفيديوهات', en: 'Videos' },

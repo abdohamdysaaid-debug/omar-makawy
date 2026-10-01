@@ -224,7 +224,7 @@ export default function StaffPackagesPage() {
           {/* Breadcrumbs Navigation */}
           <Breadcrumbs
             items={[
-              { label: isArabic ? 'الكورسات' : 'Courses', href: '/staff/courses' },
+              { label: isArabic ? 'المحتوى التعليمي' : 'Educational Content', href: '/staff/courses' },
               { label: isArabic ? 'الباقات' : 'Packages' },
             ]}
           />
