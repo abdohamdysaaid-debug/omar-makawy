@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Sparkles, X, MessageSquare, Send, Bot, ExternalLink, ChevronLeft } from 'lucide-react';
 
 export default function FloatingAiWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [messages, setMessages] = useState<Array<{ sender: 'ai' | 'user'; text: string }>>([
     {
       sender: 'ai',
@@ -15,6 +16,83 @@ export default function FloatingAiWidget() {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  const isDraggingRef = useRef(false);
+  const hasMovedRef = useRef(false);
+  const dragStartRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number }>({
+    startX: 0,
+    startY: 0,
+    initialX: 0,
+    initialY: 0,
+  });
+
+  // Set default initial position on client side
+  useEffect(() => {
+    const defaultX = Math.max(15, window.innerWidth - 75);
+    const defaultY = Math.max(15, window.innerHeight - 130);
+    setPosition({ x: defaultX, y: defaultY });
+
+    const handleResize = () => {
+      setPosition((prev) => {
+        if (!prev) return null;
+        const newX = Math.max(15, Math.min(window.innerWidth - 75, prev.x));
+        const newY = Math.max(15, Math.min(window.innerHeight - 130, prev.y));
+        return { x: newX, y: newY };
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleDragStart = (clientX: number, clientY: number) => {
+    if (!position) return;
+    isDraggingRef.current = true;
+    hasMovedRef.current = false;
+    dragStartRef.current = {
+      startX: clientX,
+      startY: clientY,
+      initialX: position.x,
+      initialY: position.y,
+    };
+
+    const handleDragMove = (moveClientX: number, moveClientY: number) => {
+      if (!isDraggingRef.current) return;
+      const dx = moveClientX - dragStartRef.current.startX;
+      const dy = moveClientY - dragStartRef.current.startY;
+
+      if (Math.hypot(dx, dy) > 5) {
+        hasMovedRef.current = true;
+      }
+
+      const newX = Math.max(10, Math.min(window.innerWidth - 70, dragStartRef.current.initialX + dx));
+      const newY = Math.max(10, Math.min(window.innerHeight - 70, dragStartRef.current.initialY + dy));
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleDragEnd = () => {
+      isDraggingRef.current = false;
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+
+    const onMouseMove = (e: MouseEvent) => handleDragMove(e.clientX, e.clientY);
+    const onMouseUp = () => handleDragEnd();
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+    const onTouchEnd = () => handleDragEnd();
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+  };
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,13 +116,33 @@ export default function FloatingAiWidget() {
     }, 800);
   };
 
+  const handleButtonClick = () => {
+    if (hasMovedRef.current) return; // Ignore click if user was dragging
+    setIsOpen(!isOpen);
+    setShowTooltip(false);
+  };
+
+  // Determine popup placement based on current widget screen position
+  const isPopupOnLeft = position ? position.x < window.innerWidth / 2 : false;
+  const isPopupOnTop = position ? position.y > window.innerHeight / 2 : true;
+
   return (
-    <div className="fixed bottom-20 end-4 sm:bottom-6 sm:end-6 z-50 font-cairo">
-      
+    <div
+      className="fixed z-50 font-cairo touch-none select-none"
+      style={
+        position
+          ? { left: `${position.x}px`, top: `${position.y}px` }
+          : { bottom: '20px', right: '20px' }
+      }
+    >
       {/* Floating Chat Box Popup */}
       {isOpen && (
-        <div className="mb-3 w-80 sm:w-96 rounded-3xl bg-white dark:bg-[#0d121d] border border-stone-200 dark:border-stone-800 shadow-2xl overflow-hidden flex flex-col h-[450px] animate-in fade-in slide-in-from-bottom-5 duration-200">
-          
+        <div
+          className={`absolute w-80 sm:w-96 rounded-3xl bg-white dark:bg-[#0d121d] border border-stone-200 dark:border-stone-800 shadow-2xl overflow-hidden flex flex-col h-[420px] animate-in fade-in zoom-in-95 duration-200 ${
+            isPopupOnTop ? '-top-[430px]' : 'top-[70px]'
+          } ${isPopupOnLeft ? 'left-0' : 'right-0'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="p-3.5 bg-gradient-to-r from-[#0d6e4f] to-emerald-950 text-white flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -133,11 +231,13 @@ export default function FloatingAiWidget() {
         </div>
       )}
 
-      {/* Floating Circular Trigger Button */}
+      {/* Floating Circular Trigger Button (Draggable via Mouse or Touch) */}
       <div className="relative flex items-center gap-2">
         {showTooltip && !isOpen && (
-          <div className="hidden sm:flex items-center gap-2 bg-stone-900/95 text-white dark:bg-white dark:text-stone-900 px-3.5 py-2 rounded-2xl shadow-xl border border-stone-800 dark:border-stone-200 animate-bounce duration-1000">
-            <span className="text-xs font-black">اسأل مستر عمر AI 🤖</span>
+          <div className={`hidden sm:flex items-center gap-2 bg-stone-900/95 text-white dark:bg-white dark:text-stone-900 px-3.5 py-2 rounded-2xl shadow-xl border border-stone-800 dark:border-stone-200 animate-bounce duration-1000 absolute ${
+            isPopupOnLeft ? 'start-16' : 'end-16'
+          }`}>
+            <span className="text-xs font-black whitespace-nowrap">اسأل مستر عمر AI 🤖</span>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -150,30 +250,33 @@ export default function FloatingAiWidget() {
           </div>
         )}
 
-        <button
-          onClick={() => {
-            setIsOpen(!isOpen);
-            setShowTooltip(false);
+        <div
+          onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
+          onTouchStart={(e) => {
+            if (e.touches.length > 0) {
+              handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+            }
           }}
-          className="relative group w-14 h-14 rounded-full bg-white dark:bg-[#0d121d] p-1 border-2 border-[#0d6e4f] dark:border-emerald-400 shadow-2xl hover:scale-105 transition-all duration-300 active:scale-95 flex items-center justify-center"
-          title="عمر مكاوي AI"
+          onClick={handleButtonClick}
+          className="relative group w-15 h-15 rounded-full bg-white dark:bg-[#0d121d] p-1 border-2 border-[#0d6e4f] dark:border-emerald-400 shadow-2xl hover:scale-105 transition-transform duration-150 active:scale-95 cursor-grab active:cursor-grabbing flex items-center justify-center"
+          title="عمر مكاوي AI - اضغط أو اسحب لتحريك الأيقونة"
         >
           {/* Avatar Image */}
-          <div className="w-full h-full rounded-full overflow-hidden relative">
+          <div className="w-full h-full rounded-full overflow-hidden relative pointer-events-none">
             <img src="/assets/omar-ai-avatar.jpg" alt="Mr. Omar AI" className="w-full h-full object-cover" />
           </div>
 
           {/* Online Indicator Badge */}
-          <span className="absolute -top-1 -end-1 flex h-4 w-4">
+          <span className="absolute -top-1 -end-1 flex h-4 w-4 pointer-events-none">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white dark:border-stone-900"></span>
           </span>
 
           {/* AI Badge Chip */}
-          <span className="absolute -bottom-1 px-1.5 py-0.2 rounded-full bg-[#0d6e4f] text-white font-black text-[9px] shadow-xs border border-white dark:border-stone-900">
+          <span className="absolute -bottom-1 px-1.5 py-0.2 rounded-full bg-[#0d6e4f] text-white font-black text-[9px] shadow-xs border border-white dark:border-stone-900 pointer-events-none">
             AI ✨
           </span>
-        </button>
+        </div>
       </div>
 
     </div>
