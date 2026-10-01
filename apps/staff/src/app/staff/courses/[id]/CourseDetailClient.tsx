@@ -255,7 +255,7 @@ export function CourseDetailClient() {
       if (editingLecture) {
         const payload: UpdateLecturePayload = {
           title_ar: lectureFormData.title_ar.trim(),
-          title_en: lectureFormData.title_en.trim(),
+          title_en: lectureFormData.title_en.trim() || lectureFormData.title_ar.trim(),
           description_ar: lectureFormData.description_ar.trim() || undefined,
           description_en: lectureFormData.description_en.trim() || undefined,
           sequence_order: lectureFormData.sequence_order,
@@ -272,7 +272,7 @@ export function CourseDetailClient() {
       } else {
         const payload: CreateLecturePayload = {
           title_ar: lectureFormData.title_ar.trim(),
-          title_en: lectureFormData.title_en.trim(),
+          title_en: lectureFormData.title_en.trim() || lectureFormData.title_ar.trim(),
           description_ar: lectureFormData.description_ar.trim() || undefined,
           description_en: lectureFormData.description_en.trim() || undefined,
           sequence_order: lectureFormData.sequence_order,
@@ -881,11 +881,10 @@ export function CourseDetailClient() {
 
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                      {isArabic ? 'عنوان المحاضرة (بالإنجليزية) *' : 'Lecture Title (English) *'}
+                      {isArabic ? 'عنوان المحاضرة (بالإنجليزية - اختياري)' : 'Lecture Title (English Optional)'}
                     </label>
                     <input
                       type="text"
-                      required
                       value={lectureFormData.title_en}
                       onChange={(e) => setLectureFormData({ ...lectureFormData, title_en: e.target.value })}
                       className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono"

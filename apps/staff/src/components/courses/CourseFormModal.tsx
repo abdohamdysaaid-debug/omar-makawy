@@ -185,10 +185,6 @@ export function CourseFormModal({
       setSubmitError(isArabic ? 'يرجى إدخال اسم الكورس بالعربية' : 'Arabic course title is required');
       return;
     }
-    if (!titleEn.trim()) {
-      setSubmitError(isArabic ? 'يرجى إدخال اسم الكورس بالإنجليزية' : 'English course title is required');
-      return;
-    }
     if (!academicYearId) {
       setSubmitError(isArabic ? 'يرجى اختيار السنة الدراسية الكورس' : 'Academic year is required');
       return;
@@ -225,7 +221,7 @@ export function CourseFormModal({
         // Update Course
         const payload: UpdateCoursePayload = {
           title_ar: titleAr.trim(),
-          title_en: titleEn.trim(),
+          title_en: titleEn.trim() || titleAr.trim(),
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
           thumbnail_url: thumbnailUrl || undefined,
@@ -243,7 +239,7 @@ export function CourseFormModal({
         const payload: CreateCoursePayload = {
           academic_year_id: academicYearId,
           title_ar: titleAr.trim(),
-          title_en: titleEn.trim(),
+          title_en: titleEn.trim() || titleAr.trim(),
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
           thumbnail_url: thumbnailUrl || undefined,
@@ -365,7 +361,7 @@ export function CourseFormModal({
 
               <div>
                 <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200 mb-1.5">
-                  {isArabic ? 'اسم الكورس بالإنجليزية *' : 'English Course Title *'}
+                  {isArabic ? 'اسم الكورس بالإنجليزية (اختياري)' : 'English Course Title (Optional)'}
                 </label>
                 <input
                   type="text"
@@ -373,7 +369,6 @@ export function CourseFormModal({
                   onChange={(e) => setTitleEn(e.target.value)}
                   placeholder="e.g. Final Revision Masterclass"
                   className="w-full py-2.5 px-3.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
-                  required
                 />
               </div>
             </div>

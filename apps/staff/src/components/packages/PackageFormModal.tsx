@@ -185,10 +185,6 @@ export function PackageFormModal({
       setSubmitError(isArabic ? 'يرجى إدخال اسم الباقة بالعربية' : 'Arabic package title is required');
       return;
     }
-    if (!titleEn.trim()) {
-      setSubmitError(isArabic ? 'يرجى إدخال اسم الباقة بالإنجليزية' : 'English package title is required');
-      return;
-    }
     if (!academicYearId) {
       setSubmitError(isArabic ? 'يرجى اختيار السنة الدراسية للباقة' : 'Academic year is required');
       return;
@@ -227,7 +223,7 @@ export function PackageFormModal({
         // Edit Mode
         const updatePayload: UpdatePackagePayload = {
           title_ar: titleAr.trim(),
-          title_en: titleEn.trim(),
+          title_en: titleEn.trim() || titleAr.trim(),
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
           thumbnail_url: thumbnailUrl || undefined,
@@ -245,7 +241,7 @@ export function PackageFormModal({
         const createPayload: CreatePackagePayload = {
           academic_year_id: academicYearId,
           title_ar: titleAr.trim(),
-          title_en: titleEn.trim(),
+          title_en: titleEn.trim() || titleAr.trim(),
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
           thumbnail_url: thumbnailUrl || undefined,
@@ -365,15 +361,13 @@ export function PackageFormModal({
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-                  {isArabic ? 'اسم الباقة بالإنجليزية' : 'Package Title (English)'}{' '}
-                  <span className="text-rose-500">*</span>
+                  {isArabic ? 'اسم الباقة بالإنجليزية (اختياري)' : 'Package Title (English Optional)'}
                 </label>
                 <input
                   type="text"
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
                   placeholder={isArabic ? 'مثال: Complete Highschool Package' : 'e.g. Complete Highschool Package'}
-                  required
                   className="w-full h-11 px-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>

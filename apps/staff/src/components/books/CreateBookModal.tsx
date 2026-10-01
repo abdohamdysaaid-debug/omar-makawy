@@ -61,10 +61,6 @@ export function CreateBookModal({ isOpen, onClose, onSuccess }: CreateBookModalP
       setValidationError(isArabic ? 'يرجى إدخال عنوان الكتاب بالعربية' : 'Please enter Arabic title');
       return;
     }
-    if (!titleEn.trim()) {
-      setValidationError(isArabic ? 'يرجى إدخال عنوان الكتاب بالإنجليزية' : 'Please enter English title');
-      return;
-    }
     const numPrice = parseFloat(price);
     if (isNaN(numPrice) || numPrice < 0) {
       setValidationError(isArabic ? 'يرجى إدخال سعر صحيح (0 أو أكثر)' : 'Please enter a valid price');
@@ -97,7 +93,7 @@ export function CreateBookModal({ isOpen, onClose, onSuccess }: CreateBookModalP
         academic_year_id: academicYearId,
         sku: sku.trim().toUpperCase(),
         title_ar: titleAr.trim(),
-        title_en: titleEn.trim(),
+        title_en: titleEn.trim() || titleAr.trim(),
         price: numPrice,
         discount_price: numDiscount,
         description_ar: descriptionAr.trim() || undefined,
@@ -213,14 +209,13 @@ export function CreateBookModal({ isOpen, onClose, onSuccess }: CreateBookModalP
             {/* English Title */}
             <div>
               <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-                {isArabic ? 'عنوان الكتاب بالإنجليزية *' : 'English Title *'}
+                {isArabic ? 'عنوان الكتاب بالإنجليزية (اختياري)' : 'English Title (Optional)'}
               </label>
               <input
                 type="text"
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
                 placeholder="Explanation Book - 1st Secondary"
-                required
                 className="w-full py-2 px-3 text-xs font-mono rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all"
               />
             </div>
