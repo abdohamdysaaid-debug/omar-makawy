@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Bot, User, Trash2, RefreshCw, GraduationCap, CheckCircle2, HelpCircle, BookOpen, Lightbulb, MessageSquare } from 'lucide-react';
 import StudentLayout from '@/components/layout/StudentLayout';
+import { generateSmartAiResponse } from '@/lib/ai/aiBrain';
 
 interface Message {
   id: string;
@@ -199,7 +200,7 @@ export default function OmarAiChat() {
     setIsTyping(true);
 
     setTimeout(() => {
-      const aiReplyText = generateAiResponse(currentQuery);
+      const aiReplyText = generateSmartAiResponse(currentQuery);
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Sparkles, X, MessageSquare, Send, Bot, ExternalLink, ChevronLeft } from 'lucide-react';
+import { generateSmartAiResponse } from '@/lib/ai/aiBrain';
 
 export default function FloatingAiWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -104,16 +105,10 @@ export default function FloatingAiWidget() {
     setIsTyping(true);
 
     setTimeout(() => {
-      let reply = 'أهلاً بك يا بطل! 🎓 أنا هنا دايماً لمساعدتك في كل القواعد، استفسارات الباقات، والمحفظة. تفضل بزيارة صفحة AI الكاملة للمزيد من الشرح والإجابات!';
-      const q = userText.toLowerCase();
-      if (q.includes('باقة') || q.includes('اشتراك') || q.includes('سعر')) {
-        reply = 'يمكنك الدخول لصفحة "الباقات الشهرية" للاشتراك في أفضل كورسات المستر وتفعيل المحاضرات فوراً 💳!';
-      } else if (q.includes('تحفيز') || q.includes('خائف') || q.includes('تعبت')) {
-        reply = 'يا بطل أنت قادر توصل لأحلامك وتجيب 50/50 في الإنجليزي! توكل على الله وكمل، المستر معاك دايماً 🔥💪!';
-      }
+      const reply = generateSmartAiResponse(userText);
       setMessages((prev) => [...prev, { sender: 'ai', text: reply }]);
       setIsTyping(false);
-    }, 800);
+    }, 600);
   };
 
   const handleButtonClick = () => {
