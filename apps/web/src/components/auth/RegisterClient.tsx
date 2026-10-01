@@ -179,11 +179,17 @@ function RegisterForm() {
   // Step 2 Hierarchical Handlers for Dropdowns
   const handleEducationTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const eduType = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      educationType: eduType,
-      studyType: eduType === 'BACCALAUREATE' ? 'LANGUAGES' : prev.studyType,
-    }));
+    setFormData((prev) => {
+      let nextSection = prev.section;
+      if (eduType === 'AZHAR' && prev.section === 'SCIENCE_MATH') {
+        nextSection = 'SCIENCE_GENERAL';
+      }
+      return {
+        ...prev,
+        educationType: eduType,
+        section: nextSection,
+      };
+    });
     if (errors.educationType) {
       setErrors((prev) => ({ ...prev, educationType: '' }));
     }
@@ -890,7 +896,6 @@ function RegisterForm() {
                 >
                   <option value="GENERAL" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">تعليم عام</option>
                   <option value="AZHAR" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">تعليم أزهري</option>
-                  <option value="BACCALAUREATE" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">بكالوريا</option>
                 </select>
                 {errors.educationType && (
                   <p className="text-xs font-bold text-red-500 flex items-center gap-1">
@@ -968,9 +973,18 @@ function RegisterForm() {
                       errors.section ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-stone-800'
                     }`}
                   >
-                    <option value="SCIENCE_GENERAL" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">علمي علوم</option>
-                    <option value="SCIENCE_MATH" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">علمي رياضة</option>
-                    <option value="LITERATURE" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">أدبي</option>
+                    {formData.educationType === 'AZHAR' ? (
+                      <>
+                        <option value="SCIENCE_GENERAL" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">علمي</option>
+                        <option value="LITERATURE" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">أدبي</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="SCIENCE_GENERAL" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">علمي علوم</option>
+                        <option value="SCIENCE_MATH" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">علمي رياضة</option>
+                        <option value="LITERATURE" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">أدبي</option>
+                      </>
+                    )}
                   </select>
                   {errors.section && (
                     <p className="text-xs font-bold text-red-500 flex items-center gap-1">
@@ -1096,7 +1110,7 @@ function RegisterForm() {
                 <div>
                   <span className="text-gray-500 dark:text-gray-400 block font-medium">نوع التعليم:</span>
                   <span className="font-bold text-gray-900 dark:text-white">
-                    {formData.educationType === 'GENERAL' ? 'تعليم عام' : formData.educationType === 'AZHAR' ? 'تعليم أزهري' : 'بكالوريا'}
+                    {formData.educationType === 'GENERAL' ? 'تعليم عام' : 'تعليم أزهري'}
                   </span>
                 </div>
                 <div>
@@ -1113,7 +1127,11 @@ function RegisterForm() {
                   <div>
                     <span className="text-gray-500 dark:text-gray-400 block font-medium">الشعبة / التخصص:</span>
                     <span className="font-bold text-gray-900 dark:text-white">
-                      {formData.section === 'SCIENCE_GENERAL' ? 'علمي علوم' : formData.section === 'SCIENCE_MATH' ? 'علمي رياضة' : 'أدبي'}
+                      {formData.section === 'SCIENCE_GENERAL'
+                        ? (formData.educationType === 'AZHAR' ? 'علمي' : 'علمي علوم')
+                        : formData.section === 'SCIENCE_MATH'
+                        ? 'علمي رياضة'
+                        : 'أدبي'}
                     </span>
                   </div>
                 )}
