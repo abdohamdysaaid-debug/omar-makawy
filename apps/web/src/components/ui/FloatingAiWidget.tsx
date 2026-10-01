@@ -258,22 +258,22 @@ export default function FloatingAiWidget() {
             }
           }}
           onClick={handleButtonClick}
-          className="relative group w-15 h-15 rounded-full bg-white dark:bg-[#0d121d] p-1 border-2 border-[#0d6e4f] dark:border-emerald-400 shadow-2xl hover:scale-105 transition-transform duration-150 active:scale-95 cursor-grab active:cursor-grabbing flex items-center justify-center"
+          className="relative group w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-full bg-white dark:bg-[#0d121d] p-0.5 border-2 border-[#0d6e4f] dark:border-emerald-400 shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-150 cursor-grab active:cursor-grabbing flex items-center justify-center shrink-0 aspect-square"
           title="عمر مكاوي AI - اضغط أو اسحب لتحريك الأيقونة"
         >
-          {/* Avatar Image */}
-          <div className="w-full h-full rounded-full overflow-hidden relative pointer-events-none">
-            <img src="/assets/omar-ai-avatar.jpg" alt="Mr. Omar AI" className="w-full h-full object-cover" />
+          {/* Avatar Image in Circular Crop */}
+          <div className="w-full h-full rounded-full overflow-hidden relative pointer-events-none bg-white">
+            <img src="/assets/omar-ai-avatar.jpg" alt="Mr. Omar AI Avatar" className="w-full h-full object-cover rounded-full" />
           </div>
 
           {/* Online Indicator Badge */}
-          <span className="absolute -top-1 -end-1 flex h-4 w-4 pointer-events-none">
+          <span className="absolute top-0 end-0 flex h-3.5 w-3.5 pointer-events-none">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white dark:border-stone-900"></span>
+            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-stone-900"></span>
           </span>
 
           {/* AI Badge Chip */}
-          <span className="absolute -bottom-1 px-1.5 py-0.2 rounded-full bg-[#0d6e4f] text-white font-black text-[9px] shadow-xs border border-white dark:border-stone-900 pointer-events-none">
+          <span className="absolute -bottom-1.5 px-1.5 py-0.2 rounded-full bg-[#0d6e4f] text-white font-black text-[9px] shadow-xs border border-white dark:border-stone-900 pointer-events-none whitespace-nowrap">
             AI ✨
           </span>
         </div>
