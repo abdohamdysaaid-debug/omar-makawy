@@ -24,41 +24,10 @@ export default function SubscriptionsPage() {
         const userSubs = await apiClient.get<any[]>('/purchases/my-subscriptions').catch(() => []);
 
         if (isMounted) {
-          if (Array.isArray(userSubs) && userSubs.length > 0) {
-            setActiveSubscriptions(userSubs);
-          } else if (isAuthenticated) {
-            // Default mock active subscription for logged-in student test
-            setActiveSubscriptions([
-              {
-                id: 'sub-1',
-                title: 'باقة الشهر الأول - لغة إنجليزية',
-                type: 'package',
-                date: '2026-10-01',
-                status: 'active',
-                expiryDate: '2026-11-01',
-              },
-            ]);
-          } else {
-            setActiveSubscriptions([]);
-          }
+          setActiveSubscriptions(Array.isArray(userSubs) ? userSubs : []);
         }
       } catch {
-        if (isMounted) {
-          if (isAuthenticated) {
-            setActiveSubscriptions([
-              {
-                id: 'sub-1',
-                title: 'باقة الشهر الأول - لغة إنجليزية',
-                type: 'package',
-                date: '2026-10-01',
-                status: 'active',
-                expiryDate: '2026-11-01',
-              },
-            ]);
-          } else {
-            setActiveSubscriptions([]);
-          }
-        }
+        if (isMounted) setActiveSubscriptions([]);
       } finally {
         if (isMounted) setLoading(false);
       }

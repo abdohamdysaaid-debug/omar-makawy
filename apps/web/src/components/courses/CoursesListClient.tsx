@@ -74,16 +74,12 @@ function CoursesContent() {
     async function loadCourses() {
       setLoading(true);
       try {
-        const res = await apiClient.get<Course[]>('/courses').catch(() => null);
+        const res = await apiClient.get<Course[]>('/courses').catch(() => []);
         if (isMounted) {
-          if (Array.isArray(res) && res.length > 0) {
-            setAvailableCourses(res);
-          } else {
-            setAvailableCourses(mockCourses);
-          }
+          setAvailableCourses(Array.isArray(res) ? res : []);
         }
       } catch {
-        if (isMounted) setAvailableCourses(mockCourses);
+        if (isMounted) setAvailableCourses([]);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -179,9 +175,9 @@ function CoursesContent() {
         ) : (
           <div className="py-8">
             <EmptyState
-              icon="BookOpen"
-              title="لا توجد كورسات متاحة بهذا الصف"
-              description="لم يتم العثور على كورسات تطابق هذا الصف الدراسي حالياً."
+              icon="Video"
+              title="لا يوجد كورسات حالياً"
+              description="لم يتم إضافة أي كورسات تعليمية لهذا الصف أو البحث المحدد حالياً."
               actionText="جميع المراحل"
               actionUrl="/student/courses"
             />

@@ -59,12 +59,34 @@ export default function BookstoreClient() {
     saveStoredGrade(newVal);
   };
 
+  const [availableBooks, setAvailableBooks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadBooks() {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/books').then((r) => r.json()).catch(() => []);
+        if (isMounted) {
+          setAvailableBooks(Array.isArray(res) ? res : []);
+        }
+      } catch {
+        if (isMounted) setAvailableBooks([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadBooks();
+    return () => { isMounted = false; };
+  }, []);
+
   const categories = ['مذكرات', 'تدريبات', 'قواعد', 'مراجعة'];
 
-  const filteredBooks = books.filter((book) => {
+  const filteredBooks = availableBooks.filter((book) => {
     const matchesSearch =
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.description.toLowerCase().includes(searchQuery.toLowerCase());
+      book.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesYear = selectedYearId === 'all' || book.academicYearId === selectedYearId;
     const matchesCategory = selectedCategory === 'all' || book.category === selectedCategory;
     return matchesSearch && matchesYear && matchesCategory;
@@ -158,7 +180,13 @@ export default function BookstoreClient() {
         </div>
 
         {/* Book Grid */}
-        {filteredBooks.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-64 rounded-3xl bg-gray-100 dark:bg-gray-800 animate-pulse border border-gray-100 dark:border-gray-800" />
+            ))}
+          </div>
+        ) : filteredBooks.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredBooks.map((book) => (
               <BookCard key={book.id} book={book} />
@@ -168,9 +196,9 @@ export default function BookstoreClient() {
           <div className="py-8">
             <EmptyState
               icon="BookOpen"
-              title="لا توجد كتب أو مذكرات متاحة بهذا الصف"
-              description="لم يتم العثور على مذكرات تطابق الفلتر أو الصف الدراسي المحدد حالياً."
-              actionText="عرض كل الكتب"
+              title="لا يوجد كتب حالياً"
+              description="لم يتم إضافة أي كتب أو مذكرات دراسية لـهذا الصف أو البحث المحدد حالياً."
+              actionText="جميع المراحل"
               actionUrl="/bookstore"
             />
           </div>

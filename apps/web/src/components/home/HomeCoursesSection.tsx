@@ -45,8 +45,29 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
     }
   };
 
-  const activeCourses = courses.filter((c) => {
-    if (!c.isActive) return false;
+  const [availableCourses, setAvailableCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function fetchCourses() {
+      try {
+        const res = await fetch('/api/courses').then((r) => r.json()).catch(() => []);
+        if (isMounted) {
+          setAvailableCourses(Array.isArray(res) ? res : []);
+        }
+      } catch {
+        if (isMounted) setAvailableCourses([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchCourses();
+    return () => { isMounted = false; };
+  }, []);
+
+  const activeCourses = availableCourses.filter((c) => {
+    if (c.isActive === false) return false;
     if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
       return c.academicYearId === selectedAcademicYearId;
     }
@@ -73,26 +94,27 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
-        <div
-          ref={sliderRef}
-          onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
-        >
-          {activeCourses.map((course, index) => (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
-              whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              whileHover={{ scale: 1.05, y: -10 }}
-              whileTap={{ scale: 0.98 }}
-              viewport={{ amount: 0.55 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-              onClick={() => handleCourseClick(course.id)}
-              className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
-              style={{ touchAction: 'pan-x pan-y' }}
-            >
+        {/* Courses Container or Empty State */}
+        {activeCourses.length > 0 ? (
+          <div
+            ref={sliderRef}
+            onScroll={handleScroll}
+            className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
+          >
+            {activeCourses.map((course, index) => (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -10 }}
+                whileTap={{ scale: 0.98 }}
+                viewport={{ amount: 0.55 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                onClick={() => handleCourseClick(course.id)}
+                className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
+                style={{ touchAction: 'pan-x pan-y' }}
+              >
               {/* Card Header Banner */}
               <div className="relative h-40 bg-[#0d6e4f] p-5 flex flex-col justify-between text-white overflow-hidden">
                 <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
@@ -137,44 +159,57 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
               </div>
             </motion.div>
           ))}
-        </div>
-
-        {/* Bottom Slider Controls with Dynamic Animated Indicator */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 flex items-center justify-center gap-3"
-        >
-          <button
-            onClick={() => scroll('right')}
-            className="w-11 h-11 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
-            aria-label="Previous"
-            title="السابق"
-          >
-            <ChevronRight className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
-          </button>
-          
-          {/* Dynamic Scroll Progress Bar */}
-          <div className="relative h-2 w-14 rounded-full bg-stone-200/90 dark:bg-stone-800 overflow-hidden shadow-inner">
-            <div 
-              className="absolute top-0 bottom-0 w-6 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full transition-all duration-200 ease-out shadow-sm"
-              style={{
-                [isRtl ? 'right' : 'left']: `${scrollProgress * 58}%`
-              }}
-            />
           </div>
+        ) : (
+          <div className="w-full py-12 px-6 rounded-3xl bg-stone-50 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800 text-center flex flex-col items-center justify-center space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#0d6e4f] dark:text-emerald-400 flex items-center justify-center shadow-xs">
+              <PlaySquare className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">لا يوجد كورسات حالياً</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md">
+              لم يتم إضافة أي كورسات تعليمية لهذا الصف حالياً. سيتوفر المحتوى فور إضافته من قبل الإدارة.
+            </p>
+          </div>
+        )}
 
-          <button
-            onClick={() => scroll('left')}
-            className="w-11 h-11 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
-            aria-label="Next"
-            title="التالي"
+        {/* Bottom Slider Controls (ONLY when items exist) */}
+        {activeCourses.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-8 flex items-center justify-center gap-3"
           >
-            <ChevronLeft className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
-          </button>
-        </motion.div>
+            <button
+              onClick={() => scroll('right')}
+              className="w-11 h-11 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+              aria-label="Previous"
+              title="السابق"
+            >
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
+            </button>
+            
+            {/* Dynamic Scroll Progress Bar */}
+            <div className="relative h-2 w-14 rounded-full bg-stone-200/90 dark:bg-stone-800 overflow-hidden shadow-inner">
+              <div 
+                className="absolute top-0 bottom-0 w-6 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full transition-all duration-200 ease-out shadow-sm"
+                style={{
+                  [isRtl ? 'right' : 'left']: `${scrollProgress * 58}%`
+                }}
+              />
+            </div>
+
+            <button
+              onClick={() => scroll('left')}
+              className="w-11 h-11 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+              aria-label="Next"
+              title="التالي"
+            >
+              <ChevronLeft className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </motion.div>
+        )}
 
       </div>
     </section>

@@ -65,22 +65,10 @@ export default function PackagesPage() {
         const res = await apiClient.get<Package[]>(`/packages${queryParams}`).catch(() => []);
 
         if (isMounted) {
-          if (Array.isArray(res) && res.length > 0) {
-            setAvailablePackages(res);
-          } else {
-            const filtered = selectedYearId === 'all'
-              ? mockPackages
-              : mockPackages.filter((p) => p.academicYearId === selectedYearId);
-            setAvailablePackages(filtered);
-          }
+          setAvailablePackages(Array.isArray(res) ? res : []);
         }
       } catch {
-        if (isMounted) {
-          const filtered = selectedYearId === 'all'
-            ? mockPackages
-            : mockPackages.filter((p) => p.academicYearId === selectedYearId);
-          setAvailablePackages(filtered);
-        }
+        if (isMounted) setAvailablePackages([]);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -226,8 +214,8 @@ export default function PackagesPage() {
         ) : (
           <EmptyState
             icon="Package"
-            title="لا توجد باقات متاحة بهذا الصف"
-            description="اختر صف دراسي آخر من القائمة المنسدلة بالأعلى لعرض الباقات المتاحة."
+            title="لا يوجد باقات حالياً"
+            description="لم يتم إضافة أي باقات شهرية لهذا الصف حالياً. ستتوفر الباقات فور إضافتها من قبل الإدارة."
           />
         )}
       </div>

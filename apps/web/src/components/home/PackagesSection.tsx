@@ -45,8 +45,29 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
     }
   };
 
-  const activePackages = packages.filter((pkg) => {
-    if (!pkg.isActive) return false;
+  const [availablePackages, setAvailablePackages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function fetchPackages() {
+      try {
+        const res = await fetch('/api/packages').then((r) => r.json()).catch(() => []);
+        if (isMounted) {
+          setAvailablePackages(Array.isArray(res) ? res : []);
+        }
+      } catch {
+        if (isMounted) setAvailablePackages([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchPackages();
+    return () => { isMounted = false; };
+  }, []);
+
+  const activePackages = availablePackages.filter((pkg) => {
+    if (pkg.isActive === false) return false;
     if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
       return pkg.academicYearId === selectedAcademicYearId;
     }
@@ -73,14 +94,15 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
           </p>
         </motion.div>
 
-        {/* Horizontal Touch Slider */}
-        <div
-          ref={sliderRef}
-          onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
-        >
-          {activePackages.map((pkg, index) => (
+        {/* Horizontal Touch Slider or Empty State */}
+        {activePackages.length > 0 ? (
+          <div
+            ref={sliderRef}
+            onScroll={handleScroll}
+            className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
+          >
+            {activePackages.map((pkg, index) => (
             <motion.div
               key={pkg.id}
               initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
@@ -139,7 +161,7 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
 
                 {/* Features List */}
                 <ul className="flex-1 space-y-2 mb-5 text-start">
-                  {pkg.features.map((feature, idx) => (
+                  {Array.isArray(pkg.features) && pkg.features.map((feature: string, idx: number) => (
                     <li key={idx} className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400 shrink-0 mt-0.5" />
                       <span className="text-gray-700 dark:text-gray-300 text-xs font-bold line-clamp-1">
@@ -164,44 +186,57 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
               </div>
             </motion.div>
           ))}
-        </div>
-
-        {/* Bottom Slider Controls */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-8 flex items-center justify-center gap-3"
-        >
-          <button
-            onClick={() => scroll('right')}
-            className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
-            aria-label="Previous"
-            title="السابق"
-          >
-            <ChevronRight className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
-          </button>
-          
-          {/* Dynamic Scroll Progress Bar */}
-          <div className="relative h-2 w-14 rounded-full bg-stone-200/90 dark:bg-stone-800 overflow-hidden shadow-inner">
-            <div 
-              className="absolute top-0 bottom-0 w-6 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full transition-all duration-200 ease-out shadow-sm"
-              style={{
-                [isRtl ? 'right' : 'left']: `${scrollProgress * 58}%`
-              }}
-            />
           </div>
+        ) : (
+          <div className="w-full py-12 px-6 rounded-3xl bg-white dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800 text-center flex flex-col items-center justify-center space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#0d6e4f] dark:text-emerald-400 flex items-center justify-center shadow-xs">
+              <PackageIcon className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">لا يوجد باقات حالياً</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md">
+              لم يتم إضافة أي باقات شهرية لهذا الصف حالياً. ستتوفر الباقات فور إضافتها من قبل الإدارة.
+            </p>
+          </div>
+        )}
 
-          <button
-            onClick={() => scroll('left')}
-            className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
-            aria-label="Next"
-            title="التالي"
+        {/* Bottom Slider Controls (ONLY when activePackages > 0) */}
+        {activePackages.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-8 flex items-center justify-center gap-3"
           >
-            <ChevronLeft className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
-          </button>
-        </motion.div>
+            <button
+              onClick={() => scroll('right')}
+              className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+              aria-label="Previous"
+              title="السابق"
+            >
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
+            </button>
+            
+            {/* Dynamic Scroll Progress Bar */}
+            <div className="relative h-2 w-14 rounded-full bg-stone-200/90 dark:bg-stone-800 overflow-hidden shadow-inner">
+              <div 
+                className="absolute top-0 bottom-0 w-6 bg-[#0d6e4f] dark:bg-emerald-500 rounded-full transition-all duration-200 ease-out shadow-sm"
+                style={{
+                  [isRtl ? 'right' : 'left']: `${scrollProgress * 58}%`
+                }}
+              />
+            </div>
+
+            <button
+              onClick={() => scroll('left')}
+              className="w-11 h-11 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-gray-700 dark:text-stone-300 flex items-center justify-center hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white hover:border-[#0d6e4f] transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-95 group"
+              aria-label="Next"
+              title="التالي"
+            >
+              <ChevronLeft className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </motion.div>
+        )}
 
       </div>
     </section>
