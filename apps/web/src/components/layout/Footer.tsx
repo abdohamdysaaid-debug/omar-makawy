@@ -15,7 +15,7 @@ export default function Footer() {
       if (elem) {
         e.preventDefault();
         elem.scrollIntoView({ behavior: 'smooth' });
-        window.history.pushState(null, '', href);
+        window.history.replaceState(null, '', href);
       }
     }
   };

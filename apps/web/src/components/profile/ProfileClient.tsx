@@ -29,7 +29,7 @@ export default function ProfileClient() {
 
   useEffect(() => {
     if (mounted && !isAuthenticated) {
-      router.push('/login?returnUrl=/profile');
+      router.replace('/login?returnUrl=/profile');
     }
   }, [mounted, isAuthenticated, router]);
 

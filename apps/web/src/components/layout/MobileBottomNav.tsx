@@ -5,17 +5,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Package, GraduationCap, BookOpen, User } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
 
   const navItems = [
     { label: t('bottomNav.home', 'الرئيسية'), icon: Home, href: '/' },
     { label: t('bottomNav.packages', 'الباقات'), icon: Package, href: '/#packages' },
     { label: t('bottomNav.courses', 'الكورسات'), icon: GraduationCap, href: '/#courses' },
     { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: '/#books' },
-    { label: t('bottomNav.profile', 'حسابي'), icon: User, href: '/profile' },
+    { label: t('bottomNav.profile', 'حسابي'), icon: User, href: isAuthenticated ? '/profile' : '/login' },
   ];
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -25,7 +27,7 @@ export default function MobileBottomNav() {
       if (elem) {
         e.preventDefault();
         elem.scrollIntoView({ behavior: 'smooth' });
-        window.history.pushState(null, '', href);
+        window.history.replaceState(null, '', href);
       }
     }
   };

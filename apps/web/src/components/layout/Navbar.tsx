@@ -77,7 +77,7 @@ export default function Navbar() {
       if (elem) {
         e.preventDefault();
         elem.scrollIntoView({ behavior: 'smooth' });
-        window.history.pushState(null, '', href);
+        window.history.replaceState(null, '', href);
       }
     }
   };
