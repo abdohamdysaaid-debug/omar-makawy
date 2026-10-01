@@ -44,8 +44,7 @@ export const STAFF_NAVIGATION_GROUPS: NavGroupConfig[] = [
     groupKey: 'nav.academic',
     items: [
       { key: 'nav.courses', href: '/staff/courses', icon: BookOpen, permission: SystemPermissions.COURSES_READ },
-      // Reserved for MODULE 2 — PACKAGES
-      // { key: 'nav.packages', href: '/staff/packages', icon: Package, permission: SystemPermissions.PACKAGES_READ },
+      { key: 'nav.packages', href: '/staff/packages', icon: Package, permission: SystemPermissions.PACKAGES_READ },
     ],
   },
   {

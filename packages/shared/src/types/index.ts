@@ -10,3 +10,4 @@ export * from './lectureChapter';
 export * from './attachment';
 export * from './book';
 export * from './supervisor';
+export * from './package';
