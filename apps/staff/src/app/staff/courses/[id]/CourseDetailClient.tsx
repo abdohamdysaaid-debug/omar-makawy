@@ -353,7 +353,7 @@ export function CourseDetailClient() {
               <Breadcrumbs
                 items={[
                   { label: isArabic ? 'الرئيسية' : 'Dashboard', href: '/staff/dashboard' },
-                  { label: isArabic ? 'الكورسات والمناهج' : 'Courses', href: '/staff/courses' },
+                  { label: isArabic ? 'الكورسات' : 'Courses', href: '/staff/courses' },
                   { label: course?.title_ar || (isArabic ? 'تفاصيل الكورس' : 'Course Details') },
                 ]}
                 isRtl={isArabic}

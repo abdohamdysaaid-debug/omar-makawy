@@ -202,8 +202,7 @@ export default function StaffPackagesPage() {
   );
 
   return (
-    <StaffGuard>
-      <PermissionGate
+    <PermissionGate
         permission={SystemPermissions.PACKAGES_READ}
         fallback={
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
@@ -744,6 +743,5 @@ export default function StaffPackagesPage() {
           packageToEdit={packageToEdit}
         />
       </PermissionGate>
-    </StaffGuard>
   );
 }

@@ -76,6 +76,7 @@ export function StaffAuthProvider({ children }: { children: ReactNode }) {
             return;
           }
           setUser(cachedUser);
+          setAuthState('AUTHENTICATED');
         }
 
         // Authoritative backend validation & permission hydration
