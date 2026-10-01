@@ -3,8 +3,16 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'Omar Meckawy - English Made Simple',
+  title: 'Mr. Omar Meckawy - منصة مستر عمر مكاوي',
   description: 'منصة مستر عمر مكاوي التعليمية - تعلم اللغة الإنجليزية بأسلوب بسيط وممتع',
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: '/icon.png',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -15,6 +23,8 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/icon.png" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
