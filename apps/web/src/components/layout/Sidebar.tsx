@@ -120,8 +120,8 @@ export default function Sidebar({
           isCollapsed ? 'px-3 justify-center' : 'px-6 justify-between'
         }`}>
           <Link href="/student" className="flex items-center gap-3 group" onClick={onCloseMobile}>
-            <div className="w-10 h-10 rounded-xl bg-white text-emerald-950 font-black flex items-center justify-center text-lg shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform shrink-0">
-              OM
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-400/40 shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform shrink-0 bg-white dark:bg-stone-900">
+              <img src="/assets/omar-avatar.jpg" alt="Omar Makawy" className="w-full h-full object-cover" />
             </div>
             <div className={`flex flex-col transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
               <span className="text-base font-bold text-white dark:text-white leading-tight">
@@ -209,8 +209,8 @@ export default function Sidebar({
           <div className={`flex items-center rounded-xl bg-emerald-950/60 dark:bg-gray-900/60 border border-emerald-800/50 dark:border-gray-800 ${
             isCollapsed ? 'p-2 justify-center' : 'p-3 gap-3'
           }`}>
-            <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-              <GraduationCap className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-emerald-400/40 shrink-0 shadow-xs bg-white dark:bg-stone-900">
+              <img src="/assets/omar-avatar.jpg" alt="Mr. Omar Meckawy" className="w-full h-full object-cover" />
             </div>
             <div className={`flex flex-col min-w-0 ${isCollapsed ? 'hidden' : 'block'}`}>
               <span className="text-xs font-bold text-white dark:text-white truncate">

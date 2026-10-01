@@ -94,8 +94,8 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-2 text-start group">
           {/* Desktop Logo & Verified Subtitle */}
           <div className="hidden lg:flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#0d6e4f] text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-105 transition-transform shrink-0">
-              <GraduationCap className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#0d6e4f]/40 dark:border-emerald-400/40 shadow-xs group-hover:scale-105 transition-transform shrink-0 bg-white dark:bg-stone-900">
+              <img src="/assets/omar-avatar.jpg" alt="Mr. Omar Meckawy" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col items-start justify-center">
               <div className="flex items-center gap-1.5">
@@ -111,16 +111,21 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Logo & Verified Subtitle */}
-          <div className="flex lg:hidden flex-col items-start justify-center">
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-extrabold text-[#0a4834] dark:text-white leading-tight">
-                Mr. Omar Meckawy
-              </span>
-              <VerifiedBadge className="w-3.5 h-3.5" />
+          <div className="flex lg:hidden items-center gap-2">
+            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#0d6e4f]/40 dark:border-emerald-400/40 shadow-xs shrink-0 bg-white dark:bg-stone-900">
+              <img src="/assets/omar-avatar.jpg" alt="Mr. Omar Meckawy" className="w-full h-full object-cover" />
             </div>
-            <span className="text-[9.5px] font-bold text-gray-600 dark:text-emerald-400 leading-tight">
-              {t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}
-            </span>
+            <div className="flex flex-col items-start justify-center">
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-extrabold text-[#0a4834] dark:text-white leading-tight">
+                  Mr. Omar Meckawy
+                </span>
+                <VerifiedBadge className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-[9.5px] font-bold text-gray-600 dark:text-emerald-400 leading-tight">
+                {t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}
+              </span>
+            </div>
           </div>
         </Link>
 
@@ -234,14 +239,19 @@ export default function Navbar() {
         >
           {/* Drawer Header */}
           <div className="p-4 border-b border-stone-200/80 dark:border-stone-800 flex justify-between items-center bg-[#f8faf7] dark:bg-[#080b11]">
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col items-start text-start">
-              <span className="text-base font-black text-[#0a4834] dark:text-white">
-                Mr. Omar Meckawy
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
-                <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
-                <span>{t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}</span>
-              </span>
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2.5 text-start">
+              <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#0d6e4f]/40 dark:border-emerald-400/40 shadow-xs shrink-0 bg-white dark:bg-stone-900">
+                <img src="/assets/omar-avatar.jpg" alt="Mr. Omar Meckawy" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col items-start text-start">
+                <span className="text-base font-black text-[#0a4834] dark:text-white">
+                  Mr. Omar Meckawy
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
+                  <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
+                  <span>{t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}</span>
+                </span>
+              </div>
             </Link>
             <button 
               onClick={() => setIsMobileMenuOpen(false)} 
