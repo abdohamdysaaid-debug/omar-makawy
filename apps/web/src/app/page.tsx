@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import StudentHomeClient from '@/components/home/StudentHomeClient';
 import Navbar from '@/components/layout/Navbar';
@@ -13,11 +13,25 @@ import HomeBooksSection from '@/components/home/HomeBooksSection';
 import FeaturesSection from '@/components/home/FeaturesSection';
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isInitialized } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
-  // If the student is authenticated, render their Student Dashboard Home
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fast-path: if authenticated on client initial state, immediately show Student Dashboard
   if (isAuthenticated) {
     return <StudentHomeClient />;
+  }
+
+  // Before hydration finishes or auth initialization completes, avoid flashing the visitor home page
+  if (!mounted || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-[#f7f6ed] dark:bg-[#0b0f19] flex items-center justify-center font-cairo">
+        <div className="w-9 h-9 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   // Otherwise, render the Public Platform Landing Page for visitors/guests

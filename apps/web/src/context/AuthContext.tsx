@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isInitialized: boolean;
   student: Student | null;
   returnUrl: string | null;
   login: (email: string, password: string) => boolean;
@@ -37,8 +38,35 @@ export interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [student, setStudent] = useState<Student | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedAuth = localStorage.getItem('omar_student_auth');
+        const storedStudent = localStorage.getItem('omar_student_data');
+        return storedAuth === 'true' && !!storedStudent;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const [student, setStudent] = useState<Student | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedAuth = localStorage.getItem('omar_student_auth');
+        const storedStudent = localStorage.getItem('omar_student_data');
+        if (storedAuth === 'true' && storedStudent) {
+          return JSON.parse(storedStudent);
+        }
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);
 
@@ -52,6 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       // Fallback
+    } finally {
+      setIsInitialized(true);
     }
   }, []);
 
@@ -131,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         isAuthenticated,
+        isInitialized,
         student,
         returnUrl,
         login,
