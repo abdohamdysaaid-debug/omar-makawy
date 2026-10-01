@@ -236,7 +236,7 @@ export default function FloatingAiWidget() {
         {showTooltip && !isOpen && (
           <div
             className={`flex items-center gap-2 bg-stone-900/95 text-white dark:bg-white dark:text-stone-900 px-3.5 py-2 rounded-2xl shadow-xl border border-stone-800 dark:border-stone-200 animate-bounce duration-1000 absolute top-1/2 -translate-y-1/2 whitespace-nowrap z-20 ${
-              isPopupOnLeft ? 'start-[calc(100%+12px)]' : 'end-[calc(100%+12px)]'
+              isPopupOnLeft ? 'left-full ms-3' : 'right-full me-3'
             }`}
           >
             <span className="text-xs font-black whitespace-nowrap">اسأل مستر عمر AI 🤖</span>
