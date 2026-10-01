@@ -12,6 +12,8 @@ export interface CourseItem {
   price: number;
   discount_price?: number | null;
   is_published: boolean;
+  is_public?: boolean;
+  is_featured?: boolean;
   status: CourseStatus;
   sort_order: number;
   created_at: string;
@@ -28,6 +30,8 @@ export interface CoursesListQuery {
   limit?: number;
   search?: string;
   is_published?: boolean;
+  is_public?: boolean;
+  is_featured?: boolean;
   academic_year_id?: string;
 }
 
@@ -50,6 +54,8 @@ export interface CreateCoursePayload {
   price?: number;
   discount_price?: number;
   is_published?: boolean;
+  is_public?: boolean;
+  is_featured?: boolean;
   status?: string;
   sort_order?: number;
 }
@@ -64,6 +70,8 @@ export interface UpdateCoursePayload {
   price?: number;
   discount_price?: number;
   is_published?: boolean;
+  is_public?: boolean;
+  is_featured?: boolean;
   status?: string;
   sort_order?: number;
 }

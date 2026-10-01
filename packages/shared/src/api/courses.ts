@@ -32,6 +32,12 @@ export function createCoursesApi(client = defaultApiClient) {
       if (query.is_published !== undefined) {
         params.set('is_published', String(query.is_published));
       }
+      if (query.is_public !== undefined) {
+        params.set('is_public', String(query.is_public));
+      }
+      if (query.is_featured !== undefined) {
+        params.set('is_featured', String(query.is_featured));
+      }
       if (query.academic_year_id) {
         params.set('academic_year_id', query.academic_year_id);
       }
@@ -45,6 +51,21 @@ export function createCoursesApi(client = defaultApiClient) {
       }
 
       return client.get<CoursesListResponse>(endpoint, options);
+    },
+
+    async uploadThumbnail(
+      file: File,
+      academicYearId?: string
+    ): Promise<{ url: string }> {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+
+      return client.post<{ url: string }>('/courses/upload-thumbnail', formData, options);
     },
 
     async getCourseById(
