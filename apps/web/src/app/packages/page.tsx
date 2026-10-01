@@ -8,18 +8,50 @@ import { useAuth } from '@/context/AuthContext';
 import { Package } from '@/types';
 import { apiClient } from '@/lib/api';
 import { packages as mockPackages, academicYears } from '@/data/mock';
-import { Package as PackageIcon, CheckCircle2, Sparkles, ArrowRight } from 'lucide-react';
+import { Package as PackageIcon, CheckCircle2, Sparkles, ArrowRight, ChevronDown, Filter } from 'lucide-react';
+
+const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
+
+function getStoredGrade(studentAcademicYearId?: number): number | 'all' {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
+      if (saved) {
+        if (saved === 'all') return 'all';
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && [1, 2, 3, 4].includes(parsed)) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+  return studentAcademicYearId || 'all';
+}
+
+function saveStoredGrade(grade: number | 'all') {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_GRADE_KEY, String(grade));
+    } catch {}
+  }
+}
 
 export default function PackagesPage() {
   const { student } = useAuth();
-  const [selectedYearId, setSelectedYearId] = useState<number | 'all'>('all');
+  const [selectedYearId, setSelectedYearId] = useState<number | 'all'>(() => {
+    return getStoredGrade(student?.academicYearId);
+  });
   const [availablePackages, setAvailablePackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Set default filter tab to student's academic year if logged in
+  // Sync if student logs in later and no manual override exists
   useEffect(() => {
-    if (student?.academicYearId) {
-      setSelectedYearId(student.academicYearId);
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
+      if (!saved && student?.academicYearId) {
+        setSelectedYearId(student.academicYearId);
+        saveStoredGrade(student.academicYearId);
+      }
     }
   }, [student?.academicYearId]);
 
@@ -61,19 +93,18 @@ export default function PackagesPage() {
     };
   }, [selectedYearId]);
 
-  const filterTabs = [
-    { id: 'all', title: 'جميع المراحل' },
-    { id: 1, title: 'ثالثة إعدادي' },
-    { id: 2, title: 'أولى ثانوي' },
-    { id: 3, title: 'تانية ثانوي' },
-    { id: 4, title: 'تالتة ثانوي' },
-  ];
+  const handleYearChange = (newVal: number | 'all') => {
+    setSelectedYearId(newVal);
+    saveStoredGrade(newVal);
+  };
+
+  const selectedYearObj = academicYears.find((y) => y.id === selectedYearId);
 
   return (
     <StudentLayout>
       <div className="space-y-8 animate-fade-in font-cairo">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/60 dark:border-gray-800 pb-5">
+        {/* Header & Persistent Dropdown Control */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/60 dark:border-gray-800 pb-5">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="w-3 h-7 bg-emerald-600 rounded-full inline-block" />
@@ -82,30 +113,35 @@ export default function PackagesPage() {
               </h1>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              تصفح واشترك في الباقات الشهرية المتاحة لجميع المراحل الدراسية مع الأستاذ عمر مكاوي
+              {selectedYearId !== 'all' && selectedYearObj
+                ? `عرض الباقات الشهرية المتاحة لـ ${selectedYearObj.title}`
+                : 'تصفح واشترك في الباقات الشهرية المتاحة لجميع المراحل الدراسية'}
             </p>
           </div>
-        </div>
 
-        {/* Academic Year Filter Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {filterTabs.map((tab) => {
-            const isActive = selectedYearId === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedYearId(tab.id as number | 'all')}
-                className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-2 ${
-                  isActive
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25 scale-102'
-                    : 'bg-white dark:bg-[#131b2e] text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
-                }`}
+          {/* Persistent Dropdown Select Menu with ChevronDown icon */}
+          <div className="flex items-center gap-2 bg-white dark:bg-[#131b2e] p-2.5 px-3.5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs shrink-0 self-start md:self-auto">
+            <Filter className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 shrink-0">اختر الصف:</span>
+            <div className="relative">
+              <select
+                value={selectedYearId}
+                onChange={(e) => {
+                  const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                  handleYearChange(val);
+                }}
+                className="appearance-none bg-stone-50 dark:bg-[#0c1017] border border-gray-200 dark:border-gray-700/80 text-gray-900 dark:text-white rounded-xl py-2 ps-3 pe-8 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer"
               >
-                {isActive && <Sparkles className="w-4 h-4 text-amber-300" />}
-                {tab.title}
-              </button>
-            );
-          })}
+                <option value="all">جميع المراحل الدراسية</option>
+                {academicYears.map((year) => (
+                  <option key={year.id} value={year.id}>
+                    {year.title}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
         </div>
 
         {/* Packages Grid */}
@@ -190,8 +226,8 @@ export default function PackagesPage() {
         ) : (
           <EmptyState
             icon="Package"
-            title="لا توجد باقات متاحة في هذه المرحلة"
-            description="اختر مرحلة دراسية أخرى من الفلاتر بالأعلى لعرض الباقات المتاحة."
+            title="لا توجد باقات متاحة بهذا الصف"
+            description="اختر صف دراسي آخر من القائمة المنسدلة بالأعلى لعرض الباقات المتاحة."
           />
         )}
       </div>

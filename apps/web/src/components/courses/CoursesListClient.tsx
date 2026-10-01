@@ -10,6 +10,33 @@ import EmptyState from '@/components/ui/EmptyState';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { Course } from '@/types';
 import { apiClient } from '@/lib/api';
+import { ChevronDown, Filter } from 'lucide-react';
+
+const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
+
+function getStoredGrade(studentAcademicYearId?: number): number | 'all' {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
+      if (saved) {
+        if (saved === 'all') return 'all';
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && [1, 2, 3, 4].includes(parsed)) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+  return studentAcademicYearId || 'all';
+}
+
+function saveStoredGrade(grade: number | 'all') {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_GRADE_KEY, String(grade));
+    } catch {}
+  }
+}
 
 function CoursesContent() {
   const searchParams = useSearchParams();
@@ -21,19 +48,25 @@ function CoursesContent() {
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Default selection based on logged in student's academic year
-  const getDefaultFilter = (): number | 'all' => {
-    if (isAuthenticated && student?.academicYearId) {
-      return student.academicYearId;
-    }
+  // Initialize grade from persistent localStorage selection, URL parameter, or student default
+  const [selectedYearId, setSelectedYearId] = useState<number | 'all'>(() => {
     if (initialYear) {
       const yearObj = academicYears.find((y) => y.slug === initialYear);
-      return yearObj ? yearObj.id : 'all';
+      if (yearObj) return yearObj.id;
     }
-    return 'all';
-  };
+    return getStoredGrade(student?.academicYearId);
+  });
 
-  const [selectedYearId, setSelectedYearId] = useState<number | 'all'>(getDefaultFilter);
+  // Keep state synced if student logs in later and no manual override exists
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
+      if (!saved && student?.academicYearId) {
+        setSelectedYearId(student.academicYearId);
+        saveStoredGrade(student.academicYearId);
+      }
+    }
+  }, [student?.academicYearId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -63,13 +96,16 @@ function CoursesContent() {
     };
   }, []);
 
-  // Filter by academic year (Isolation rules) and search query
+  const handleYearChange = (newVal: number | 'all') => {
+    setSelectedYearId(newVal);
+    saveStoredGrade(newVal);
+  };
+
+  // Filter by academic year and search query
   const filteredCourses = availableCourses.filter((course) => {
-    // Academic Year isolation filter
     if (selectedYearId !== 'all' && course.academicYearId !== selectedYearId) {
       return false;
     }
-    // Search query filter
     if (searchQuery) {
       const matchTitle = course.title.toLowerCase().includes(searchQuery);
       const matchDesc = course.description?.toLowerCase().includes(searchQuery);
@@ -82,53 +118,46 @@ function CoursesContent() {
 
   return (
     <StudentLayout>
-      <div className="space-y-6 animate-fade-in">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
-            {t('courses.title', 'المحاضرات والكورسات المتاحة')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {isAuthenticated && student
-              ? `${t('courses.showingFor', 'يتم عرض الكورسات المتاحة لـ')} ${student.academicYearName || selectedYearObj?.title || ''}`
-              : t('courses.subtitle', 'تصفح جميع الكورسات والمراحل الدراسية')}
-          </p>
-        </div>
+      <div className="space-y-6 animate-fade-in font-cairo">
+        {/* Header & Filter Controls */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/60 dark:border-gray-800 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-7 bg-emerald-600 rounded-full inline-block" />
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+                الكورسات الدراسية
+              </h1>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {selectedYearId !== 'all' && selectedYearObj
+                ? `عرض جميع الكورسات المتاحة لـ ${selectedYearObj.title}`
+                : 'تصفح الكورسات والمناهج الدراسية الشاملة لجميع المراحل'}
+            </p>
+          </div>
 
-        {/* Academic Year Filter Pills */}
-        <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-none">
-          {!isAuthenticated && (
-            <button
-              onClick={() => setSelectedYearId('all')}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                selectedYearId === 'all'
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                  : 'bg-white dark:bg-[#131b2e] text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-800'
-              }`}
-            >
-              {t('courses.allYears', 'جميع المراحل')}
-            </button>
-          )}
-
-          {academicYears.map((year) => {
-            const isAssigned = isAuthenticated && student?.academicYearId === year.id;
-
-            return (
-              <button
-                key={year.id}
-                onClick={() => setSelectedYearId(year.id)}
-                className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  selectedYearId === year.id
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                    : 'bg-white dark:bg-[#131b2e] text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-800'
-                }`}
+          {/* Persistent Dropdown Select Menu with ChevronDown icon */}
+          <div className="flex items-center gap-2 bg-white dark:bg-[#131b2e] p-2.5 px-3.5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xs shrink-0 self-start md:self-auto">
+            <Filter className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 shrink-0">اختر الصف:</span>
+            <div className="relative">
+              <select
+                value={selectedYearId}
+                onChange={(e) => {
+                  const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                  handleYearChange(val);
+                }}
+                className="appearance-none bg-stone-50 dark:bg-[#0c1017] border border-gray-200 dark:border-gray-700/80 text-gray-900 dark:text-white rounded-xl py-2 ps-3 pe-8 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer"
               >
-                {year.title}
-                {isAssigned && (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block ms-1" />
-                )}
-              </button>
-            );
-          })}
+                <option value="all">جميع المراحل الدراسية</option>
+                {academicYears.map((year) => (
+                  <option key={year.id} value={year.id}>
+                    {year.title}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
         </div>
 
         {/* Course Grid */}
@@ -151,10 +180,10 @@ function CoursesContent() {
           <div className="py-8">
             <EmptyState
               icon="BookOpen"
-              title={t('courses.noCoursesFound', 'لا توجد كورسات متاحة حالياً')}
-              description={t('courses.noCoursesDesc', 'لم يتم العثور على كورسات تطابق هذا الفلتر أو هذه المرحلة الدراسية حالياً.')}
-              actionText={t('courses.allYears', 'جميع الكورسات')}
-              actionUrl="/courses"
+              title="لا توجد كورسات متاحة بهذا الصف"
+              description="لم يتم العثور على كورسات تطابق هذا الصف الدراسي حالياً."
+              actionText="جميع المراحل"
+              actionUrl="/student/courses"
             />
           </div>
         )}
