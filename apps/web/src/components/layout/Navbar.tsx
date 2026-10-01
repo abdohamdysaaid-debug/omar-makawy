@@ -287,6 +287,7 @@ export default function Navbar() {
                         { name: 'الرئيسية', href: '/', icon: Home },
                         { name: 'اشتراكاتي', href: '/student/subscriptions', icon: CheckCircle2 },
                         { name: 'الكورسات', href: '/student/courses', icon: Video },
+                        { name: 'الباقات الشهرية', href: '/#packages', icon: Package },
                         { name: 'امتحاناتي', href: '/student/exams', icon: GraduationCap },
                       ].map((item) => {
                         const Icon = item.icon;
