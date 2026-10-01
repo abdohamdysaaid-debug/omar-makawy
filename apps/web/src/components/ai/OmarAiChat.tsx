@@ -233,8 +233,8 @@ export default function OmarAiChat() {
         {/* Header Banner */}
         <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-r from-[#0d6e4f] via-[#0a523b] to-emerald-950 text-white shadow-xl flex items-center justify-between border border-emerald-500/30">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md text-emerald-300 flex items-center justify-center border border-white/20 shadow-inner shrink-0">
-              <Sparkles className="w-6 h-6 animate-pulse" />
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/80 shadow-md shrink-0 bg-white">
+              <img src="/assets/omar-ai-avatar.jpg" alt="Mr. Omar AI Avatar" className="w-full h-full object-cover" />
             </div>
             <div className="text-start">
               <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function OmarAiChat() {
             <button
               key={idx}
               onClick={() => handlePresetClick(pq.question)}
-              className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#121622] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-800 text-xs font-extrabold shrink-0 shadow-2xs transition-all hover:border-emerald-500/50"
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#121620] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-800 text-xs font-extrabold shrink-0 shadow-2xs transition-all hover:border-emerald-500/50"
             >
               {pq.label}
             </button>
@@ -282,15 +282,15 @@ export default function OmarAiChat() {
                 }`}
               >
                 {/* Avatar */}
-                <div
-                  className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
-                    msg.sender === 'user'
-                      ? 'bg-[#0d6e4f] text-white'
-                      : 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
-                  }`}
-                >
-                  {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4.5 h-4.5" />}
-                </div>
+                {msg.sender === 'user' ? (
+                  <div className="w-9 h-9 rounded-2xl bg-[#0d6e4f] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <User className="w-4 h-4" />
+                  </div>
+                ) : (
+                  <div className="w-9 h-9 rounded-full overflow-hidden border border-emerald-500/50 shrink-0 shadow-sm bg-white">
+                    <img src="/assets/omar-ai-avatar.jpg" alt="Mr. Omar AI Avatar" className="w-full h-full object-cover" />
+                  </div>
+                )}
 
                 {/* Message Content */}
                 <div
@@ -311,8 +311,8 @@ export default function OmarAiChat() {
             {/* Typing Indicator */}
             {isTyping && (
               <div className="flex gap-3 max-w-[80%] me-auto">
-                <div className="w-9 h-9 rounded-2xl bg-emerald-950 text-emerald-300 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-sm">
-                  <Bot className="w-4.5 h-4.5 animate-pulse" />
+                <div className="w-9 h-9 rounded-full overflow-hidden border border-emerald-500/50 shrink-0 shadow-sm bg-white animate-pulse">
+                  <img src="/assets/omar-ai-avatar.jpg" alt="Mr. Omar AI Avatar" className="w-full h-full object-cover" />
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-[#131926] border border-stone-200/80 dark:border-stone-800 rounded-ts-xs flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#0d6e4f] animate-bounce"></span>
