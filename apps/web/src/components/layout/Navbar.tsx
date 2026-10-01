@@ -379,7 +379,7 @@ export default function Navbar() {
                     <ul className="space-y-2">
                       {[
                         { name: 'الدعم والمساعدة', href: '/student/support', icon: HelpCircle },
-                        { name: 'عمر مكاوي Ai', href: '/student/support', icon: Sparkles, isAi: true },
+                        { name: 'عمر مكاوي Ai', href: '/student/ai', icon: Sparkles, isAi: true },
                       ].map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;

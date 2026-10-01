@@ -55,7 +55,7 @@ export const navSections = [
     category: 'المساعدة والتواصل الذكي',
     items: [
       { labelKey: 'nav.support', label: 'الدعم والمساعدة', href: '/student/support', aliases: ['/support', '/student/support'], icon: HelpCircle },
-      { labelKey: 'nav.ai', label: 'عمر مكاوي Ai', href: '/student/support', aliases: ['/student/ai'], icon: Sparkles, isAi: true },
+      { labelKey: 'nav.ai', label: 'عمر مكاوي Ai', href: '/student/ai', aliases: ['/student/ai', '/ai'], icon: Sparkles, isAi: true },
     ],
   },
 ];
