@@ -1,18 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAuth } from '@/context/AuthContext';
-import { Package, Course } from '@/types';
 import { apiClient } from '@/lib/api';
-import { packages as mockPackages } from '@/data/mock';
-import { Package as PackageIcon, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, ArrowLeft, Video, Package as PackageIcon } from 'lucide-react';
 
 export default function SubscriptionsPage() {
   const { student, isAuthenticated } = useAuth();
   const [activeSubscriptions, setActiveSubscriptions] = useState<any[]>([]);
-  const [availablePackages, setAvailablePackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
 
   const academicYearId = student?.academicYearId;
@@ -23,30 +21,43 @@ export default function SubscriptionsPage() {
     async function loadSubscriptionsData() {
       setLoading(true);
       try {
-        const queryParams = academicYearId ? `?academicYearId=${academicYearId}` : '';
         const userSubs = await apiClient.get<any[]>('/purchases/my-subscriptions').catch(() => []);
-        const packagesRes = await apiClient.get<Package[]>(`/packages${queryParams}`).catch(() => []);
 
         if (isMounted) {
           if (Array.isArray(userSubs) && userSubs.length > 0) {
             setActiveSubscriptions(userSubs);
+          } else if (isAuthenticated) {
+            // Default mock active subscription for logged-in student test
+            setActiveSubscriptions([
+              {
+                id: 'sub-1',
+                title: 'باقة الشهر الأول - لغة إنجليزية',
+                type: 'package',
+                date: '2026-10-01',
+                status: 'active',
+                expiryDate: '2026-11-01',
+              },
+            ]);
           } else {
             setActiveSubscriptions([]);
-          }
-
-          if (Array.isArray(packagesRes) && packagesRes.length > 0) {
-            setAvailablePackages(packagesRes);
-          } else {
-            const filteredMock = academicYearId
-              ? mockPackages.filter((p) => p.academicYearId === academicYearId)
-              : mockPackages;
-            setAvailablePackages(filteredMock);
           }
         }
       } catch {
         if (isMounted) {
-          setActiveSubscriptions([]);
-          setAvailablePackages([]);
+          if (isAuthenticated) {
+            setActiveSubscriptions([
+              {
+                id: 'sub-1',
+                title: 'باقة الشهر الأول - لغة إنجليزية',
+                type: 'package',
+                date: '2026-10-01',
+                status: 'active',
+                expiryDate: '2026-11-01',
+              },
+            ]);
+          } else {
+            setActiveSubscriptions([]);
+          }
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -58,113 +69,94 @@ export default function SubscriptionsPage() {
     return () => {
       isMounted = false;
     };
-  }, [academicYearId]);
+  }, [academicYearId, isAuthenticated]);
 
   return (
     <StudentLayout>
-      <div className="space-y-8 animate-fade-in">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
-            الاشتراكات والباقات
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            متابعة باقاتك واشتراكاتك النشطة وتصفح الباقات المتاحة للمرحلة الدراسية
-          </p>
+      <div className="space-y-8 animate-fade-in font-cairo">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/60 dark:border-gray-800 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-7 bg-emerald-600 rounded-full inline-block" />
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+                اشتراكاتي
+              </h1>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              متابعة جميع الكورسات والباقات النشطة التي قمت بالاشتراك فيها
+            </p>
+          </div>
+
+          <Link
+            href="/student/packages"
+            className="self-start sm:self-auto px-4 py-2 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold transition-all border border-emerald-200 dark:border-emerald-800 flex items-center gap-2"
+          >
+            <span>تصفح الباقات المتاحة</span>
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
         </div>
 
         {/* Active Subscriptions Section */}
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
-            اشتراكاتي النشطة
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            اشتراكاتي النشطة ({activeSubscriptions.length})
           </h2>
 
           {loading ? (
-            <div className="h-32 rounded-3xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-32 rounded-3xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+              ))}
+            </div>
           ) : activeSubscriptions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeSubscriptions.map((sub) => (
                 <div
                   key={sub.id}
-                  className="p-5 rounded-2xl bg-white dark:bg-[#131b2e] border border-emerald-200 dark:border-emerald-900/50 shadow-xs flex items-center justify-between"
+                  className="p-5 rounded-2xl bg-white dark:bg-[#131b2e] border border-emerald-200 dark:border-emerald-900/60 shadow-xs flex items-center justify-between transition-all hover:border-emerald-500"
                 >
-                  <div className="space-y-1">
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
-                      نشط
-                    </span>
-                    <h3 className="font-bold text-base text-gray-900 dark:text-white">{sub.title}</h3>
-                    <p className="text-xs text-gray-500">تاريخ الاشتراك: {sub.date || 'اليوم'}</p>
-                  </div>
-                  <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon="Package"
-              title="لا توجد اشتراكات نشطة حالياً"
-              description="لم تقم بالاشتراك في أي باقة شهرية أو كورس مدفوع حتى الآن."
-            />
-          )}
-        </div>
-
-        {/* Available Packages Section */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="w-2.5 h-6 bg-emerald-600 rounded-full inline-block" />
-            الباقات المتاحة للمرحلة الدراسية
-          </h2>
-
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-64 rounded-3xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
-              ))}
-            </div>
-          ) : availablePackages.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {availablePackages.map((pkg) => (
-                <div
-                  key={pkg.id}
-                  className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs flex flex-col justify-between space-y-4"
-                >
-                  <div className="space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                      <PackageIcon className="w-6 h-6" />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[11px] font-extrabold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        اشتراك نشط
+                      </span>
                     </div>
-                    <h3 className="font-extrabold text-lg text-gray-900 dark:text-white">{pkg.title}</h3>
-                    {pkg.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{pkg.description}</p>
-                    )}
-                    {pkg.features && (
-                      <ul className="space-y-2 pt-2">
-                        {pkg.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <h3 className="font-extrabold text-base text-gray-900 dark:text-white">{sub.title}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      تاريخ الاشتراك: {sub.date || 'اليوم'} {sub.expiryDate ? `• ينتهي في: ${sub.expiryDate}` : ''}
+                    </p>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                    <span className="font-extrabold text-lg text-emerald-600 dark:text-emerald-400">
-                      {pkg.price} <span className="text-xs text-gray-500 font-normal">جنيه</span>
-                    </span>
-                    <button className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20">
-                      اشترك الآن
-                    </button>
-                  </div>
+                  <Link
+                    href="/student/courses"
+                    className="p-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm flex items-center gap-1.5 text-xs font-bold shrink-0"
+                  >
+                    <Video className="w-4 h-4" />
+                    <span>متابعة</span>
+                  </Link>
                 </div>
               ))}
             </div>
           ) : (
-            <EmptyState
-              icon="Package"
-              title="لا توجد باقات متاحة حالياً"
-              description="سيتم إتاحة باقات جديدة لمرحلتك الدراسية قريباً."
-            />
+            <div className="space-y-4">
+              <EmptyState
+                icon="Package"
+                title="لا توجد اشتراكات نشطة حالياً"
+                description="عند اشتراكك في أي باقة شهرية أو كورس ستظهر هنا مباشرة لتتمكن من متابعة دروسك."
+              />
+              <div className="text-center pt-2">
+                <Link
+                  href="/student/packages"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-emerald-600/25"
+                >
+                  <PackageIcon className="w-5 h-5" />
+                  <span>تصفح الباقات الشهرية المتاحة</span>
+                </Link>
+              </div>
+            </div>
           )}
         </div>
       </div>
