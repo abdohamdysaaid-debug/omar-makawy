@@ -7,7 +7,11 @@ import { PlaySquare, Clock, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 
-export default function HomeCoursesSection() {
+export interface HomeCoursesSectionProps {
+  selectedAcademicYearId?: number | null;
+}
+
+export default function HomeCoursesSection({ selectedAcademicYearId = null }: HomeCoursesSectionProps) {
   const { isAuthenticated } = useAuth();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
@@ -41,7 +45,13 @@ export default function HomeCoursesSection() {
     }
   };
 
-  const activeCourses = courses.filter((c) => c.isActive);
+  const activeCourses = courses.filter((c) => {
+    if (!c.isActive) return false;
+    if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
+      return c.academicYearId === selectedAcademicYearId;
+    }
+    return true;
+  });
 
   return (
     <section id="courses" className="py-14 sm:py-20 bg-white dark:bg-[#080b11] transition-colors font-cairo scroll-mt-20">

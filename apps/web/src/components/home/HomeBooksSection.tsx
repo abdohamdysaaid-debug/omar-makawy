@@ -7,7 +7,11 @@ import { BookOpen, ShoppingBag, ArrowLeft, ChevronRight, ChevronLeft } from 'luc
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 
-export default function HomeBooksSection() {
+export interface HomeBooksSectionProps {
+  selectedAcademicYearId?: number | null;
+}
+
+export default function HomeBooksSection({ selectedAcademicYearId = null }: HomeBooksSectionProps) {
   const { isAuthenticated } = useAuth();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
@@ -41,7 +45,12 @@ export default function HomeBooksSection() {
     }
   };
 
-  const activeBooks = books.slice(0, 6);
+  const activeBooks = books.filter((b) => {
+    if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
+      return b.academicYearId === selectedAcademicYearId;
+    }
+    return true;
+  }).slice(0, 6);
 
   return (
     <section id="books" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo scroll-mt-20">

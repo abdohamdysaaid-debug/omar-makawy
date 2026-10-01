@@ -7,6 +7,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import HeroBanner from '@/components/home/HeroBanner';
+import HomeGradeFilter from '@/components/home/HomeGradeFilter';
 import PackagesSection from '@/components/home/PackagesSection';
 import HomeCoursesSection from '@/components/home/HomeCoursesSection';
 import HomeBooksSection from '@/components/home/HomeBooksSection';
@@ -15,6 +16,7 @@ import FeaturesSection from '@/components/home/FeaturesSection';
 export default function HomePage() {
   const { isAuthenticated, isInitialized } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -43,16 +45,22 @@ export default function HomePage() {
         {/* 1. Hero Visual Banner */}
         <HeroBanner />
 
-        {/* 2. الباقات الشهرية */}
-        <PackagesSection />
+        {/* 2. Centered Grade Dropdown Filter Bar */}
+        <HomeGradeFilter
+          selectedAcademicYearId={selectedAcademicYearId}
+          onSelectGrade={(gradeId) => setSelectedAcademicYearId(gradeId)}
+        />
 
-        {/* 3. الكورسات */}
-        <HomeCoursesSection />
+        {/* 3. الباقات الشهرية */}
+        <PackagesSection selectedAcademicYearId={selectedAcademicYearId} />
 
-        {/* 4. الكتب والمذكرات */}
-        <HomeBooksSection />
+        {/* 4. الكورسات */}
+        <HomeCoursesSection selectedAcademicYearId={selectedAcademicYearId} />
 
-        {/* 5. ما يميّزنا */}
+        {/* 5. الكتب والمذكرات */}
+        <HomeBooksSection selectedAcademicYearId={selectedAcademicYearId} />
+
+        {/* 6. ما يميّزنا */}
         <FeaturesSection />
       </div>
 

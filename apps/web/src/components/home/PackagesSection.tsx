@@ -7,7 +7,11 @@ import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft, ArrowL
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 
-export default function PackagesSection() {
+export interface PackagesSectionProps {
+  selectedAcademicYearId?: number | null;
+}
+
+export default function PackagesSection({ selectedAcademicYearId = null }: PackagesSectionProps) {
   const { isAuthenticated } = useAuth();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
@@ -41,7 +45,13 @@ export default function PackagesSection() {
     }
   };
 
-  const activePackages = packages.filter((pkg) => pkg.isActive);
+  const activePackages = packages.filter((pkg) => {
+    if (!pkg.isActive) return false;
+    if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
+      return pkg.academicYearId === selectedAcademicYearId;
+    }
+    return true;
+  });
 
   return (
     <section id="packages" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo scroll-mt-20">
