@@ -117,17 +117,17 @@ export default function Sidebar({
       >
         {/* Brand Header */}
         <div className={`flex items-center h-20 border-b border-emerald-800/60 dark:border-gray-800/60 ${
-          isCollapsed ? 'px-3 justify-center' : 'px-6 justify-between'
+          isCollapsed ? 'px-2 justify-center' : 'px-5 justify-between'
         }`}>
-          <Link href="/student" className="flex items-center gap-3 group" onClick={onCloseMobile}>
-            <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
-              <img src="/assets/om-logo.png" alt="OM Logo" className="w-full h-full object-contain" />
+          <Link href="/student" className="flex items-center gap-2.5 group min-w-0" onClick={onCloseMobile}>
+            <div className="h-11 px-2.5 rounded-xl bg-white flex items-center justify-center shadow-md shadow-emerald-950/30 group-hover:scale-105 transition-transform shrink-0">
+              <img src="/assets/om-logo.png" alt="Mr. Omar Makawy Logo" className="h-8 w-auto object-contain" />
             </div>
-            <div className={`flex flex-col transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
-              <span className="text-base font-bold text-white dark:text-white leading-tight">
+            <div className={`flex flex-col transition-opacity duration-200 min-w-0 ${isCollapsed ? 'hidden' : 'block'}`}>
+              <span className="text-base font-extrabold text-white dark:text-white leading-tight truncate">
                 Omar Makawy
               </span>
-              <span className="text-[11px] font-semibold text-emerald-200 dark:text-emerald-400">
+              <span className="text-[11px] font-bold text-emerald-200 dark:text-emerald-400 truncate">
                 English Teacher
               </span>
             </div>
