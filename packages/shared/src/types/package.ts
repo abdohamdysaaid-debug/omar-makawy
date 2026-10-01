@@ -53,7 +53,7 @@ export interface PackagesListResponse {
 export interface CreatePackagePayload {
   academic_year_id: string;
   title_ar: string;
-  title_en: string;
+  title_en?: string;
   description_ar?: string;
   description_en?: string;
   thumbnail_url?: string;

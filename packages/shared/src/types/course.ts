@@ -46,7 +46,7 @@ export interface CoursesListResponse {
 export interface CreateCoursePayload {
   academic_year_id: string;
   title_ar: string;
-  title_en: string;
+  title_en?: string;
   slug?: string;
   description_ar?: string;
   description_en?: string;
