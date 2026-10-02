@@ -22,6 +22,7 @@ export const translations: Translations = {
   'nav.videos': { ar: 'الفيديوهات', en: 'Videos' },
   'nav.attachments': { ar: 'الملحقات والملازم', en: 'Attachments' },
   'nav.packages': { ar: 'الباقات التعليمية', en: 'Packages' },
+  'nav.activation_and_recharge': { ar: 'أكواد التفعيل والشحن', en: 'Activation & Recharge Codes' },
   'nav.students': { ar: 'شؤون الطلاب', en: 'Students' },
   'nav.students_list': { ar: 'قائمة الطلاب', en: 'Students Directory' },
   'nav.devices': { ar: 'أجهزة الطلاب', en: 'Student Devices' },

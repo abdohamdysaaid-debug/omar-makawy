@@ -90,6 +90,7 @@ export function AdminSidebar({
         { key: 'nav.videos', href: '/admin/videos', icon: Video },
         { key: 'nav.attachments', href: '/admin/attachments', icon: FileText },
         { key: 'nav.packages', href: '/admin/packages', icon: Package },
+        { key: 'nav.activation_and_recharge', href: '/admin/activation-and-recharge', icon: Ticket },
       ],
     },
     {
