@@ -179,14 +179,14 @@ export default function HeroBanner() {
             {/* Mobile Light Mode Visual */}
             <img
               src="/assets/hero/hero-visual-mobile-seamless.png?v=20260930_v5"
-              alt="Mr. Omar Makawy - Mobile Hero Visual Composition"
+              alt="Mr. Omar Meckawy - مستر عمر مكاوي مدرس اللغة الإنجليزية"
               className="dark:hidden w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_8px_24px_rgba(17,105,78,0.06)]"
             />
 
             {/* Mobile Dark Mode Visual */}
             <img
               src="/assets/hero/hero-visual-mobile-dark-seamless.png?v=20260930_v5"
-              alt="Mr. Omar Makawy - Mobile Dark Mode Hero Visual Composition"
+              alt="Mr. Omar Meckawy - مستر عمر مكاوي مدرس اللغة الإنجليزية"
               className="hidden dark:block w-full h-auto object-contain transition-all duration-300 pointer-events-none select-none"
             />
 
@@ -200,9 +200,9 @@ export default function HeroBanner() {
                 whileHover={{ scale: 1.03 }}
                 className="px-5 py-1.5 rounded-xl bg-[#0d6e4f]/95 dark:bg-[#064e3b]/95 text-white dark:text-emerald-100 border border-emerald-400/40 dark:border-emerald-500/50 shadow-lg backdrop-blur-md"
               >
-                <span className="text-sm xs:text-base font-black tracking-wide">
+                <h1 className="text-sm xs:text-base font-black tracking-wide inline-block">
                   مستر عمر مكاوي
-                </span>
+                </h1>
               </motion.div>
 
               {/* 2. Second Rectangle: "مدرس اللغة الإنجليزية" */}
@@ -259,14 +259,14 @@ export default function HeroBanner() {
             {/* Desktop Light Mode Visual */}
             <img
               src="/assets/hero/hero-visual-seamless.png?v=20260930_v5"
-              alt="Mr. Omar Makawy - Desktop Hero Visual Composition"
+              alt="Mr. Omar Meckawy - منصة مستر عمر مكاوي لتعليم اللغة الإنجليزية"
               className="dark:hidden w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none filter drop-shadow-[0_10px_30px_rgba(17,105,78,0.06)]"
             />
 
             {/* Desktop Dark Mode Visual (Exact Seamless Alpha Feathered PNG) */}
             <img
               src="/assets/hero/hero-visual-desktop-dark-seamless.png?v=20260930_v5"
-              alt="Mr. Omar Makawy - Desktop Dark Mode Hero Visual Composition"
+              alt="Mr. Omar Meckawy - منصة مستر عمر مكاوي لتعليم اللغة الإنجليزية"
               className="hidden dark:block w-full sm:max-w-[680px] md:max-w-[860px] lg:max-w-[1040px] xl:max-w-[1200px] h-auto object-contain transition-all duration-300 pointer-events-none select-none"
             />
 
@@ -278,9 +278,9 @@ export default function HeroBanner() {
                 transition={{ duration: 0.5, delay: 0.35, ease: 'easeOut' }}
                 className="px-6 py-2 rounded-2xl bg-[#0d6e4f]/95 dark:bg-[#064e3b]/95 text-white dark:text-emerald-100 border border-emerald-400/40 dark:border-emerald-500/50 shadow-xl backdrop-blur-md"
               >
-                <span className="text-base sm:text-lg md:text-xl font-black tracking-wide">
+                <h1 className="text-base sm:text-lg md:text-xl font-black tracking-wide inline-block">
                   مستر عمر مكاوي
-                </span>
+                </h1>
               </motion.div>
 
               <motion.div 
@@ -290,7 +290,7 @@ export default function HeroBanner() {
                 className="px-5 py-1.5 rounded-2xl bg-white/95 dark:bg-stone-900/95 text-gray-900 dark:text-stone-200 border border-stone-200 dark:border-stone-800 shadow-md backdrop-blur-md"
               >
                 <span className="text-xs sm:text-sm font-extrabold tracking-tight">
-                  مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم
+                  مدرس اللغة الإنجليزية
                 </span>
               </motion.div>
             </div>

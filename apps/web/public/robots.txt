@@ -1,0 +1,22 @@
+User-Agent: *
+Allow: /
+Allow: /courses/
+Allow: /packages/
+Allow: /bookstore/
+Allow: /support/
+Disallow: /staff/
+Disallow: /admin/
+Disallow: /supervisor/
+Disallow: /dashboard/
+Disallow: /account/
+Disallow: /student/
+Disallow: /api/
+Disallow: /cart/
+Disallow: /orders/
+Disallow: /wallet/
+Disallow: /profile/
+Disallow: /login/
+Disallow: /register/
+Disallow: /forgot-password/
+
+Sitemap: https://omarmeckawy.com/sitemap.xml

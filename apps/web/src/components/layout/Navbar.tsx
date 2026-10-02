@@ -105,7 +105,7 @@ export default function Navbar() {
                 <VerifiedBadge className="w-4 h-4" />
               </div>
               <span className="text-[11px] font-bold text-gray-600 dark:text-emerald-400 leading-tight">
-                {t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}
+                {t('teacher.subtitle', 'مدرس اللغة الإنجليزية')}
               </span>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function Navbar() {
                 <VerifiedBadge className="w-3.5 h-3.5" />
               </div>
               <span className="text-[9.5px] font-bold text-gray-600 dark:text-emerald-400 leading-tight">
-                {t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}
+                {t('teacher.subtitle', 'مدرس اللغة الإنجليزية')}
               </span>
             </div>
           </div>
@@ -249,7 +249,7 @@ export default function Navbar() {
                 </span>
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
                   <VerifiedBadge className="w-3.5 h-3.5 shrink-0" />
-                  <span>{t('teacher.subtitle', 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم')}</span>
+                  <span>{t('teacher.subtitle', 'مدرس اللغة الإنجليزية')}</span>
                 </span>
               </div>
             </Link>

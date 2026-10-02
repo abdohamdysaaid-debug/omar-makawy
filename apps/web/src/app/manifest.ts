@@ -2,9 +2,10 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Mr. Omar Meckawy - منصة مستر عمر مكاوي التعليمية',
-    short_name: 'عمر مكاوي',
-    description: 'منصة مستر عمر مكاوي التعليمية لتدريس اللغة الإنجليزية للثانوية العامة والصفوف الدراسية',
+    name: 'منصة مستر عمر مكاوي | Mr. Omar Meckawy Platform',
+    short_name: 'منصة مستر عمر مكاوي',
+    description:
+      'منصة مستر عمر مكاوي التعليمية لتقديم كورسات ومحاضرات وباقات اللغة الإنجليزية للطلاب بمحتوى تعليمي منظم حسب الصف الدراسي.',
     start_url: '/',
     display: 'standalone',
     background_color: '#020d08',

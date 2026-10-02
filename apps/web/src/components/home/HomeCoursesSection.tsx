@@ -64,15 +64,7 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
       setLoading(true);
       setError(null);
       try {
-        let endpoint = '/courses/public?limit=20';
-        if (selectedAcademicYearId) {
-          const uuid = typeof selectedAcademicYearId === 'number'
-            ? GRADE_UUID_MAP[selectedAcademicYearId]
-            : selectedAcademicYearId;
-          if (uuid) {
-            endpoint += `&academic_year_id=${encodeURIComponent(uuid)}`;
-          }
-        }
+        const endpoint = '/courses/public?limit=50';
         const res = await apiClient.get<any>(endpoint);
         if (isMounted) {
           if (res && Array.isArray(res.data)) {
@@ -94,9 +86,23 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
     }
     fetchCourses();
     return () => { isMounted = false; };
-  }, [selectedAcademicYearId]);
+  }, []);
 
-  const activeCourses = availableCourses;
+  const activeCourses = availableCourses.filter((course) => {
+    if (!selectedAcademicYearId) return true;
+    const courseYearId = String(course.academic_year_id || course.academicYearId || '');
+    const selectedStr = String(selectedAcademicYearId);
+
+    if (courseYearId === selectedStr) return true;
+    if (GRADE_UUID_MAP[Number(selectedAcademicYearId)] === courseYearId) return true;
+
+    if (selectedStr === '1' && (courseYearId.endsWith('0001') || course.academic_year_name_ar?.includes('الإعدادي'))) return true;
+    if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول الثانوي'))) return true;
+    if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني الثانوي'))) return true;
+    if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث الثانوي'))) return true;
+
+    return false;
+  });
 
 
   return (

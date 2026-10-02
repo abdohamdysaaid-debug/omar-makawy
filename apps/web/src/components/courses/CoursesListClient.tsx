@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { academicYears as mockAcademicYears } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import CourseCard from '@/components/courses/CourseCard';
@@ -21,26 +20,28 @@ interface AcademicYearItem {
 
 const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
 
+const DEFAULT_YEARS: AcademicYearItem[] = [
+  { id: 'a0000000-0000-0000-0000-000000000001', title: 'الصف الثالث الإعدادي', code: 'THIRD_PREPARATORY', stage_order: 1 },
+  { id: 'a0000000-0000-0000-0000-000000000002', title: 'الصف الأول الثانوي', code: 'FIRST_SECONDARY', stage_order: 2 },
+  { id: 'a0000000-0000-0000-0000-000000000003', title: 'الصف الثاني الثانوي', code: 'SECOND_SECONDARY', stage_order: 3 },
+  { id: 'a0000000-0000-0000-0000-000000000004', title: 'الصف الثالث الثانوي', code: 'THIRD_SECONDARY', stage_order: 4 },
+];
+
 function CoursesContent() {
   const searchParams = useSearchParams();
-  const { isAuthenticated, student } = useAuth();
+  const { student } = useAuth();
   const { t } = useLanguage();
   const initialYear = searchParams.get('year');
   const searchQuery = searchParams.get('search')?.toLowerCase();
 
-  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(() => [
-    { id: 'a0000000-0000-0000-0000-000000000001', title: 'الصف الثالث الإعدادي', code: 'THIRD_PREPARATORY', stage_order: 1 },
-    { id: 'a0000000-0000-0000-0000-000000000002', title: 'الصف الأول الثانوي', code: 'FIRST_SECONDARY', stage_order: 2 },
-    { id: 'a0000000-0000-0000-0000-000000000003', title: 'الصف الثاني الثانوي', code: 'SECOND_SECONDARY', stage_order: 3 },
-    { id: 'a0000000-0000-0000-0000-000000000004', title: 'الصف الثالث الثانوي', code: 'THIRD_SECONDARY', stage_order: 4 },
-  ]);
-
+  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(DEFAULT_YEARS);
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize selected year
   const [selectedYearId, setSelectedYearId] = useState<string | number | 'all'>(() => {
+    if (initialYear) return initialYear;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
@@ -75,21 +76,21 @@ function CoursesContent() {
             );
             if (found && typeof window !== 'undefined') {
               const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
-              if (!saved) {
+              if (!saved && !initialYear) {
                 setSelectedYearId(found.id);
               }
             }
           }
         }
       } catch {
-        // Fallback to mock years is already in initial state
+        // Fallback to default years
       }
     }
     loadYears();
     return () => {
       isMounted = false;
     };
-  }, [student?.academicYearId, student?.academicYearName]);
+  }, [student?.academicYearId, student?.academicYearName, initialYear]);
 
   const loadCourses = async () => {
     setLoading(true);
@@ -100,7 +101,7 @@ function CoursesContent() {
 
       if (!res || (!res.data && !Array.isArray(res))) {
         // Fallback to /courses
-        res = await apiClient.get<any>('/courses').catch(() => null);
+        res = await apiClient.get<any>('/courses?limit=100').catch(() => null);
       }
 
       if (res && Array.isArray(res.data)) {
@@ -140,19 +141,21 @@ function CoursesContent() {
       let isMatch = courseYearId === selectedStr;
 
       if (!isMatch) {
-        const selectedYearObj = yearsList.find((y) => String(y.id) === selectedStr);
+        const selectedYearObj = yearsList.find(
+          (y) => String(y.id) === selectedStr || (y.code && y.code === selectedStr)
+        );
+
         if (selectedYearObj) {
-          if (
-            (course.academic_year_name_ar && course.academic_year_name_ar === selectedYearObj.title) ||
-            (selectedYearObj.code && (course as any).academic_year_code === selectedYearObj.code)
-          ) {
-            isMatch = true;
-          }
-          if (selectedStr === '1' && (courseYearId.endsWith('0001') || course.academic_year_name_ar?.includes('الإعدادي'))) isMatch = true;
-          if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول الثانوي'))) isMatch = true;
-          if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني الثانوي'))) isMatch = true;
-          if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث الثانوي'))) isMatch = true;
+          if (courseYearId === String(selectedYearObj.id)) isMatch = true;
+          if (course.academic_year_name_ar && course.academic_year_name_ar === selectedYearObj.title) isMatch = true;
+          if ((course as any).academic_year_code && (course as any).academic_year_code === selectedYearObj.code) isMatch = true;
         }
+
+        // Numerical / text fallbacks for grades 1..4
+        if (selectedStr === '1' && (courseYearId.endsWith('0001') || course.academic_year_name_ar?.includes('الإعدادي'))) isMatch = true;
+        if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول الثانوي'))) isMatch = true;
+        if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني الثانوي'))) isMatch = true;
+        if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث الثانوي'))) isMatch = true;
       }
 
       if (!isMatch) {

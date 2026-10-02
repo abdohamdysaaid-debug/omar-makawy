@@ -45,8 +45,8 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Branding / Teacher
     'teacher.title': 'Mr. Omar Meckawy',
-    'teacher.subtitle': 'مدرس اللغة الإنجليزية - موثق من وزارة التربية والتعليم',
-    'teacher.expertTitle': 'خبير تدريس اللغة الإنجليزية',
+    'teacher.subtitle': 'مدرس اللغة الإنجليزية',
+    'teacher.brand': 'منصة مستر عمر مكاوي',
 
     // Hero Section
     'hero.badge': 'المرحلة الثانوية العامة والأزهرية',
@@ -261,8 +261,8 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Branding / Teacher
     'teacher.title': 'Mr. Omar Meckawy',
-    'teacher.subtitle': 'English Language Teacher - Ministry of Education Certified',
-    'teacher.expertTitle': 'English Teaching Expert',
+    'teacher.subtitle': 'English Language Teacher',
+    'teacher.brand': 'Mr. Omar Meckawy Platform',
 
     // Hero Section
     'hero.badge': 'General & Al-Azhar Secondary Stages',

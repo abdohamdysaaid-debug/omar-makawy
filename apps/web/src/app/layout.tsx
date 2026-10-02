@@ -7,40 +7,30 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://omarmeckawy.com';
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'مستر عمر مكاوي | Mr. Omar Meckawy - منصة اللغة الإنجليزية التعليمية',
-    template: '%s | مستر عمر مكاوي - Mr. Omar Meckawy',
+    default: 'منصة مستر عمر مكاوي | مدرس اللغة الإنجليزية',
+    template: '%s | منصة مستر عمر مكاوي',
   },
   description:
-    'منصة مستر عمر مكاوي (Mr. Omar Meckawy) التعليمية - الأستاذ عمر مكاوي مدرس اللغة الإنجليزية للثانوية العامة والشهادة الإعدادية والتعليم الأزهري والعام. الشرح المبسط، الباقات الشهرية، والمناهج التفاعلية.',
+    'منصة مستر عمر مكاوي التعليمية لتقديم كورسات ومحاضرات وباقات اللغة الإنجليزية للطلاب بمحتوى تعليمي منظم حسب الصف الدراسي.',
   keywords: [
-    'منصة عمر مكاوي',
-    'عمر مكاوي',
+    'منصة مستر عمر مكاوي',
     'مستر عمر مكاوي',
-    'mr.omar meckawy',
-    'mr omar meckawy',
-    'omar meckawy',
-    'omar makawy',
-    'عمر مكاوى',
-    'مستر عمر مكاوى',
-    'مدرس انجليزي',
-    'مدرس لغة إنجليزية',
-    'أفضل مدرس إنجليزي ثانوية عامة',
-    'إنجليزي ثالثة ثانوي',
-    'إنجليزي أولى ثانوي',
-    'إنجليزي ثانية ثانوي',
-    'إنجليزي الصف الثالث الإعدادي',
-    'كورسات إنجليزي أونلاين',
-    'باقات إنجليزي شهرية',
-    'منصة تعليمية إنجليزي',
-    'تعليم عام وأزهر إنجليزي',
-    'شرح مناهج إنجليزي',
-    'مكاوى اونلاين',
-    'omarmakawy.com',
-    'English teacher Egypt',
+    'عمر مكاوي',
+    'منصة عمر مكاوي',
+    'مدرس اللغة الإنجليزية',
+    'مستر عمر مكاوي مدرس انجليزي',
+    'عمر مكاوي مدرس انجليزي',
+    'كورسات عمر مكاوي',
+    'محاضرات عمر مكاوي',
+    'منصة مستر عمر مكاوي التعليمية',
+    'Mr. Omar Meckawy',
+    'Omar Meckawy',
+    'Mr Omar Meckawy Platform',
+    'Omar Meckawy English Teacher',
   ],
   authors: [{ name: 'Mr. Omar Meckawy', url: baseUrl }],
   creator: 'Mr. Omar Meckawy',
-  publisher: 'Mr. Omar Meckawy Platform',
+  publisher: 'منصة مستر عمر مكاوي',
   applicationName: 'منصة مستر عمر مكاوي',
   alternates: {
     canonical: '/',
@@ -57,17 +47,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'مستر عمر مكاوي | Mr. Omar Meckawy - منصة اللغة الإنجليزية',
+    title: 'منصة مستر عمر مكاوي | مدرس اللغة الإنجليزية',
     description:
-      'منصة مستر عمر مكاوي لتدريس اللغة الإنجليزية للثانوية العامة والشهادة الإعدادية أونلاين بأسلوب تفاعلي ومبسط.',
+      'منصة مستر عمر مكاوي التعليمية لتقديم كورسات ومحاضرات وباقات اللغة الإنجليزية للطلاب بمحتوى تعليمي منظم حسب الصف الدراسي.',
     url: baseUrl,
-    siteName: 'منصة مستر عمر مكاوي التعليمية',
+    siteName: 'منصة مستر عمر مكاوي',
     images: [
       {
         url: '/assets/omar-avatar.jpg',
         width: 800,
         height: 800,
-        alt: 'Mr. Omar Meckawy - مستر عمر مكاوي',
+        alt: 'مستر عمر مكاوي — مدرس اللغة الإنجليزية',
       },
     ],
     locale: 'ar_EG',
@@ -75,11 +65,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'مستر عمر مكاوي | Mr. Omar Meckawy',
+    title: 'منصة مستر عمر مكاوي | مدرس اللغة الإنجليزية',
     description:
-      'منصة مستر عمر مكاوي لتدريس اللغة الإنجليزية أونلاين للثانوية العامة والإعدادية.',
+      'منصة مستر عمر مكاوي التعليمية لتقديم كورسات ومحاضرات وباقات اللغة الإنجليزية للطلاب بمحتوى تعليمي منظم حسب الصف الدراسي.',
     images: ['/assets/omar-avatar.jpg'],
-    creator: '@omarmeckawy',
   },
   icons: {
     icon: [
@@ -98,24 +87,40 @@ export default function RootLayout({
 }) {
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'EducationalOrganization',
-    name: 'منصة مستر عمر مكاوي التعليمية',
-    alternateName: ['Mr. Omar Meckawy Platform', 'عمر مكاوي', 'مستر عمر مكاوي'],
-    url: baseUrl,
-    logo: `${baseUrl}/icon.png`,
-    sameAs: [
-      'https://facebook.com',
-      'https://youtube.com',
-      'https://instagram.com',
+    '@graph': [
+      {
+        '@type': 'EducationalOrganization',
+        '@id': `${baseUrl}/#organization`,
+        name: 'منصة مستر عمر مكاوي',
+        alternateName: ['Mr. Omar Meckawy Platform', 'منصة مستر عمر مكاوي التعليمية'],
+        url: baseUrl,
+        logo: `${baseUrl}/icon.png`,
+        description:
+          'منصة مستر عمر مكاوي التعليمية لتقديم كورسات ومحاضرات وباقات اللغة الإنجليزية للطلاب بمحتوى تعليمي منظم حسب الصف الدراسي.',
+      },
+      {
+        '@type': 'Person',
+        '@id': `${baseUrl}/#teacher`,
+        name: 'مستر عمر مكاوي',
+        alternateName: ['Mr. Omar Meckawy', 'عمر مكاوي', 'Omar Meckawy'],
+        jobTitle: 'مدرس اللغة الإنجليزية',
+        description: 'مستر عمر مكاوي مدرس اللغة الإنجليزية للمراحل الإعدادية والثانوية.',
+        worksFor: {
+          '@id': `${baseUrl}/#organization`,
+        },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}/#website`,
+        url: baseUrl,
+        name: 'منصة مستر عمر مكاوي',
+        alternateName: 'Mr. Omar Meckawy Platform',
+        publisher: {
+          '@id': `${baseUrl}/#organization`,
+        },
+        inLanguage: ['ar', 'en'],
+      },
     ],
-    description:
-      'منصة تعليمية متكاملة للغة الإنجليزية يدمج فيها مستر عمر مكاوي التفاعل والتبسيط للثانوية العامة والإعدادية.',
-    founder: {
-      '@type': 'Person',
-      name: 'Omar Meckawy',
-      alternateName: 'مستر عمر مكاوي',
-      jobTitle: 'English Language Expert Teacher',
-    },
   };
 
   return (

@@ -60,15 +60,7 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
     async function fetchPackages() {
       setLoading(true);
       try {
-        let endpoint = '/packages/public?limit=20';
-        if (selectedAcademicYearId) {
-          const uuid = typeof selectedAcademicYearId === 'number'
-            ? GRADE_UUID_MAP[selectedAcademicYearId]
-            : selectedAcademicYearId;
-          if (uuid) {
-            endpoint += `&academic_year_id=${encodeURIComponent(uuid)}`;
-          }
-        }
+        const endpoint = '/packages/public?limit=50';
         const res = await apiClient.get<any>(endpoint);
         if (isMounted) {
           if (res && Array.isArray(res.data)) {
@@ -87,7 +79,23 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
     }
     fetchPackages();
     return () => { isMounted = false; };
-  }, [selectedAcademicYearId]);
+  }, []);
+
+  const activePackages = availablePackages.filter((pkg) => {
+    if (!selectedAcademicYearId) return true;
+    const pkgYearId = String(pkg.academic_year_id || pkg.academicYearId || '');
+    const selectedStr = String(selectedAcademicYearId);
+
+    if (pkgYearId === selectedStr) return true;
+    if (GRADE_UUID_MAP[Number(selectedAcademicYearId)] === pkgYearId) return true;
+
+    if (selectedStr === '1' && (pkgYearId.endsWith('0001') || pkg.academic_year_name_ar?.includes('الإعدادي'))) return true;
+    if (selectedStr === '2' && (pkgYearId.endsWith('0002') || pkg.academic_year_name_ar?.includes('الأول الثانوي'))) return true;
+    if (selectedStr === '3' && (pkgYearId.endsWith('0003') || pkg.academic_year_name_ar?.includes('الثاني الثانوي'))) return true;
+    if (selectedStr === '4' && (pkgYearId.endsWith('0004') || pkg.academic_year_name_ar?.includes('الثالث الثانوي'))) return true;
+
+    return false;
+  });
 
   return (
     <section id="packages" className="py-14 sm:py-20 bg-[#f7f6ed]/70 dark:bg-[#0c1017] transition-colors font-cairo scroll-mt-20">
@@ -116,14 +124,14 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
               <div key={i} className="w-[300px] h-72 rounded-3xl bg-stone-200/60 dark:bg-stone-800 animate-pulse shrink-0" />
             ))}
           </div>
-        ) : availablePackages.length > 0 ? (
+        ) : activePackages.length > 0 ? (
           <div
             ref={sliderRef}
             onScroll={handleScroll}
             className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
           >
-            {availablePackages.map((pkg) => {
+            {activePackages.map((pkg) => {
               const title = pkg.title_ar || pkg.title || 'باقة تعليمية';
               const description = pkg.description_ar || pkg.description || '';
               const courses = Array.isArray(pkg.courses) ? pkg.courses : [];
@@ -265,8 +273,8 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
           </div>
         )}
 
-        {/* Bottom Slider Controls (ONLY when availablePackages.length > 0) */}
-        {availablePackages.length > 0 && (
+        {/* Bottom Slider Controls (ONLY when activePackages.length > 0) */}
+        {activePackages.length > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}

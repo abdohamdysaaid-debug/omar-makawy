@@ -125,7 +125,7 @@ export default function Sidebar({
             </div>
             <div className={`flex flex-col transition-opacity duration-200 ${isCollapsed ? 'hidden' : 'block'}`}>
               <span className="text-base font-bold text-white dark:text-white leading-tight">
-                Omar Makawy
+                Mr. Omar Meckawy
               </span>
               <span className="text-[11px] font-semibold text-emerald-200 dark:text-emerald-400">
                 English Teacher

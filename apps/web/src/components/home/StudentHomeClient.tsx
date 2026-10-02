@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Play, BookOpen, ArrowLeft, Clock, GraduationCap, Camera, User } from 'lucide-react';
+import { Play, BookOpen, ArrowLeft, Clock, GraduationCap, Camera, User, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
@@ -22,6 +22,7 @@ export default function StudentHomeClient() {
       lastLectureId?: number;
     }>
   >([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [latestLectures, setLatestLectures] = useState<Lecture[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -37,19 +38,33 @@ export default function StudentHomeClient() {
     async function fetchData() {
       setLoading(true);
       try {
-        const queryParams = academicYearId ? `?academicYearId=${academicYearId}` : '';
-        const coursesRes = await apiClient.get<Course[]>(`/courses${queryParams}`).catch(() => []);
+        const queryParams = academicYearId ? `?academic_year_id=${academicYearId}` : '';
+        
+        // 1. Fetch student courses / public courses
+        let rawCourses: any = await apiClient.get<any>(`/courses${queryParams}`).catch(() => null);
+        if (!rawCourses || (!rawCourses.data && !Array.isArray(rawCourses))) {
+          rawCourses = await apiClient.get<any>(`/courses/public${queryParams}`).catch(() => null);
+        }
+
+        const coursesList: Course[] = Array.isArray(rawCourses?.data)
+          ? rawCourses.data
+          : Array.isArray(rawCourses)
+          ? rawCourses
+          : [];
+
+        // 2. Fetch student lectures
         const lecturesRes = await apiClient.get<Lecture[]>('/lectures/my-lectures').catch(() => []);
 
         if (isMounted) {
-          if (Array.isArray(coursesRes) && coursesRes.length > 0) {
-            const progressList = coursesRes
-              .filter((c: any) => !academicYearId || c.academic_year_id === academicYearId || c.academicYearId === academicYearId)
+          setAvailableCourses(coursesList);
+
+          if (coursesList.length > 0) {
+            const progressList = coursesList
               .map((c: any) => ({
                 course: c,
                 completedLectures: 0,
                 totalLectures: c.lectureCount || c.lectures_count || 0,
-                percentage: 0,
+                percentage: c.progress || 0,
               }))
               .filter((item) => item.percentage > 0);
 
@@ -67,6 +82,7 @@ export default function StudentHomeClient() {
       } catch {
         if (isMounted) {
           setInProgressCourses([]);
+          setAvailableCourses([]);
           setLatestLectures([]);
         }
       } finally {
@@ -83,7 +99,7 @@ export default function StudentHomeClient() {
 
   const studentFirstName = student?.fullName ? student.fullName.split(' ')[0] : 'الطالب';
 
-  // Handle student profile photo upload (Saved to Google Drive / backend)
+  // Handle student profile photo upload
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -98,8 +114,8 @@ export default function StudentHomeClient() {
 
   return (
     <StudentLayout>
-      <div className="space-y-6 sm:space-y-8 animate-fade-in">
-        {/* Sleek Thinner Welcome Banner (Matching User Request) */}
+      <div className="space-y-6 sm:space-y-8 animate-fade-in font-cairo">
+        {/* Sleek Thinner Welcome Banner */}
         <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-900 text-white py-4 sm:py-5 px-5 sm:px-8 shadow-md shadow-emerald-900/10">
           <div className="relative z-10 flex items-center justify-between gap-4 sm:gap-6">
             {/* Left Info Column */}
@@ -119,16 +135,16 @@ export default function StudentHomeClient() {
 
               <div className="pt-1">
                 <Link
-                  href="/courses"
+                  href="/student/courses"
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-xs transition-all shadow-sm"
                 >
                   <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
-                  تصفح المحاضرات
+                  تصفح الكورسات والمحاضرات
                 </Link>
               </div>
             </div>
 
-            {/* Right Circle Avatar Photo Upload (Matching User Request) */}
+            {/* Right Circle Avatar Photo Upload */}
             <div className="relative shrink-0">
               <input
                 type="file"
@@ -141,7 +157,7 @@ export default function StudentHomeClient() {
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-white/40 shadow-lg overflow-hidden group cursor-pointer bg-emerald-950/60 flex items-center justify-center transition-transform hover:scale-105"
-                title="اضغط لتغيير الصورة الشخصية (الحفظ على جودل درايف)"
+                title="اضغط لتغيير الصورة الشخصية"
               >
                 {student?.avatarUrl ? (
                   <img
@@ -206,7 +222,7 @@ export default function StudentHomeClient() {
                     </div>
                     <div className="space-y-0.5 min-w-0 flex-1">
                       <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">
-                        {course.title}
+                        {course.title_ar || course.title}
                       </h3>
                       <p className="text-[11px] text-gray-500 dark:text-gray-400">
                         {completedLectures} من {totalLectures} محاضرات مكتملة
@@ -237,13 +253,44 @@ export default function StudentHomeClient() {
                 </div>
               ))}
             </div>
+          ) : availableCourses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {availableCourses.slice(0, 3).map((course) => (
+                <div
+                  key={course.id}
+                  className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#121212] border border-stone-200/80 dark:border-stone-800 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-0.5 min-w-0 flex-1">
+                      <h3 className="font-bold text-sm text-gray-900 dark:text-white truncate">
+                        {course.title_ar || course.title}
+                      </h3>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        {course.lectureCount || (course as any).lectures_count || 0} محاضرات متاحة
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={`/courses/${course.id}`}
+                    className="w-full py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 text-emerald-700 dark:text-emerald-400 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-emerald-100 dark:border-emerald-900/50"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    بدء المشاهدة
+                  </Link>
+                </div>
+              ))}
+            </div>
           ) : (
             <EmptyState
               icon="BookOpen"
               title="لا توجد كورسات قيد الدراسة حالياً"
               description="لم تقم بالبدء في مشاهدة أي كورس بعد. يمكنك تصفح الكورسات والمحاضرات المتاحة لمرحلتك الدراسية للبدء."
               actionText="تصفح الكورسات المتاحة"
-              actionUrl="/courses"
+              actionUrl="/student/courses"
             />
           )}
         </section>
@@ -256,7 +303,7 @@ export default function StudentHomeClient() {
               أحدث المحاضرات
             </h2>
             <Link
-              href="/courses"
+              href="/student/courses"
               className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
             >
               عرض الكل
@@ -325,9 +372,9 @@ export default function StudentHomeClient() {
             <EmptyState
               icon="PlaySquare"
               title="لا توجد محاضرات متاحة لك حالياً"
-              description="لم تقم بالاشتراك في أي كورس أو باقة بعد، أو لم يتم إتاحة محاضرات حسابك حالياً. يمكنك تصفح الاشتراكات والباقات للبدء."
-              actionText="تصفح الباقات والاشتراكات"
-              actionUrl="/student/subscriptions"
+              description="لم تقم بالاشتراك في أي كورس أو باقة بعد، أو لم يتم إتاحة محاضرات حسابك حالياً. يمكنك تصفح الباقات والكورسات للبدء."
+              actionText="تصفح الباقات الشهرية"
+              actionUrl="/student/packages"
             />
           )}
         </section>
