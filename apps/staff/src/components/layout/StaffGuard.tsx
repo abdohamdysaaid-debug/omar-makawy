@@ -21,11 +21,11 @@ export function StaffGuard({ children }: { children: React.ReactNode }) {
         }
       } else if (user?.role === 'STUDENT') {
         router.replace('/staff/login');
-      } else if (isLoginPage || normalizedPath === '/staff') {
-        router.replace('/staff/dashboard');
+      } else if (isLoginPage) {
+        router.replace('/staff');
       }
     }
-  }, [isLoading, isAuthenticated, user, isLoginPage, normalizedPath, router]);
+  }, [isLoading, isAuthenticated, user, isLoginPage, router]);
 
   if (isLoading || authState === 'UNINITIALIZED' || authState === 'HYDRATING') {
     return (

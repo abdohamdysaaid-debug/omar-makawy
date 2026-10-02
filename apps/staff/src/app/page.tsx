@@ -12,7 +12,7 @@ export default function RootPage() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        router.replace('/staff/dashboard');
+        router.replace('/staff');
       } else {
         router.replace('/staff/login');
       }

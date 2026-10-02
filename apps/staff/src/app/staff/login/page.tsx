@@ -40,7 +40,7 @@ export default function StaffLoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/staff/dashboard');
+      router.replace('/staff');
     }
   }, [isAuthenticated, router]);
 
@@ -66,7 +66,7 @@ export default function StaffLoginPage() {
         return;
       }
 
-      router.push('/staff/dashboard');
+      router.push('/staff');
     } catch (err: any) {
       setIsLoading(false);
       setErrorMessage(
@@ -90,7 +90,7 @@ export default function StaffLoginPage() {
     setIsLoading(true);
     try {
       await verifyTwoFactor(twoFactorChallenge.challenge_token, twoFactorCode.trim());
-      router.push('/staff/dashboard');
+      router.push('/staff');
     } catch (err: any) {
       setIsLoading(false);
       setErrorMessage(

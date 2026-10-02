@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useStaffAuth } from '@/context/StaffAuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
-import { STAFF_NAVIGATION_GROUPS, NavGroupConfig, NavItemConfig } from '@/config/navigation';
+import { STAFF_NAVIGATION_ITEMS, NavItemConfig } from '@/config/navigation';
 import { RoleBadge } from '../ui/RoleBadge';
+import { SystemPermissions } from '@omar-makawy/shared';
 
 interface StaffSidebarProps {
   isMobileOpen: boolean;
@@ -29,36 +30,22 @@ export function StaffSidebar({
   const { hasPermission, isTeacher } = usePermissions();
   const isAr = language === 'ar';
 
-  // Accordion state for navigation groups
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    'nav.academic': true,
-    'nav.students': true,
-    'nav.financial': true,
-    'nav.bookstore': true,
-    'nav.administration': true,
-  });
-
-  const toggleGroup = (groupKey: string) => {
-    setOpenGroups((prev) => ({ ...prev, [groupKey]: !prev[groupKey] }));
-  };
-
-  // Filter navigation groups based on user permissions
-  const authorizedNavGroups = useMemo<NavGroupConfig[]>(() => {
-    return STAFF_NAVIGATION_GROUPS.map((group) => {
-      const allowedItems = group.items.filter((item: NavItemConfig) => {
-        if (isTeacher) return true;
-        if (item.isTeacherOnly) return false;
-        if (item.permission) {
-          return hasPermission(item.permission);
+  // Filter navigation items based on user permissions
+  const authorizedNavItems = useMemo<NavItemConfig[]>(() => {
+    return STAFF_NAVIGATION_ITEMS.filter((item: NavItemConfig) => {
+      if (isTeacher) return true;
+      if (item.isTeacherOnly) return false;
+      if (item.permission) {
+        if (item.permission === SystemPermissions.SETTINGS_READ) {
+          return (
+            hasPermission(SystemPermissions.SETTINGS_READ) ||
+            hasPermission(SystemPermissions.SETTINGS_MANAGE)
+          );
         }
-        return true;
-      });
-
-      return {
-        ...group,
-        items: allowedItems,
-      };
-    }).filter((group) => group.items.length > 0); // Hide groups with 0 authorized items
+        return hasPermission(item.permission);
+      }
+      return true;
+    });
   }, [isTeacher, hasPermission]);
 
   const CollapseIcon = dir === 'rtl' ? ChevronRight : ChevronLeft;
@@ -67,7 +54,7 @@ export function StaffSidebar({
     <div className="flex h-full flex-col bg-white border-e border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-200">
       {/* Brand Header */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-neutral-100 dark:border-neutral-800">
-        <Link href="/staff/dashboard" className="flex items-center gap-2.5 overflow-hidden">
+        <Link href="/staff" className="flex items-center gap-2.5 overflow-hidden">
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white font-bold text-base shadow-sm">
             OM
           </div>
@@ -85,6 +72,7 @@ export function StaffSidebar({
 
         {setIsCollapsed && (
           <button
+            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="hidden lg:flex h-7 w-7 items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
           >
@@ -93,6 +81,7 @@ export function StaffSidebar({
         )}
 
         <button
+          type="button"
           onClick={() => setIsMobileOpen(false)}
           className="lg:hidden flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
         >
@@ -100,90 +89,45 @@ export function StaffSidebar({
         </button>
       </div>
 
-      {/* Navigation Groups List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
-        {/* Main Dashboard Link */}
-        <div>
-          <Link
-            href="/staff/dashboard"
-            onClick={() => setIsMobileOpen(false)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-              pathname === '/staff/dashboard' || pathname === '/staff'
-                ? 'bg-brand-50 text-brand-700 font-semibold border-s-3 border-brand-600 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-500'
-                : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
-            }`}
-          >
-            <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
-            {!isCollapsed && <span>{t('nav.dashboard')}</span>}
-          </Link>
-        </div>
+      {/* Navigation List */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        {authorizedNavItems.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/staff' && pathname.startsWith(`${item.href}/`));
+          const Icon = item.icon;
 
-        {/* Dynamic RBAC Group Accordions */}
-        {authorizedNavGroups.map((group) => {
-          const isGroupOpen = openGroups[group.groupKey] !== false;
           return (
-            <div key={group.groupKey} className="space-y-1">
-              {!isCollapsed && (
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(group.groupKey)}
-                  className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
-                >
-                  <span>{t(group.groupKey)}</span>
-                  <ChevronDown
-                    className={`h-3 w-3 transition-transform duration-200 ${
-                      isGroupOpen ? '' : '-rotate-90'
-                    }`}
-                  />
-                </button>
-              )}
-
-              {(isGroupOpen || isCollapsed) && (
-                <div className="space-y-0.5">
-                  {group.items.map((item) => {
-                    const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.key}
-                        href={item.href}
-                        prefetch={false}
-                        onClick={() => setIsMobileOpen(false)}
-                        title={isCollapsed ? t(item.key) : undefined}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs transition-all ${
-                          isActive
-                            ? 'bg-brand-50 text-brand-700 font-semibold border-s-3 border-brand-600 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-500'
-                            : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
-                        }`}
-                      >
-                        <Icon className="h-4 w-4 flex-shrink-0" />
-                        {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <Link
+              key={item.key}
+              href={item.href}
+              prefetch={false}
+              onClick={() => setIsMobileOpen(false)}
+              title={isCollapsed ? t(item.key) : undefined}
+              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+                isActive
+                  ? 'bg-brand-50 text-brand-700 border-s-3 border-brand-600 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-500 shadow-xs'
+                  : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+              }`}
+            >
+              <Icon className="h-4 w-4 flex-shrink-0" />
+              {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
+            </Link>
           );
         })}
-      </div>
+      </nav>
 
       {/* Footer Identity Card */}
       <div className="p-3 border-t border-neutral-100 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/80">
-        <Link
-          href="/staff/profile"
-          onClick={() => setIsMobileOpen(false)}
-          title={isAr ? 'الملف الشخصي وإعدادات الحساب' : 'Profile & Settings'}
-          className="block rounded-xl p-1.5 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 transition-colors group"
-        >
+        <div className="rounded-xl p-1.5">
           {!isCollapsed ? (
             <div>
               <div className="flex items-center gap-2.5 mb-1.5">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800 group-hover:ring-2 group-hover:ring-brand-500/30 transition-all">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
                   {user?.full_name?.charAt(0) || 'OM'}
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 truncate transition-colors">
+                  <p className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">
                     {user?.full_name || (isAr ? 'مستر عمر مكاوي' : 'Mr. Omar Meckawy')}
                   </p>
                   <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
@@ -199,12 +143,12 @@ export function StaffSidebar({
             </div>
           ) : (
             <div className="flex justify-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 group-hover:ring-2 group-hover:ring-brand-500/30 transition-all">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
                 {user?.full_name?.charAt(0) || 'OM'}
               </div>
             </div>
           )}
-        </Link>
+        </div>
       </div>
     </div>
   );
