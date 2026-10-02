@@ -81,22 +81,26 @@ export function AdminSidebar({
     setOpenGroups((prev) => ({ ...prev, [groupKey]: !prev[groupKey] }));
   };
 
+  const primaryNavItems: NavItem[] = [
+    { key: 'nav.dashboard', href: '/admin', icon: LayoutDashboard },
+    { key: 'nav.courses', href: '/admin/courses', icon: BookOpen },
+    { key: 'nav.packages', href: '/admin/packages', icon: Package },
+    { key: 'nav.students', href: '/admin/students', icon: Users },
+    { key: 'nav.activation_and_recharge', href: '/admin/activation-and-recharge', icon: Ticket },
+  ];
+
   const navGroups: NavGroup[] = [
     {
       groupKey: 'nav.academic',
       items: [
-        { key: 'nav.courses', href: '/admin/courses', icon: BookOpen },
         { key: 'nav.lectures', href: '/admin/lectures', icon: PlayCircle },
         { key: 'nav.videos', href: '/admin/videos', icon: Video },
         { key: 'nav.attachments', href: '/admin/attachments', icon: FileText },
-        { key: 'nav.packages', href: '/admin/packages', icon: Package },
       ],
     },
     {
       groupKey: 'nav.students',
       items: [
-        { key: 'nav.students_list', href: '/admin/students', icon: Users },
-        { key: 'nav.activation_and_recharge', href: '/admin/activation-and-recharge', icon: Ticket },
         { key: 'nav.devices', href: '/admin/devices', icon: Smartphone },
         { key: 'nav.subscriptions', href: '/admin/subscriptions', icon: CreditCard },
       ],
@@ -105,7 +109,6 @@ export function AdminSidebar({
       groupKey: 'nav.financial',
       items: [
         { key: 'nav.wallets', href: '/admin/wallets', icon: Wallet },
-        { key: 'nav.activation_and_recharge', href: '/admin/activation-and-recharge', icon: Ticket },
         { key: 'nav.invoices', href: '/admin/invoices', icon: FileSpreadsheet },
       ],
     },
@@ -119,14 +122,9 @@ export function AdminSidebar({
       ],
     },
     {
-      groupKey: 'nav.notifications',
-      items: [
-        { key: 'nav.notifications', href: '/admin/notifications', icon: Bell },
-      ],
-    },
-    {
       groupKey: 'nav.analytics',
       items: [
+        { key: 'nav.notifications', href: '/admin/notifications', icon: Bell },
         { key: 'nav.analytics', href: '/admin/analytics', icon: BarChart3 },
       ],
     },
@@ -183,68 +181,91 @@ export function AdminSidebar({
 
       {/* Navigation Links List */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
-        {/* Main Dashboard Overview */}
-        <div>
-          <Link
-            href="/admin"
-            onClick={() => setIsMobileOpen(false)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-              pathname === '/admin'
-                ? 'bg-brand-50 text-brand-700 font-semibold border-s-3 border-brand-600 dark:bg-brand-950/50 dark:text-brand-300 dark:border-brand-500'
-                : 'text-gray-700 hover:bg-gray-100/70 hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-800/60 dark:hover:text-neutral-100'
-            }`}
-          >
-            <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
-            {!isCollapsed && <span>{t('nav.dashboard')}</span>}
-          </Link>
+        {/* Standalone Primary Navigation Items */}
+        <div className="space-y-1">
+          {primaryNavItems.map((item) => {
+            const isActive = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
+            const Icon = item.icon;
+            const isHighlight = item.href === '/admin/activation-and-recharge';
+
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                onClick={() => setIsMobileOpen(false)}
+                title={isCollapsed ? t(item.key) : undefined}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs transition-all ${
+                  isActive
+                    ? 'bg-brand-50 text-brand-700 font-bold border-s-3 border-brand-600 shadow-2xs dark:bg-brand-950/50 dark:text-brand-300 dark:border-brand-500'
+                    : isHighlight
+                    ? 'bg-amber-50/60 text-amber-900 dark:bg-amber-950/20 dark:text-amber-300 hover:bg-amber-100/60 font-semibold border border-amber-200/60 dark:border-amber-900/30'
+                    : 'text-gray-700 hover:bg-gray-100/80 hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-800/60 dark:hover:text-neutral-100 font-medium'
+                }`}
+              >
+                <Icon className={`h-4.5 w-4.5 flex-shrink-0 ${isHighlight && !isActive ? 'text-amber-600 dark:text-amber-400' : ''}`} />
+                {!isCollapsed && (
+                  <div className="flex items-center justify-between flex-1 truncate">
+                    <span className="truncate">{t(item.key)}</span>
+                    {isHighlight && (
+                      <span className="text-[9px] font-bold bg-amber-500 text-white px-1.5 py-0.2 rounded-full uppercase">
+                        جديد
+                      </span>
+                    )}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Grouped Accordions */}
-        {navGroups.map((group) => {
-          const isGroupOpen = openGroups[group.groupKey] !== false;
-          return (
-            <div key={group.groupKey} className="space-y-1">
-              {!isCollapsed && (
-                <button
-                  onClick={() => toggleGroup(group.groupKey)}
-                  className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
-                >
-                  <span>{t(group.groupKey)}</span>
-                  <ChevronDown
-                    className={`h-3 w-3 transition-transform duration-200 ${
-                      isGroupOpen ? '' : '-rotate-90'
-                    }`}
-                  />
-                </button>
-              )}
+        {/* Separator / Additional Sections */}
+        <div className="pt-2 border-t border-gray-100 dark:border-neutral-800/80 space-y-4">
+          {navGroups.map((group) => {
+            const isGroupOpen = openGroups[group.groupKey] !== false;
+            return (
+              <div key={group.groupKey} className="space-y-1">
+                {!isCollapsed && (
+                  <button
+                    onClick={() => toggleGroup(group.groupKey)}
+                    className="flex w-full items-center justify-between px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
+                  >
+                    <span>{t(group.groupKey)}</span>
+                    <ChevronDown
+                      className={`h-3 w-3 transition-transform duration-200 ${
+                        isGroupOpen ? '' : '-rotate-90'
+                      }`}
+                    />
+                  </button>
+                )}
 
-              {(isGroupOpen || isCollapsed) && (
-                <div className="space-y-0.5">
-                  {group.items.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.key}
-                        href={item.href}
-                        onClick={() => setIsMobileOpen(false)}
-                        title={isCollapsed ? t(item.key) : undefined}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs transition-all ${
-                          isActive
-                            ? 'bg-brand-50 text-brand-700 font-semibold border-s-3 border-brand-600 dark:bg-brand-950/50 dark:text-brand-300 dark:border-brand-500'
-                            : 'text-gray-700 hover:bg-gray-100/70 hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-800/60 dark:hover:text-neutral-100 font-normal'
-                        }`}
-                      >
-                        <Icon className="h-4 w-4 flex-shrink-0" />
-                        {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+                {(isGroupOpen || isCollapsed) && (
+                  <div className="space-y-0.5">
+                    {group.items.map((item) => {
+                      const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.key}
+                          href={item.href}
+                          onClick={() => setIsMobileOpen(false)}
+                          title={isCollapsed ? t(item.key) : undefined}
+                          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs transition-all ${
+                            isActive
+                              ? 'bg-brand-50 text-brand-700 font-semibold border-s-3 border-brand-600 dark:bg-brand-950/50 dark:text-brand-300 dark:border-brand-500'
+                              : 'text-gray-700 hover:bg-gray-100/70 hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-800/60 dark:hover:text-neutral-100 font-normal'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 flex-shrink-0" />
+                          {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* User Footer & Logout */}
