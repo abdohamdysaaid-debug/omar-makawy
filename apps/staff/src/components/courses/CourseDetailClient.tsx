@@ -40,11 +40,6 @@ const staffCoursesApi = createCoursesApi(staffApiClient);
 export function CourseDetailClient({ courseId: propCourseId }: { courseId?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryId = searchParams.get('id');
-  const courseId =
-    propCourseId && propCourseId !== 'detail' && propCourseId !== '[id]'
-      ? propCourseId
-      : queryId || '';
 
   const { language, dir } = useLanguage();
   const isAr = language === 'ar';
@@ -69,8 +64,36 @@ export function CourseDetailClient({ courseId: propCourseId }: { courseId?: stri
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
+  const getResolvedId = useCallback(() => {
+    const isUuid = (str?: string | null) =>
+      Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
+    const queryId = searchParams?.get('id');
+    if (isUuid(queryId)) return queryId!;
+
+    if (isUuid(propCourseId)) return propCourseId!;
+
+    if (typeof window !== 'undefined') {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const winQueryId = urlParams.get('id');
+        if (isUuid(winQueryId)) return winQueryId!;
+
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        const lastPart = parts[parts.length - 1];
+        if (isUuid(lastPart)) return lastPart;
+      } catch {}
+    }
+
+    if (queryId && queryId !== 'detail' && queryId !== '[id]') return queryId;
+    if (propCourseId && propCourseId !== 'detail' && propCourseId !== '[id]') return propCourseId;
+
+    return '';
+  }, [searchParams, propCourseId]);
+
   const fetchCourse = useCallback(async () => {
-    if (!courseId) {
+    const targetId = getResolvedId();
+    if (!targetId) {
       setLoading(false);
       setError(isAr ? 'معرف الكورس غير محدد في الرابط' : 'Course ID is missing from URL');
       return;
@@ -79,7 +102,7 @@ export function CourseDetailClient({ courseId: propCourseId }: { courseId?: stri
     setLoading(true);
     setError(null);
     try {
-      const data = await staffCoursesApi.getCourseById(courseId);
+      const data = await staffCoursesApi.getCourseById(targetId);
       setCourse(data);
     } catch (err: any) {
       setError(
@@ -89,7 +112,7 @@ export function CourseDetailClient({ courseId: propCourseId }: { courseId?: stri
     } finally {
       setLoading(false);
     }
-  }, [courseId, isAr]);
+  }, [getResolvedId, isAr]);
 
   useEffect(() => {
     fetchCourse();

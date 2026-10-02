@@ -49,11 +49,6 @@ const staffStudentsApi = createStudentsApi(staffApiClient);
 export function StudentDetailClient({ studentId: propStudentId }: { studentId?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryId = searchParams.get('id');
-  const studentId =
-    propStudentId && propStudentId !== 'detail' && propStudentId !== '[id]'
-      ? propStudentId
-      : queryId || '';
 
   const { language, dir } = useLanguage();
   const isAr = language === 'ar';
@@ -73,8 +68,36 @@ export function StudentDetailClient({ studentId: propStudentId }: { studentId?: 
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
+  const getResolvedId = useCallback(() => {
+    const isUuid = (str?: string | null) =>
+      Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
+    const queryId = searchParams?.get('id');
+    if (isUuid(queryId)) return queryId!;
+
+    if (isUuid(propStudentId)) return propStudentId!;
+
+    if (typeof window !== 'undefined') {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const winQueryId = urlParams.get('id');
+        if (isUuid(winQueryId)) return winQueryId!;
+
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        const lastPart = parts[parts.length - 1];
+        if (isUuid(lastPart)) return lastPart;
+      } catch {}
+    }
+
+    if (queryId && queryId !== 'detail' && queryId !== '[id]') return queryId;
+    if (propStudentId && propStudentId !== 'detail' && propStudentId !== '[id]') return propStudentId;
+
+    return '';
+  }, [searchParams, propStudentId]);
+
   const fetchStudent = useCallback(async () => {
-    if (!studentId) {
+    const targetId = getResolvedId();
+    if (!targetId) {
       setLoading(false);
       setError(isAr ? 'معرف الطالب غير محدد في الرابط' : 'Student ID is missing from URL');
       return;
@@ -83,7 +106,7 @@ export function StudentDetailClient({ studentId: propStudentId }: { studentId?: 
     setLoading(true);
     setError(null);
     try {
-      const data = await staffStudentsApi.getStudentById(studentId);
+      const data = await staffStudentsApi.getStudentById(targetId);
       setStudent(data);
     } catch (err: any) {
       setError(
@@ -93,7 +116,7 @@ export function StudentDetailClient({ studentId: propStudentId }: { studentId?: 
     } finally {
       setLoading(false);
     }
-  }, [studentId, isAr]);
+  }, [getResolvedId, isAr]);
 
   useEffect(() => {
     fetchStudent();

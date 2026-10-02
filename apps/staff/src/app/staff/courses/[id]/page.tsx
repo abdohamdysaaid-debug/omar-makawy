@@ -1,13 +1,17 @@
-import React from 'react';
-import { CourseDetailClient } from './CourseDetailClient';
+import React, { Suspense } from 'react';
+import { CourseDetailClient } from '@/components/courses/CourseDetailClient';
+import { LoadingState } from '@/components/ui/FeedbackStates';
 
 export function generateStaticParams() {
   return [
     { id: 'detail' },
-    { id: '86650dd2-e317-4e75-966c-17ce54b622cd' },
   ];
 }
 
 export default function CourseDetailPage({ params }: { params: { id: string } }) {
-  return <CourseDetailClient courseId={params.id} />;
+  return (
+    <Suspense fallback={<LoadingState message="جاري تحميل بيانات الكورس..." />}>
+      <CourseDetailClient courseId={params.id} />
+    </Suspense>
+  );
 }
