@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { courses as mockCourses, academicYears } from '@/data/mock';
+import { academicYears as mockAcademicYears } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import CourseCard from '@/components/courses/CourseCard';
@@ -12,44 +12,14 @@ import { Course } from '@/types';
 import { apiClient } from '@/lib/api';
 import { ChevronDown, Filter, AlertCircle, RefreshCw } from 'lucide-react';
 
+interface AcademicYearItem {
+  id: string | number;
+  title: string;
+  code?: string;
+  stage_order?: number;
+}
 
 const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
-
-function parseGrade(id?: string | number): number | undefined {
-  if (!id) return undefined;
-  if (typeof id === 'number') return id;
-  const map: Record<string, number> = {
-    'a0000000-0000-0000-0000-000000000001': 1,
-    'a0000000-0000-0000-0000-000000000002': 2,
-    'a0000000-0000-0000-0000-000000000003': 3,
-    'a0000000-0000-0000-0000-000000000004': 4,
-  };
-  return map[id] || parseInt(id, 10) || undefined;
-}
-
-function getStoredGrade(studentAcademicYearId?: string | number): number | 'all' {
-  if (typeof window !== 'undefined') {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
-      if (saved) {
-        if (saved === 'all') return 'all';
-        const parsed = parseInt(saved, 10);
-        if (!isNaN(parsed) && [1, 2, 3, 4].includes(parsed)) {
-          return parsed;
-        }
-      }
-    } catch {}
-  }
-  return parseGrade(studentAcademicYearId) || 'all';
-}
-
-function saveStoredGrade(grade: number | 'all') {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_GRADE_KEY, String(grade));
-    } catch {}
-  }
-}
 
 function CoursesContent() {
   const searchParams = useSearchParams();
@@ -58,36 +28,82 @@ function CoursesContent() {
   const initialYear = searchParams.get('year');
   const searchQuery = searchParams.get('search')?.toLowerCase();
 
+  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(() =>
+    mockAcademicYears.map((y) => ({
+      id: y.id,
+      title: y.title,
+      code: y.slug,
+    }))
+  );
+
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize grade from persistent localStorage selection, URL parameter, or student default
-  const [selectedYearId, setSelectedYearId] = useState<number | 'all'>(() => {
-    if (initialYear) {
-      const yearObj = academicYears.find((y) => y.slug === initialYear);
-      if (yearObj) return yearObj.id;
+  // Initialize selected year
+  const [selectedYearId, setSelectedYearId] = useState<string | number | 'all'>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
+        if (saved) return saved;
+      } catch {}
     }
-    return getStoredGrade(student?.academicYearId);
+    return 'all';
   });
 
-  // Keep state synced if student logs in later and no manual override exists
+  // Fetch real academic years from backend
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
-      const studentGrade = parseGrade(student?.academicYearId);
-      if (!saved && studentGrade) {
-        setSelectedYearId(studentGrade);
-        saveStoredGrade(studentGrade);
+    let isMounted = true;
+    async function loadYears() {
+      try {
+        const res = await apiClient.get<any[]>('/auth/academic-years');
+        if (isMounted && Array.isArray(res) && res.length > 0) {
+          const mapped: AcademicYearItem[] = res.map((item) => ({
+            id: item.id,
+            title: item.name_ar || item.title || item.name_en || 'صف دراسي',
+            code: item.code,
+            stage_order: item.stage_order,
+          }));
+          setYearsList(mapped);
+
+          // If student has an academicYearId and no saved choice, sync with student
+          if (student?.academicYearId) {
+            const studentYearStr = String(student.academicYearId);
+            const found = mapped.find(
+              (m) =>
+                String(m.id) === studentYearStr ||
+                (student.academicYearName && m.title === student.academicYearName)
+            );
+            if (found && typeof window !== 'undefined') {
+              const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
+              if (!saved) {
+                setSelectedYearId(found.id);
+              }
+            }
+          }
+        }
+      } catch {
+        // Fallback to mock years is already in initial state
       }
     }
-  }, [student?.academicYearId]);
+    loadYears();
+    return () => {
+      isMounted = false;
+    };
+  }, [student?.academicYearId, student?.academicYearName]);
 
   const loadCourses = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<any>('/courses');
+      // First try public courses endpoint which lists all published courses
+      let res = await apiClient.get<any>('/courses/public?limit=100').catch(() => null);
+
+      if (!res || (!res.data && !Array.isArray(res))) {
+        // Fallback to /courses
+        res = await apiClient.get<any>('/courses').catch(() => null);
+      }
+
       if (res && Array.isArray(res.data)) {
         setAvailableCourses(res.data);
       } else if (Array.isArray(res)) {
@@ -107,29 +123,54 @@ function CoursesContent() {
     loadCourses();
   }, []);
 
-  const handleYearChange = (newVal: number | 'all') => {
+  const handleYearChange = (newVal: string | number | 'all') => {
     setSelectedYearId(newVal);
-    saveStoredGrade(newVal);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_GRADE_KEY, String(newVal));
+      } catch {}
+    }
   };
 
   // Filter by academic year and search query
   const filteredCourses = availableCourses.filter((course) => {
     if (selectedYearId !== 'all') {
-      const courseGrade = parseGrade(course.academic_year_id || course.academicYearId);
-      if (courseGrade && courseGrade !== selectedYearId) {
+      const courseYearId = String(course.academic_year_id || course.academicYearId || '');
+      const selectedStr = String(selectedYearId);
+
+      let isMatch = courseYearId === selectedStr;
+
+      if (!isMatch) {
+        const selectedYearObj = yearsList.find((y) => String(y.id) === selectedStr);
+        if (selectedYearObj) {
+          if (
+            (course.academic_year_name_ar && course.academic_year_name_ar === selectedYearObj.title) ||
+            (selectedYearObj.code && (course as any).academic_year_code === selectedYearObj.code)
+          ) {
+            isMatch = true;
+          }
+          if (selectedStr === '1' && (courseYearId.endsWith('0001') || course.academic_year_name_ar?.includes('الإعدادي'))) isMatch = true;
+          if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول الثانوي'))) isMatch = true;
+          if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني الثانوي'))) isMatch = true;
+          if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث الثانوي'))) isMatch = true;
+        }
+      }
+
+      if (!isMatch) {
         return false;
       }
     }
+
     if (searchQuery) {
       const title = (course.title_ar || course.title || '').toLowerCase();
       const desc = (course.description_ar || course.description || '').toLowerCase();
       return title.includes(searchQuery) || desc.includes(searchQuery);
     }
+
     return true;
   });
 
-
-  const selectedYearObj = academicYears.find((y) => y.id === selectedYearId);
+  const selectedYearObj = yearsList.find((y) => String(y.id) === String(selectedYearId));
 
   return (
     <StudentLayout>
@@ -156,16 +197,16 @@ function CoursesContent() {
             <span className="text-xs font-bold text-gray-600 dark:text-gray-300 shrink-0">اختر الصف:</span>
             <div className="relative">
               <select
-                value={selectedYearId}
+                value={String(selectedYearId)}
                 onChange={(e) => {
-                  const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                  const val = e.target.value === 'all' ? 'all' : e.target.value;
                   handleYearChange(val);
                 }}
                 className="appearance-none bg-stone-50 dark:bg-[#0c1017] border border-gray-200 dark:border-gray-700/80 text-gray-900 dark:text-white rounded-xl py-2 ps-3 pe-8 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer"
               >
                 <option value="all">جميع المراحل الدراسية</option>
-                {academicYears.map((year) => (
-                  <option key={year.id} value={year.id}>
+                {yearsList.map((year) => (
+                  <option key={String(year.id)} value={String(year.id)}>
                     {year.title}
                   </option>
                 ))}
@@ -210,7 +251,7 @@ function CoursesContent() {
               icon="Video"
               title="لا يوجد كورسات حالياً"
               description="لم يتم إضافة أي كورسات تعليمية لهذا الصف أو البحث المحدد حالياً."
-              actionText="جميع المراحل"
+              actionText="عرض جميع المراحل"
               actionUrl="/student/courses"
             />
           </div>

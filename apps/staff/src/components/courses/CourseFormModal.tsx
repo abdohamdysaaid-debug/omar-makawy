@@ -110,7 +110,7 @@ export function CourseFormModal({
         setDiscountPrice('');
         setStatus('PUBLISHED');
         setIsPublished(true);
-        setIsPublic(false);
+        setIsPublic(true);
         setIsFeatured(false);
         setSortOrder(0);
         setCurrentServerThumbnail(null);

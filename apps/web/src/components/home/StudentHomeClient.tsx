@@ -44,11 +44,11 @@ export default function StudentHomeClient() {
         if (isMounted) {
           if (Array.isArray(coursesRes) && coursesRes.length > 0) {
             const progressList = coursesRes
-              .filter((c) => !academicYearId || c.academicYearId === academicYearId)
-              .map((c) => ({
+              .filter((c: any) => !academicYearId || c.academic_year_id === academicYearId || c.academicYearId === academicYearId)
+              .map((c: any) => ({
                 course: c,
                 completedLectures: 0,
-                totalLectures: c.lectureCount || 0,
+                totalLectures: c.lectureCount || c.lectures_count || 0,
                 percentage: 0,
               }))
               .filter((item) => item.percentage > 0);

@@ -8,5 +8,5 @@ export function generateStaticParams() {
 }
 
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {
-  return <CourseDetailsClient courseId={Number(params.id)} />;
+  return <CourseDetailsClient courseId={params.id} />;
 }

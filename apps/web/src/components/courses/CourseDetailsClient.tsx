@@ -19,7 +19,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { Course, Lecture } from '@/types';
 import { apiClient } from '@/lib/api';
 
-export default function CourseDetailsClient({ courseId }: { courseId: number }) {
+export default function CourseDetailsClient({ courseId }: { courseId: string | number }) {
   const { student, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<'lectures' | 'exams' | 'files'>('lectures');
   const [course, setCourse] = useState<Course | null>(null);
@@ -44,22 +44,22 @@ export default function CourseDetailsClient({ courseId }: { courseId: number }) 
             setCourse(apiCourse);
           } else {
             // Fallback to local course object if found
-            const localCourse = courses.find((c) => c.id === Number(courseId));
+            const localCourse = courses.find((c) => String(c.id) === String(courseId));
             setCourse(localCourse || null);
           }
 
           if (Array.isArray(apiLectures)) {
             setCourseLectures(apiLectures);
           } else {
-            const localLectures = lectures.filter((l) => l.courseId === Number(courseId));
+            const localLectures = lectures.filter((l) => String(l.courseId) === String(courseId));
             setCourseLectures(localLectures);
           }
         }
       } catch {
         if (isMounted) {
-          const localCourse = courses.find((c) => c.id === Number(courseId));
+          const localCourse = courses.find((c) => String(c.id) === String(courseId));
           setCourse(localCourse || null);
-          const localLectures = lectures.filter((l) => l.courseId === Number(courseId));
+          const localLectures = lectures.filter((l) => String(l.courseId) === String(courseId));
           setCourseLectures(localLectures);
         }
       } finally {
@@ -107,7 +107,7 @@ export default function CourseDetailsClient({ courseId }: { courseId: number }) 
     );
   }
 
-  const academicYearObj = academicYears.find((y) => y.id === course.academicYearId);
+  const academicYearObj = academicYears.find((y) => String(y.id) === String(course.academic_year_id || course.academicYearId));
   const totalLectures = courseLectures.length || course.lectureCount || 0;
   const progressPercentage = totalLectures > 0 ? Math.round((completedCount / totalLectures) * 100) : 0;
 
@@ -121,7 +121,7 @@ export default function CourseDetailsClient({ courseId }: { courseId: number }) 
             المحاضرات
           </Link>
           <span>/</span>
-          <span className="text-gray-900 dark:text-white font-bold">{course.title}</span>
+          <span className="text-gray-900 dark:text-white font-bold">{course.title_ar || course.title}</span>
         </div>
 
         {/* Course Header Overview Card (Matching Reference Image) */}
@@ -133,7 +133,7 @@ export default function CourseDetailsClient({ courseId }: { courseId: number }) 
           <div className="flex-1 space-y-3 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
-                {academicYearObj?.title || 'عام'}
+                {course.academic_year_name_ar || academicYearObj?.title || 'عام'}
               </span>
               {progressPercentage === 100 && (
                 <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center gap-1">
