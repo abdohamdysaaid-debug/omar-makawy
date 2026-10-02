@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useStaffAuth } from '@/context/StaffAuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
-import { STAFF_NAVIGATION_ITEMS, NavItemConfig } from '@/config/navigation';
+import { STAFF_NAVIGATION_SECTIONS, NavSectionConfig, NavItemConfig } from '@/config/navigation';
 import { RoleBadge } from '../ui/RoleBadge';
 import { SystemPermissions } from '@omar-makawy/shared';
 
@@ -30,22 +30,29 @@ export function StaffSidebar({
   const { hasPermission, isTeacher } = usePermissions();
   const isAr = language === 'ar';
 
-  // Filter navigation items based on user permissions
-  const authorizedNavItems = useMemo<NavItemConfig[]>(() => {
-    return STAFF_NAVIGATION_ITEMS.filter((item: NavItemConfig) => {
-      if (isTeacher) return true;
-      if (item.isTeacherOnly) return false;
-      if (item.permission) {
-        if (item.permission === SystemPermissions.SETTINGS_READ) {
-          return (
-            hasPermission(SystemPermissions.SETTINGS_READ) ||
-            hasPermission(SystemPermissions.SETTINGS_MANAGE)
-          );
-        }
-        return hasPermission(item.permission);
+  const filterItem = (item: NavItemConfig): boolean => {
+    if (isTeacher) return true;
+    if (item.isTeacherOnly) return false;
+    if (item.permission) {
+      if (item.permission === SystemPermissions.SETTINGS_READ) {
+        return (
+          hasPermission(SystemPermissions.SETTINGS_READ) ||
+          hasPermission(SystemPermissions.SETTINGS_MANAGE)
+        );
       }
-      return true;
-    });
+      return hasPermission(item.permission);
+    }
+    return true;
+  };
+
+  // Filter sections: keep only sections that have at least one visible item
+  const authorizedSections = useMemo<{ sectionKey?: string; items: NavItemConfig[] }[]>(() => {
+    return STAFF_NAVIGATION_SECTIONS
+      .map((section) => ({
+        sectionKey: section.sectionKey,
+        items: section.items.filter(filterItem),
+      }))
+      .filter((section) => section.items.length > 0);
   }, [isTeacher, hasPermission]);
 
   const CollapseIcon = dir === 'rtl' ? ChevronRight : ChevronLeft;
@@ -89,32 +96,43 @@ export function StaffSidebar({
         </button>
       </div>
 
-      {/* Navigation List */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
-        {authorizedNavItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/staff' && pathname.startsWith(`${item.href}`));
-          const Icon = item.icon;
+      {/* Navigation List — Grouped Sections */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+        {authorizedSections.map((section, sIdx) => (
+          <div key={sIdx} className="space-y-1">
+            {section.sectionKey && (
+              <div className={`px-3.5 pt-2 pb-1 ${isCollapsed ? 'sr-only' : ''}`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                  {t(section.sectionKey)}
+                </span>
+              </div>
+            )}
+            {section.items.map((item) => {
+              const isActive =
+                pathname === item.href ||
+                (item.href !== '/staff' && pathname.startsWith(`${item.href}`));
+              const Icon = item.icon;
 
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              prefetch={false}
-              onClick={() => setIsMobileOpen(false)}
-              title={isCollapsed ? t(item.key) : undefined}
-              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all ${
-                isActive
-                  ? 'bg-emerald-950/70 text-emerald-300 border-s-4 border-emerald-500 shadow-xs'
-                  : 'text-neutral-400 hover:bg-neutral-850 hover:text-neutral-200'
-              }`}
-            >
-              <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-emerald-400' : 'text-neutral-400'}`} />
-              {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
-            </Link>
-          );
-        })}
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  prefetch={false}
+                  onClick={() => setIsMobileOpen(false)}
+                  title={isCollapsed ? t(item.key) : undefined}
+                  className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-emerald-950/70 text-emerald-300 border-s-4 border-emerald-500 shadow-xs'
+                      : 'text-neutral-400 hover:bg-neutral-850 hover:text-neutral-200'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-emerald-400' : 'text-neutral-400'}`} />
+                  {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Footer Identity Card */}

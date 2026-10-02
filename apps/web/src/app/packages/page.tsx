@@ -5,12 +5,18 @@ import Link from 'next/link';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAuth } from '@/context/AuthContext';
-import { Package } from '@/types';
 import { apiClient } from '@/lib/api';
-import { packages as mockPackages, academicYears } from '@/data/mock';
-import { Package as PackageIcon, CheckCircle2, Sparkles, ArrowRight, ChevronDown, Filter } from 'lucide-react';
+import { academicYears } from '@/data/mock';
+import { Package as PackageIcon, CheckCircle2, Sparkles, ArrowRight, ChevronDown, Filter, BookOpen } from 'lucide-react';
 
 const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
+
+const GRADE_UUID_MAP: Record<number, string> = {
+  1: 'a0000000-0000-0000-0000-000000000001',
+  2: 'a0000000-0000-0000-0000-000000000002',
+  3: 'a0000000-0000-0000-0000-000000000003',
+  4: 'a0000000-0000-0000-0000-000000000004',
+};
 
 function parseGrade(id?: string | number): number | undefined {
   if (!id) return undefined;
@@ -53,7 +59,7 @@ export default function PackagesPage() {
   const [selectedYearId, setSelectedYearId] = useState<number | 'all'>(() => {
     return getStoredGrade(student?.academicYearId);
   });
-  const [availablePackages, setAvailablePackages] = useState<Package[]>([]);
+  const [availablePackages, setAvailablePackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Sync if student logs in later and no manual override exists
@@ -74,11 +80,32 @@ export default function PackagesPage() {
     async function loadPackages() {
       setLoading(true);
       try {
-        const queryParams = selectedYearId !== 'all' ? `?academicYearId=${selectedYearId}` : '';
-        const res = await apiClient.get<Package[]>(`/packages${queryParams}`).catch(() => []);
+        let endpoint = '/packages?limit=50';
+        if (selectedYearId !== 'all') {
+          const uuid = GRADE_UUID_MAP[selectedYearId];
+          if (uuid) endpoint += `&academic_year_id=${encodeURIComponent(uuid)}`;
+        }
+        let res: any = null;
+        try {
+          res = await apiClient.get<any>(endpoint);
+        } catch {
+          // If unauthorized or guest, fallback to public packages endpoint
+          let publicEndpoint = '/packages/public?limit=50';
+          if (selectedYearId !== 'all') {
+            const uuid = GRADE_UUID_MAP[selectedYearId];
+            if (uuid) publicEndpoint += `&academic_year_id=${encodeURIComponent(uuid)}`;
+          }
+          res = await apiClient.get<any>(publicEndpoint).catch(() => null);
+        }
 
         if (isMounted) {
-          setAvailablePackages(Array.isArray(res) ? res : []);
+          if (res && Array.isArray(res.data)) {
+            setAvailablePackages(res.data);
+          } else if (Array.isArray(res)) {
+            setAvailablePackages(res);
+          } else {
+            setAvailablePackages([]);
+          }
         }
       } catch {
         if (isMounted) setAvailablePackages([]);
@@ -155,17 +182,24 @@ export default function PackagesPage() {
         ) : availablePackages.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {availablePackages.map((pkg) => {
-              const yearObj = academicYears.find((y) => y.id === pkg.academicYearId);
+              const title = pkg.title_ar || pkg.title || 'باقة تعليمية';
+              const description = pkg.description_ar || pkg.description || '';
+              const courses = Array.isArray(pkg.courses) ? pkg.courses : [];
+              const isPopular = pkg.is_featured || pkg.isPopular;
+              const price = Number(pkg.price) || 0;
+              const discountPrice = pkg.discount_price ? Number(pkg.discount_price) : null;
+              const hasDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < price;
+
               return (
                 <div
                   key={pkg.id}
                   className={`relative p-6 rounded-3xl bg-white dark:bg-[#131b2e] border transition-all duration-300 flex flex-col justify-between space-y-5 hover:shadow-lg ${
-                    pkg.isPopular
+                    isPopular
                       ? 'border-emerald-500 shadow-md shadow-emerald-500/10 dark:border-emerald-500/60'
                       : 'border-gray-200/90 dark:border-gray-800/80'
                   }`}
                 >
-                  {pkg.isPopular && (
+                  {isPopular && (
                     <div className="absolute -top-3.5 left-6 px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-black rounded-full shadow-md flex items-center gap-1">
                       <Sparkles className="w-3 h-3 text-amber-300" />
                       الأكثر طلباً
@@ -177,40 +211,52 @@ export default function PackagesPage() {
                       <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                         <PackageIcon className="w-6 h-6" />
                       </div>
-                      {yearObj && (
+                      {pkg.academic_year_name_ar && (
                         <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                          {yearObj.title}
+                          {pkg.academic_year_name_ar}
                         </span>
                       )}
                     </div>
 
                     <h3 className="font-extrabold text-xl text-gray-900 dark:text-white pt-1">
-                      {pkg.title}
+                      {title}
                     </h3>
-                    {pkg.description && (
+                    {description && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                        {pkg.description}
+                        {description}
                       </p>
                     )}
 
-                    {pkg.features && (
-                      <ul className="space-y-2 pt-3 border-t border-gray-100 dark:border-gray-800/80">
-                        {pkg.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2.5 text-xs text-gray-700 dark:text-gray-300 font-medium">
+                    {courses.length > 0 && (
+                      <div className="space-y-2 pt-3 border-t border-gray-100 dark:border-gray-800/80">
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 block">الكورسات المضمنة:</span>
+                        {courses.slice(0, 4).map((c: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 font-medium">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>{feat}</span>
-                          </li>
+                            <span className="truncate">{c.title_ar || c.title}</span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
 
                   <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
                     <div>
                       <span className="text-xs text-gray-400 block font-bold">سعر الباقة</span>
-                      <span className="font-black text-2xl text-emerald-600 dark:text-emerald-400">
-                        {pkg.price} <span className="text-xs font-bold text-gray-500">ج.م</span>
-                      </span>
+                      {hasDiscount ? (
+                        <div className="flex items-baseline gap-2">
+                          <span className="font-black text-2xl text-emerald-600 dark:text-emerald-400">
+                            {discountPrice} <span className="text-xs font-bold text-gray-500">ج.م</span>
+                          </span>
+                          <span className="text-xs text-neutral-400 line-through">
+                            {price}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-black text-2xl text-emerald-600 dark:text-emerald-400">
+                          {price} <span className="text-xs font-bold text-gray-500">ج.م</span>
+                        </span>
+                      )}
                     </div>
                     <Link
                       href={`/login?returnUrl=/student/subscriptions`}

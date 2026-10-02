@@ -59,7 +59,7 @@ const FALLBACK_GOVERNORATES: Governorate[] = [
   { id: 'b0000000-0000-0000-0000-000000000027', code: 'SOUTH_SINAI', name_ar: 'جنوب سيناء', name_en: 'South Sinai' },
 ];
 
-// Academic Year UUID Mappings (Active fallback)
+// Academic Year UUID Mappings (Active fallback with all 4 stages)
 const ACADEMIC_YEAR_OPTIONS = [
   {
     id: 'a0000000-0000-0000-0000-000000000001',
@@ -72,6 +72,18 @@ const ACADEMIC_YEAR_OPTIONS = [
     code: 'FIRST_SECONDARY',
     title: 'الصف الأول الثانوي',
     hasSections: false,
+  },
+  {
+    id: 'a0000000-0000-0000-0000-000000000003',
+    code: 'SECOND_SECONDARY',
+    title: 'الصف الثاني الثانوي',
+    hasSections: true,
+  },
+  {
+    id: 'a0000000-0000-0000-0000-000000000004',
+    code: 'THIRD_SECONDARY',
+    title: 'الصف الثالث الثانوي',
+    hasSections: true,
   },
 ];
 
@@ -139,7 +151,7 @@ function RegisterForm() {
               id: y.id,
               code: y.code,
               title: y.name_ar,
-              hasSections: y.code === 'THIRD_SECONDARY',
+              hasSections: y.code === 'THIRD_SECONDARY' || y.code === 'SECOND_SECONDARY',
             }));
             setAcademicYears(mapped);
             setFormData((prev) => {
@@ -407,7 +419,11 @@ function RegisterForm() {
 
   const currentYearObj = academicYears.find((y) => y.id === formData.academicYearId);
   const selectedGovObj = governorates.find((g) => g.id === formData.governorateId);
-  const isPrep3Selected = formData.academicYearId === 'a0000000-0000-0000-0000-000000000001';
+  const isPrep3 = currentYearObj?.code === 'THIRD_PREPARATORY' || formData.academicYearId === 'a0000000-0000-0000-0000-000000000001';
+  const isSec1 = currentYearObj?.code === 'FIRST_SECONDARY' || formData.academicYearId === 'a0000000-0000-0000-0000-000000000002';
+  const isSec2 = currentYearObj?.code === 'SECOND_SECONDARY' || formData.academicYearId === 'a0000000-0000-0000-0000-000000000003';
+  const isSec3 = currentYearObj?.code === 'THIRD_SECONDARY' || formData.academicYearId === 'a0000000-0000-0000-0000-000000000004';
+  const showSectionSelector = isSec2 || isSec3;
 
   return (
     <div className="w-full max-w-3xl mx-auto animate-fade-in">
@@ -999,8 +1015,8 @@ function RegisterForm() {
                 )}
               </div>
 
-              {/* 4. Section / Track (Conditional Dropdown ONLY for Secondary grades) */}
-              {!isPrep3Selected && (
+              {/* 4. Section / Track (Conditional Dropdown for 2nd and 3rd Secondary) */}
+              {showSectionSelector && (
                 <div className="space-y-1.5 animate-fade-in">
                   <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
                     <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -1014,7 +1030,7 @@ function RegisterForm() {
                       errors.section ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-stone-800'
                     }`}
                   >
-                    {formData.educationType === 'AZHAR' ? (
+                    {isSec2 || formData.educationType === 'AZHAR' ? (
                       <>
                         <option value="SCIENCE_GENERAL" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">علمي</option>
                         <option value="LITERATURE" className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">أدبي</option>
@@ -1170,15 +1186,17 @@ function RegisterForm() {
                   <span className="text-gray-500 dark:text-gray-400 block font-medium">الصف الدراسي:</span>
                   <span className="font-bold text-emerald-700 dark:text-emerald-400">{currentYearObj?.title}</span>
                 </div>
-                {!isPrep3Selected && formData.section && (
+                {showSectionSelector && formData.section && (
                   <div>
                     <span className="text-gray-500 dark:text-gray-400 block font-medium">الشعبة / التخصص:</span>
                     <span className="font-bold text-gray-900 dark:text-white">
-                      {formData.section === 'SCIENCE_GENERAL'
-                        ? (formData.educationType === 'AZHAR' ? 'علمي' : 'علمي علوم')
+                      {isSec2 || formData.educationType === 'AZHAR'
+                        ? (formData.section === 'LITERATURE' ? 'أدبي' : 'علمي')
                         : formData.section === 'SCIENCE_MATH'
                         ? 'علمي رياضة'
-                        : 'أدبي'}
+                        : formData.section === 'LITERATURE'
+                        ? 'أدبي'
+                        : 'علمي علوم'}
                     </span>
                   </div>
                 )}

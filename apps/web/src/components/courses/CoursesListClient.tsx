@@ -28,13 +28,12 @@ function CoursesContent() {
   const initialYear = searchParams.get('year');
   const searchQuery = searchParams.get('search')?.toLowerCase();
 
-  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(() =>
-    mockAcademicYears.map((y) => ({
-      id: y.id,
-      title: y.title,
-      code: y.slug,
-    }))
-  );
+  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(() => [
+    { id: 'a0000000-0000-0000-0000-000000000001', title: 'الصف الثالث الإعدادي', code: 'THIRD_PREPARATORY', stage_order: 1 },
+    { id: 'a0000000-0000-0000-0000-000000000002', title: 'الصف الأول الثانوي', code: 'FIRST_SECONDARY', stage_order: 2 },
+    { id: 'a0000000-0000-0000-0000-000000000003', title: 'الصف الثاني الثانوي', code: 'SECOND_SECONDARY', stage_order: 3 },
+    { id: 'a0000000-0000-0000-0000-000000000004', title: 'الصف الثالث الثانوي', code: 'THIRD_SECONDARY', stage_order: 4 },
+  ]);
 
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);

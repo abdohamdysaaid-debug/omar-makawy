@@ -1,4 +1,4 @@
-import { LayoutDashboard, BookOpen, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Package, Users, Settings } from 'lucide-react';
 import { SystemPermissions, SystemPermissionCode, UserRole } from '@omar-makawy/shared';
 
 export interface NavItemConfig {
@@ -10,29 +10,57 @@ export interface NavItemConfig {
   isTeacherOnly?: boolean;
 }
 
-export const STAFF_NAVIGATION_ITEMS: NavItemConfig[] = [
+export interface NavSectionConfig {
+  sectionKey?: string;
+  items: NavItemConfig[];
+}
+
+export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
   {
-    key: 'nav.dashboard',
-    href: '/staff',
-    icon: LayoutDashboard,
+    items: [
+      {
+        key: 'nav.dashboard',
+        href: '/staff',
+        icon: LayoutDashboard,
+      },
+    ],
   },
   {
-    key: 'nav.courses',
-    href: '/staff/courses',
-    icon: BookOpen,
-    permission: SystemPermissions.COURSES_READ,
+    sectionKey: 'nav.academic',
+    items: [
+      {
+        key: 'nav.courses',
+        href: '/staff/courses',
+        icon: BookOpen,
+        permission: SystemPermissions.COURSES_READ,
+      },
+      {
+        key: 'nav.packages',
+        href: '/staff/packages',
+        icon: Package,
+        permission: SystemPermissions.PACKAGES_READ,
+      },
+    ],
   },
   {
-    key: 'nav.students',
-    href: '/staff/students',
-    icon: Users,
-    permission: SystemPermissions.STUDENTS_READ,
-  },
-  {
-    key: 'nav.settings',
-    href: '/staff/settings',
-    icon: Settings,
-    permission: SystemPermissions.SETTINGS_READ,
+    items: [
+      {
+        key: 'nav.students',
+        href: '/staff/students',
+        icon: Users,
+        permission: SystemPermissions.STUDENTS_READ,
+      },
+      {
+        key: 'nav.settings',
+        href: '/staff/settings',
+        icon: Settings,
+        permission: SystemPermissions.SETTINGS_READ,
+      },
+    ],
   },
 ];
 
+// Backward-compatible flat list
+export const STAFF_NAVIGATION_ITEMS: NavItemConfig[] = STAFF_NAVIGATION_SECTIONS.flatMap(
+  (s) => s.items
+);

@@ -163,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(async (data: RegisterData): Promise<boolean> => {
     const isPrep3 = String(data.academicYearId) === 'a0000000-0000-0000-0000-000000000001';
+    const isSec1 = String(data.academicYearId) === 'a0000000-0000-0000-0000-000000000002';
+    const needsNoSection = isPrep3 || isSec1;
 
     const payload: RegisterPayload = {
       full_name: data.fullName.trim(),
@@ -176,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       education_type: data.educationType || 'GENERAL',
       study_type: data.studyType || 'ARABIC',
       academic_year_id: String(data.academicYearId),
-      section: isPrep3 ? undefined : (data.section || undefined),
+      section: needsNoSection ? undefined : (data.section || undefined),
       address: data.address?.trim() || undefined,
     };
 
