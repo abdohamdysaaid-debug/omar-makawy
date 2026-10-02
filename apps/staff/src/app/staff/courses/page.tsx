@@ -26,6 +26,7 @@ import {
   CoursesListQuery,
   SystemPermissions,
   ApiError,
+  resolveMediaUrl,
 } from '@omar-makawy/shared';
 import { StaffGuard } from '../../../components/layout/StaffGuard';
 import { PermissionGate } from '../../../components/rbac/PermissionGate';
@@ -435,7 +436,7 @@ export default function StaffCoursesPage() {
                                 <div className="h-12 w-20 flex-shrink-0 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden border border-neutral-200 dark:border-neutral-700 flex items-center justify-center">
                                   {course.thumbnail_url ? (
                                     <img
-                                      src={course.thumbnail_url}
+                                      src={resolveMediaUrl(course.thumbnail_url)}
                                       alt={course.title_ar}
                                       className="h-full w-full object-cover"
                                     />
@@ -446,6 +447,7 @@ export default function StaffCoursesPage() {
                                 <div>
                                   <Link
                                     href={`/staff/courses/${course.id}`}
+                                    prefetch={false}
                                     className="font-bold text-neutral-900 dark:text-white line-clamp-1 hover:text-emerald-600 transition-colors"
                                   >
                                     {course.title_ar}
@@ -577,7 +579,7 @@ export default function StaffCoursesPage() {
                       <div className="relative h-40 w-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center overflow-hidden">
                         {course.thumbnail_url ? (
                           <img
-                            src={course.thumbnail_url}
+                            src={resolveMediaUrl(course.thumbnail_url)}
                             alt={course.title_ar}
                             className="h-full w-full object-cover"
                           />
@@ -602,6 +604,7 @@ export default function StaffCoursesPage() {
                           </span>
                           <Link
                             href={`/staff/courses/${course.id}`}
+                            prefetch={false}
                             className="text-sm font-bold text-neutral-900 dark:text-white line-clamp-1 hover:text-emerald-600 transition-colors"
                           >
                             {course.title_ar}
@@ -626,6 +629,7 @@ export default function StaffCoursesPage() {
                           <div className="flex items-center gap-2">
                             <Link
                               href={`/staff/courses/${course.id}`}
+                              prefetch={false}
                               className="px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex items-center gap-1"
                             >
                               <Eye className="h-3.5 w-3.5" />

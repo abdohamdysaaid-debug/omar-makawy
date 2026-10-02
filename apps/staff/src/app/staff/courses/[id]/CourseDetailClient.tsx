@@ -36,6 +36,7 @@ import {
   UpdateCoursePayload,
   SystemPermissions,
   ApiError,
+  resolveMediaUrl,
 } from '@omar-makawy/shared';
 import { StaffGuard } from '../../../../components/layout/StaffGuard';
 import { PermissionGate } from '../../../../components/rbac/PermissionGate';
@@ -436,7 +437,7 @@ export function CourseDetailClient() {
                   <div className="relative h-60 lg:h-auto bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center p-6 border-b lg:border-b-0 lg:border-r border-neutral-200 dark:border-neutral-800">
                     {course.thumbnail_url ? (
                       <img
-                        src={course.thumbnail_url}
+                        src={resolveMediaUrl(course.thumbnail_url)}
                         alt={course.title_ar}
                         className="h-full w-full max-h-56 object-cover rounded-lg shadow-sm"
                       />

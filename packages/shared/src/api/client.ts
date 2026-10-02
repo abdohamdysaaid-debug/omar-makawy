@@ -6,6 +6,21 @@ export const DEFAULT_API_BASE_URL =
     ? 'https://api.omarmeckawy.com/api/v1'
     : 'http://localhost:3000/api/v1');
 
+export function resolveMediaUrl(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  if (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('blob:') ||
+    url.startsWith('data:')
+  ) {
+    return url;
+  }
+  const baseUrl = DEFAULT_API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+  const cleanPath = url.startsWith('/') ? url : `/${url}`;
+  return `${baseUrl}${cleanPath}`;
+}
+
 export interface ApiClientConfig {
   baseUrl?: string;
   tokenKey?: string;

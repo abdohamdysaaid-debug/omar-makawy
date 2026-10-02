@@ -465,6 +465,7 @@ export default function StaffBooksPage() {
                           <PermissionGate permission={SystemPermissions.BOOKS_READ}>
                             <Link
                               href={`/staff/books/${book.id}`}
+                              prefetch={false}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
                             >
                               <Eye className="h-3.5 w-3.5" />

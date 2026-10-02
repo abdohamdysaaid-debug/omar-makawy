@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { BookOpen, Sparkles, Globe, Layers, Tag } from 'lucide-react';
+import { resolveMediaUrl } from '@omar-makawy/shared';
 import { StatusBadge } from '../ui/StatusBadge';
 
 export interface CourseCardPreviewProps {
@@ -34,14 +35,15 @@ export function CourseCardPreview({
   isArabic = true,
 }: CourseCardPreviewProps) {
   const displayPrice = hasDiscount && discountPrice !== undefined && discountPrice < price ? discountPrice : price;
+  const image = resolveMediaUrl(thumbnailUrl);
 
   return (
     <div className="w-full max-w-sm mx-auto flex flex-col justify-between rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-lg overflow-hidden transition-all">
       {/* Course Thumbnail Header (16:9 Aspect Ratio) */}
       <div className="relative aspect-video w-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center overflow-hidden">
-        {thumbnailUrl ? (
+        {image ? (
           <img
-            src={thumbnailUrl}
+            src={image}
             alt={titleAr || 'معاينة الكورس'}
             className="h-full w-full object-cover transition-transform duration-300"
           />

@@ -351,6 +351,7 @@ export default function StaffStudentsPage() {
                         <td className="py-3.5 px-4 text-center">
                           <Link
                             href={`/staff/students/${student.id}`}
+                            prefetch={false}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-xs font-semibold transition-colors"
                           >
                             <span>{isArabic ? 'التفاصيل' : 'Details'}</span>
@@ -413,6 +414,7 @@ export default function StaffStudentsPage() {
                       </div>
                       <Link
                         href={`/staff/students/${student.id}`}
+                        prefetch={false}
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 text-xs font-semibold"
                       >
                         <span>{isArabic ? 'عرض الملف' : 'View Profile'}</span>
