@@ -113,13 +113,20 @@ export default function ProfileClient() {
 
             <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
               <span className="text-xs text-gray-400 block mb-0.5">البريد الإلكتروني</span>
-              <span className="font-bold text-sm text-gray-900 dark:text-white">{student.email}</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">{student.email || 'غير مسجل'}</span>
             </div>
 
             <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
               <span className="text-xs text-gray-400 block mb-0.5">السنة الدراسية المسجلة</span>
               <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
                 {academicYearName}
+              </span>
+            </div>
+
+            <div className="sm:col-span-2 p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">العنوان بالتفصيل</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">
+                {student.address || 'غير مسجل'}
               </span>
             </div>
           </div>

@@ -349,14 +349,12 @@ export function StudentDetailClient({ studentId: propStudentId }: { studentId?: 
             </div>
 
             {/* Address */}
-            {student.address && (
-              <div className="sm:col-span-2 p-3.5 rounded-2xl bg-[#171d19] border border-neutral-800 space-y-1">
-                <span className="text-neutral-400 block">{isAr ? 'العنوان بالتفصيل:' : 'Full Address:'}</span>
-                <span className="font-medium text-white">
-                  {student.address}
-                </span>
-              </div>
-            )}
+            <div className="sm:col-span-2 p-3.5 rounded-2xl bg-[#171d19] border border-neutral-800 space-y-1">
+              <span className="text-neutral-400 block">{isAr ? 'العنوان بالتفصيل:' : 'Full Address:'}</span>
+              <span className="font-medium text-white">
+                {student.address || (isAr ? 'غير مسجل' : '—')}
+              </span>
+            </div>
           </div>
         </div>
 

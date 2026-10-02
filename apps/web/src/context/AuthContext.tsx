@@ -54,6 +54,13 @@ function mapUserToStudent(user: User): Student {
     parentPhone: profile.parent_phone || '',
     email: user.email || '',
     academicYearId: user.academic_year_id || profile.academic_year_id || '',
+    governorateId: profile.governorate_id || undefined,
+    schoolName: profile.school_name || undefined,
+    educationType: profile.education_type || undefined,
+    studyType: profile.study_type || undefined,
+    section: profile.section || undefined,
+    gender: profile.gender || undefined,
+    address: profile.address || undefined,
     avatarUrl: profile.avatar_url || '',
     role: user.role,
   };

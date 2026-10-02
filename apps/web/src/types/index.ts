@@ -122,6 +122,14 @@ export interface Student {
   email: string;
   academicYearId: string | number;
   academicYearName?: string;
+  governorateId?: string;
+  governorateName?: string;
+  schoolName?: string;
+  educationType?: string;
+  studyType?: string;
+  section?: string;
+  gender?: string;
+  address?: string;
   walletBalance?: number;
   avatarUrl?: string;
   role?: string;
