@@ -313,6 +313,7 @@ export default function StaffStudentsPage() {
                 <tr>
                   <th className="py-3 px-4 text-start">{isAr ? 'الطالب' : 'Student'}</th>
                   <th className="py-3 px-4 text-start">{isAr ? 'الهاتف' : 'Phone'}</th>
+                  <th className="py-3 px-4 text-start">{isAr ? 'الواتساب' : 'WhatsApp'}</th>
                   <th className="py-3 px-4 text-start">{isAr ? 'المرحلة الدراسية' : 'Academic Year'}</th>
                   <th className="py-3 px-4 text-start">{isAr ? 'المحافظة والمدرسة' : 'Location & School'}</th>
                   <th className="py-3 px-4 text-center">{isAr ? 'الحالة' : 'Status'}</th>
@@ -321,158 +322,199 @@ export default function StaffStudentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 font-medium">
-                {students.map((student) => (
-                  <tr
-                    key={student.id}
-                    className="hover:bg-neutral-50/60 dark:hover:bg-neutral-850/50 transition-colors"
-                  >
-                    {/* Name and Email */}
-                    <td className="py-3.5 px-4">
-                      <div>
-                        <Link
-                          href={`/staff/students/${student.id}`}
-                          className="font-bold text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors block"
-                        >
-                          {student.full_name}
-                        </Link>
-                        {student.email && (
-                          <span className="text-[11px] text-neutral-400 block truncate max-w-xs">
-                            {student.email}
+                {students.map((student) => {
+                  const waNumber = (student.whatsapp_phone || student.phone || '').replace(/[^0-9]/g, '');
+                  return (
+                    <tr
+                      key={student.id}
+                      className="hover:bg-neutral-50/60 dark:hover:bg-neutral-850/50 transition-colors"
+                    >
+                      {/* Name and Email */}
+                      <td className="py-3.5 px-4">
+                        <div>
+                          <Link
+                            href={`/staff/students/${student.id}`}
+                            className="font-bold text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors block"
+                          >
+                            {student.full_name}
+                          </Link>
+                          {student.email && (
+                            <span className="text-[11px] text-neutral-400 block truncate max-w-xs">
+                              {student.email}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Phone Number */}
+                      <td className="py-3.5 px-4">
+                        <div className="font-mono text-neutral-700 dark:text-neutral-300 font-semibold">
+                          {student.phone}
+                        </div>
+                        {student.parent_phone && (
+                          <span className="text-[10px] text-neutral-400 block font-mono">
+                            {isAr ? `ولي الأمر: ${student.parent_phone}` : `Parent: ${student.parent_phone}`}
                           </span>
                         )}
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Phone Number */}
-                    <td className="py-3.5 px-4">
-                      <div className="font-mono text-neutral-700 dark:text-neutral-300 font-semibold">
-                        {student.phone}
-                      </div>
-                      {student.parent_phone && (
-                        <span className="text-[10px] text-neutral-400 block font-mono">
-                          {isAr ? `ولي الأمر: ${student.parent_phone}` : `Parent: ${student.parent_phone}`}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Academic Year */}
-                    <td className="py-3.5 px-4 text-neutral-700 dark:text-neutral-300 font-semibold">
-                      {isAr
-                        ? student.academic_year_name_ar || 'غير محدد'
-                        : student.academic_year_name_en || student.academic_year_name_ar || 'Not Assigned'}
-                    </td>
-
-                    {/* Governorate & School */}
-                    <td className="py-3.5 px-4">
-                      <div className="text-neutral-800 dark:text-neutral-200">
-                        {isAr ? student.governorate_name_ar || '—' : student.governorate_name_en || student.governorate_name_ar || '—'}
-                      </div>
-                      {student.school_name && (
-                        <span className="text-[11px] text-neutral-400 block truncate max-w-[180px]">
-                          {student.school_name}
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-3.5 px-4 text-center">
-                      <StatusBadge status={student.status} isArabic={isAr} />
-                    </td>
-
-                    {/* Registration Date */}
-                    <td className="py-3.5 px-4 text-neutral-500 dark:text-neutral-400 text-[11px]">
-                      {new Date(student.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3.5 px-4 text-end">
-                      <div className="inline-flex items-center gap-1">
-                        <Link
-                          href={`/staff/students/${student.id}`}
-                          title={isAr ? 'عرض التفاصيل والأجهزة' : 'View Details & Devices'}
-                          className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-800 dark:hover:text-white transition-colors"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
-
-                        {canManage && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setStudentForEdit(student as StudentDetail)}
-                              title={isAr ? 'تعديل بيانات الطالب' : 'Edit Student'}
-                              className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setStudentForStatus(student as StudentDetail)}
-                              title={isAr ? 'تغيير حالة الحساب' : 'Change Account Status'}
-                              className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-                            >
-                              <ShieldAlert className="h-4 w-4" />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setStudentForResetPwd(student as StudentDetail)}
-                              title={isAr ? 'توليد رابط إعادة تعيين كلمة السر' : 'Reset Password Link'}
-                              className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                            >
-                              <KeyRound className="h-4 w-4" />
-                            </button>
-                          </>
+                      {/* WhatsApp Phone */}
+                      <td className="py-3.5 px-4">
+                        {waNumber ? (
+                          <a
+                            href={`https://wa.me/${waNumber}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+                            title={isAr ? 'فتح محادثة واتساب' : 'Open WhatsApp Chat'}
+                          >
+                            <span>{student.whatsapp_phone || student.phone}</span>
+                          </a>
+                        ) : (
+                          <span className="text-neutral-400">—</span>
                         )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      {/* Academic Year */}
+                      <td className="py-3.5 px-4 text-neutral-700 dark:text-neutral-300 font-semibold">
+                        <div>
+                          {isAr
+                            ? student.academic_year_name_ar || 'غير محدد'
+                            : student.academic_year_name_en || student.academic_year_name_ar || 'Not Assigned'}
+                        </div>
+                        {student.section && (
+                          <span className="text-[10px] text-brand-600 dark:text-brand-400 font-bold block">
+                            {student.section === 'SCIENCE' ? (isAr ? 'علمي علوم' : 'Science') :
+                             student.section === 'MATH' ? (isAr ? 'علمي رياضة' : 'Math') :
+                             student.section === 'LITERARY' ? (isAr ? 'أدبي' : 'Literary') : student.section}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Governorate & School */}
+                      <td className="py-3.5 px-4">
+                        <div className="text-neutral-800 dark:text-neutral-200">
+                          {isAr ? student.governorate_name_ar || '—' : student.governorate_name_en || student.governorate_name_ar || '—'}
+                        </div>
+                        {student.school_name && (
+                          <span className="text-[11px] text-neutral-400 block truncate max-w-[180px]">
+                            {student.school_name}
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4 text-center">
+                        <StatusBadge status={student.status} isArabic={isAr} />
+                      </td>
+
+                      {/* Registration Date */}
+                      <td className="py-3.5 px-4 text-neutral-500 dark:text-neutral-400 text-[11px]">
+                        {new Date(student.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-end">
+                        <div className="inline-flex items-center gap-1">
+                          <Link
+                            href={`/staff/students/${student.id}`}
+                            title={isAr ? 'عرض التفاصيل والأجهزة' : 'View Details & Devices'}
+                            className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-800 dark:hover:text-white transition-colors"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
+
+                          {canManage && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setStudentForEdit(student as StudentDetail)}
+                                title={isAr ? 'تعديل بيانات الطالب' : 'Edit Student'}
+                                className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setStudentForStatus(student as StudentDetail)}
+                                title={isAr ? 'تغيير حالة الحساب' : 'Change Account Status'}
+                                className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+                              >
+                                <ShieldAlert className="h-4 w-4" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setStudentForResetPwd(student as StudentDetail)}
+                                title={isAr ? 'توليد رابط إعادة تعيين كلمة السر' : 'Reset Password Link'}
+                                className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                              >
+                                <KeyRound className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Mobile Cards List */}
           <div className="md:hidden space-y-3">
-            {students.map((student) => (
-              <div
-                key={student.id}
-                className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-xs space-y-3"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <Link
-                      href={`/staff/students/${student.id}`}
-                      className="font-bold text-sm text-neutral-900 dark:text-white line-clamp-1 hover:text-brand-600"
-                    >
-                      {student.full_name}
-                    </Link>
-                    <span className="text-xs text-neutral-500 font-mono font-semibold block">
-                      {student.phone}
-                    </span>
+            {students.map((student) => {
+              const waNumber = (student.whatsapp_phone || student.phone || '').replace(/[^0-9]/g, '');
+              return (
+                <div
+                  key={student.id}
+                  className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-xs space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <Link
+                        href={`/staff/students/${student.id}`}
+                        className="font-bold text-sm text-neutral-900 dark:text-white line-clamp-1 hover:text-brand-600"
+                      >
+                        {student.full_name}
+                      </Link>
+                      <span className="text-xs text-neutral-500 font-mono font-semibold block">
+                        {student.phone}
+                      </span>
+                      {waNumber && (
+                        <a
+                          href={`https://wa.me/${waNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold block"
+                        >
+                          واتساب: {student.whatsapp_phone || student.phone}
+                        </a>
+                      )}
+                    </div>
+                    <StatusBadge status={student.status} isArabic={isAr} />
                   </div>
-                  <StatusBadge status={student.status} isArabic={isAr} />
-                </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-neutral-600 dark:text-neutral-400 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                  <div>
-                    <span className="text-neutral-400 block">{isAr ? 'المرحلة:' : 'Stage:'}</span>
-                    <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                      {isAr ? student.academic_year_name_ar : student.academic_year_name_en}
-                    </span>
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-neutral-600 dark:text-neutral-400 pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                    <div>
+                      <span className="text-neutral-400 block">{isAr ? 'المرحلة:' : 'Stage:'}</span>
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {isAr ? student.academic_year_name_ar : student.academic_year_name_en}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-400 block">{isAr ? 'المحافظة:' : 'Gov:'}</span>
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {isAr ? student.governorate_name_ar || '—' : student.governorate_name_en || '—'}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-neutral-400 block">{isAr ? 'المحافظة:' : 'Gov:'}</span>
-                    <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                      {isAr ? student.governorate_name_ar || '—' : student.governorate_name_en || '—'}
-                    </span>
-                  </div>
-                </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800">
                   <span className="text-[10px] text-neutral-400">
@@ -498,8 +540,9 @@ export default function StaffStudentsPage() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
           {/* Pagination Controls */}
           {totalPages > 1 && (

@@ -20,6 +20,10 @@ export interface StudentItem {
   academic_year_name_ar: string | null;
   academic_year_name_en: string | null;
   parent_phone: string | null;
+  whatsapp_phone: string | null;
+  education_type: 'GENERAL' | 'AL_AZHAR' | string | null;
+  study_type: 'ARABIC' | 'LANGUAGES' | string | null;
+  section: 'SCIENCE' | 'MATH' | 'LITERARY' | string | null;
   governorate_id: string | null;
   governorate_code: string | null;
   governorate_name_ar: string | null;
@@ -87,6 +91,10 @@ export interface UpdateStudentPayload {
   school_name?: string;
   gender?: 'MALE' | 'FEMALE';
   parent_phone?: string;
+  whatsapp_phone?: string;
+  education_type?: 'GENERAL' | 'AL_AZHAR';
+  study_type?: 'ARABIC' | 'LANGUAGES';
+  section?: 'SCIENCE' | 'MATH' | 'LITERARY' | null;
   address?: string;
 }
 

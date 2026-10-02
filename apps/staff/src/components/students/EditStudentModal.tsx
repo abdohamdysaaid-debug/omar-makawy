@@ -45,11 +45,15 @@ export function EditStudentModal({
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [whatsappPhone, setWhatsappPhone] = useState('');
   const [email, setEmail] = useState('');
   const [academicYearId, setAcademicYearId] = useState('');
   const [governorateId, setGovernorateId] = useState('');
   const [schoolName, setSchoolName] = useState('');
   const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE');
+  const [educationType, setEducationType] = useState<'GENERAL' | 'AL_AZHAR'>('GENERAL');
+  const [studyType, setStudyType] = useState<'ARABIC' | 'LANGUAGES'>('ARABIC');
+  const [section, setSection] = useState<'SCIENCE' | 'MATH' | 'LITERARY' | ''>('');
   const [parentPhone, setParentPhone] = useState('');
   const [address, setAddress] = useState('');
 
@@ -72,11 +76,15 @@ export function EditStudentModal({
     if (student) {
       setFullName(student.full_name || '');
       setPhone(student.phone || '');
+      setWhatsappPhone(student.whatsapp_phone || '');
       setEmail(student.email || '');
       setAcademicYearId(student.academic_year_id || '');
       setGovernorateId(student.governorate_id || '');
       setSchoolName(student.school_name || '');
       setGender((student.gender as 'MALE' | 'FEMALE') || 'MALE');
+      setEducationType((student.education_type as 'GENERAL' | 'AL_AZHAR') || 'GENERAL');
+      setStudyType((student.study_type as 'ARABIC' | 'LANGUAGES') || 'ARABIC');
+      setSection((student.section as 'SCIENCE' | 'MATH' | 'LITERARY') || '');
       setParentPhone(student.parent_phone || '');
       setAddress(student.address || '');
       setError(null);
@@ -101,11 +109,15 @@ export function EditStudentModal({
     const payload: UpdateStudentPayload = {
       full_name: fullName.trim(),
       phone: phone.trim(),
+      whatsapp_phone: whatsappPhone.trim() || undefined,
       email: email.trim() || undefined,
       academic_year_id: academicYearId || undefined,
       governorate_id: governorateId || undefined,
       school_name: schoolName.trim() || undefined,
       gender,
+      education_type: educationType,
+      study_type: studyType,
+      section: section ? section : null,
       parent_phone: parentPhone.trim() || undefined,
       address: address.trim() || undefined,
     };
@@ -187,13 +199,27 @@ export function EditStudentModal({
             {/* Phone */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200">
-                {isArabic ? 'رقم هاتف الطالب (واتساب / تسجيل) *' : 'Phone Number *'}
+                {isArabic ? 'رقم هاتف الطالب *' : 'Phone Number *'}
               </label>
               <input
                 type="text"
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                placeholder="+2010xxxxxxxx"
+                className="block w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/70 dark:bg-neutral-800 py-2.5 px-3.5 text-xs font-mono text-neutral-900 dark:text-white placeholder-neutral-400 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors"
+              />
+            </div>
+
+            {/* WhatsApp */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                {isArabic ? 'رقم الواتساب' : 'WhatsApp Number'}
+              </label>
+              <input
+                type="text"
+                value={whatsappPhone}
+                onChange={(e) => setWhatsappPhone(e.target.value)}
                 placeholder="+2010xxxxxxxx"
                 className="block w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/70 dark:bg-neutral-800 py-2.5 px-3.5 text-xs font-mono text-neutral-900 dark:text-white placeholder-neutral-400 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors"
               />
@@ -229,6 +255,53 @@ export function EditStudentModal({
                     {isArabic ? year.name_ar : year.name_en}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            {/* Education Type */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                {isArabic ? 'نوع التعليم' : 'Education Type'}
+              </label>
+              <select
+                value={educationType}
+                onChange={(e) => setEducationType(e.target.value as 'GENERAL' | 'AL_AZHAR')}
+                className="block w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/70 dark:bg-neutral-800 py-2.5 px-3.5 text-xs font-semibold text-neutral-900 dark:text-white focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
+              >
+                <option value="GENERAL">{isArabic ? 'تعليم عام' : 'General Education'}</option>
+                <option value="AL_AZHAR">{isArabic ? 'أزهر شريف' : 'Al-Azhar'}</option>
+              </select>
+            </div>
+
+            {/* Study Type */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                {isArabic ? 'نوع الدراسة' : 'Study Type'}
+              </label>
+              <select
+                value={studyType}
+                onChange={(e) => setStudyType(e.target.value as 'ARABIC' | 'LANGUAGES')}
+                className="block w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/70 dark:bg-neutral-800 py-2.5 px-3.5 text-xs font-semibold text-neutral-900 dark:text-white focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
+              >
+                <option value="ARABIC">{isArabic ? 'عربي' : 'Arabic'}</option>
+                <option value="LANGUAGES">{isArabic ? 'لغات / تجريبي' : 'Languages'}</option>
+              </select>
+            </div>
+
+            {/* Section */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                {isArabic ? 'الشعبة' : 'Section'}
+              </label>
+              <select
+                value={section}
+                onChange={(e) => setSection(e.target.value as any)}
+                className="block w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/70 dark:bg-neutral-800 py-2.5 px-3.5 text-xs font-semibold text-neutral-900 dark:text-white focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
+              >
+                <option value="">{isArabic ? 'بدون / عام' : 'None / General'}</option>
+                <option value="SCIENCE">{isArabic ? 'علمي علوم' : 'Science'}</option>
+                <option value="MATH">{isArabic ? 'علمي رياضة' : 'Math'}</option>
+                <option value="LITERARY">{isArabic ? 'أدبي' : 'Literary'}</option>
               </select>
             </div>
 

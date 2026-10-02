@@ -234,11 +234,31 @@ export function StudentDetailClient({ studentId }: { studentId: string }) {
               </span>
             </div>
 
-            {/* Email */}
+            {/* WhatsApp */}
             <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
-              <span className="text-neutral-400 block">{isAr ? 'البريد الإلكتروني:' : 'Email Address:'}</span>
-              <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                {student.email || (isAr ? 'غير مسجل' : 'Not Provided')}
+              <span className="text-neutral-400 block">{isAr ? 'رقم الواتساب:' : 'WhatsApp:'}</span>
+              {student.whatsapp_phone || student.phone ? (
+                <a
+                  href={`https://wa.me/${(student.whatsapp_phone || student.phone).replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-mono font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                >
+                  <span>{student.whatsapp_phone || student.phone}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-sans">
+                    {isAr ? 'محادثة' : 'Chat'}
+                  </span>
+                </a>
+              ) : (
+                <span className="text-neutral-400">{isAr ? 'غير مسجل' : '—'}</span>
+              )}
+            </div>
+
+            {/* Parent Phone */}
+            <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
+              <span className="text-neutral-400 block">{isAr ? 'هاتف ولي الأمر:' : 'Parent Phone:'}</span>
+              <span className="font-mono font-semibold text-neutral-800 dark:text-neutral-200">
+                {student.parent_phone || (isAr ? 'غير مسجل' : '—')}
               </span>
             </div>
 
@@ -249,6 +269,33 @@ export function StudentDetailClient({ studentId }: { studentId: string }) {
                 {isAr
                   ? student.academic_year_name_ar || 'غير محدد'
                   : student.academic_year_name_en || student.academic_year_name_ar || 'Not Assigned'}
+              </span>
+            </div>
+
+            {/* Section (if applicable) */}
+            <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
+              <span className="text-neutral-400 block">{isAr ? 'الشعبة التخصصية:' : 'Section:'}</span>
+              <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                {student.section === 'SCIENCE' ? (isAr ? 'علمي علوم' : 'Science') :
+                 student.section === 'MATH' ? (isAr ? 'علمي رياضة' : 'Math') :
+                 student.section === 'LITERARY' ? (isAr ? 'أدبي' : 'Literary') :
+                 student.section || (isAr ? 'غير محدد / عام' : 'General / None')}
+              </span>
+            </div>
+
+            {/* Education Type */}
+            <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
+              <span className="text-neutral-400 block">{isAr ? 'نوع التعليم:' : 'Education Type:'}</span>
+              <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                {student.education_type === 'AL_AZHAR' ? (isAr ? 'أزهر شريف' : 'Al-Azhar') : (isAr ? 'تعليم عام' : 'General Education')}
+              </span>
+            </div>
+
+            {/* Study Type */}
+            <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
+              <span className="text-neutral-400 block">{isAr ? 'نوع الدراسة:' : 'Study Type:'}</span>
+              <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                {student.study_type === 'LANGUAGES' ? (isAr ? 'لغات / تجريبي' : 'Languages') : (isAr ? 'عربي' : 'Arabic')}
               </span>
             </div>
 
@@ -280,11 +327,11 @@ export function StudentDetailClient({ studentId }: { studentId: string }) {
               </span>
             </div>
 
-            {/* Parent Phone */}
+            {/* Email */}
             <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
-              <span className="text-neutral-400 block">{isAr ? 'هاتف ولي الأمر:' : 'Parent Phone:'}</span>
-              <span className="font-mono font-semibold text-neutral-800 dark:text-neutral-200">
-                {student.parent_phone || (isAr ? 'غير مسجل' : '—')}
+              <span className="text-neutral-400 block">{isAr ? 'البريد الإلكتروني:' : 'Email Address:'}</span>
+              <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                {student.email || (isAr ? 'غير مسجل' : 'Not Provided')}
               </span>
             </div>
 
