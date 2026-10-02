@@ -444,9 +444,12 @@ export default function StaffCoursesPage() {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="font-bold text-neutral-900 dark:text-white line-clamp-1">
+                                  <Link
+                                    href={`/staff/courses/${course.id}`}
+                                    className="font-bold text-neutral-900 dark:text-white line-clamp-1 hover:text-emerald-600 transition-colors"
+                                  >
                                     {course.title_ar}
-                                  </p>
+                                  </Link>
                                   <p className="text-[11px] text-neutral-500 font-mono line-clamp-1">
                                     {course.title_en}
                                   </p>
@@ -507,6 +510,14 @@ export default function StaffCoursesPage() {
 
                             <td className="px-4 py-3 text-center whitespace-nowrap">
                               <div className="flex items-center justify-center gap-2">
+                                <Link
+                                  href={`/staff/courses/${course.id}`}
+                                  title={isArabic ? 'عرض تفاصيل الفهرس والمحاضرات' : 'View Course Syllabus & Details'}
+                                  className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                >
+                                  <Eye className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                </Link>
+
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditModal(course)}
@@ -589,9 +600,12 @@ export default function StaffCoursesPage() {
                           <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 block">
                             {course.academic_year_name_ar || course.academic_year_code}
                           </span>
-                          <h3 className="text-sm font-bold text-neutral-900 dark:text-white line-clamp-1">
+                          <Link
+                            href={`/staff/courses/${course.id}`}
+                            className="text-sm font-bold text-neutral-900 dark:text-white line-clamp-1 hover:text-emerald-600 transition-colors"
+                          >
                             {course.title_ar}
-                          </h3>
+                          </Link>
                           <p className="text-xs text-neutral-500 font-mono line-clamp-1">
                             {course.title_en}
                           </p>
@@ -610,6 +624,13 @@ export default function StaffCoursesPage() {
                           </div>
 
                           <div className="flex items-center gap-2">
+                            <Link
+                              href={`/staff/courses/${course.id}`}
+                              className="px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex items-center gap-1"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              {isArabic ? 'تفاصيل' : 'Details'}
+                            </Link>
                             <button
                               type="button"
                               onClick={() => handleOpenEditModal(course)}
