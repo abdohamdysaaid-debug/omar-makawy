@@ -17,6 +17,12 @@ import {
   Laptop
 } from 'lucide-react';
 import Link from 'next/link';
+import {
+  formatSectionLabel,
+  formatEducationTypeLabel,
+  formatStudyTypeLabel,
+  formatGenderLabel,
+} from '@omar-makawy/shared';
 
 export default function ProfileClient() {
   const { student, isAuthenticated, logout } = useAuth();
@@ -120,6 +126,54 @@ export default function ProfileClient() {
               <span className="text-xs text-gray-400 block mb-0.5">السنة الدراسية المسجلة</span>
               <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
                 {academicYearName}
+              </span>
+            </div>
+
+            {/* Section / Track */}
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">الشعبة التخصصية</span>
+              <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                {formatSectionLabel(student.section, student.educationType, true)}
+              </span>
+            </div>
+
+            {/* Education Type */}
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">نوع التعليم</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">
+                {formatEducationTypeLabel(student.educationType, true)}
+              </span>
+            </div>
+
+            {/* Study Type */}
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">نوع الدراسة</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">
+                {formatStudyTypeLabel(student.studyType, true)}
+              </span>
+            </div>
+
+            {/* Governorate */}
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">المحافظة</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">
+                {student.governorateName || 'غير مسجل'}
+              </span>
+            </div>
+
+            {/* School Name */}
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">المدرسة</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">
+                {student.schoolName || 'غير مسجل'}
+              </span>
+            </div>
+
+            {/* Gender */}
+            <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/60 border border-gray-100 dark:border-gray-800/50">
+              <span className="text-xs text-gray-400 block mb-0.5">النوع</span>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">
+                {formatGenderLabel(student.gender, true)}
               </span>
             </div>
 

@@ -25,6 +25,7 @@ import {
   StudentAccountStatus,
   SystemPermissions,
   UpdateStudentStatusResponse,
+  formatSectionLabel,
 } from '@omar-makawy/shared';
 import { staffApiClient, staffAuthApi } from '@/context/StaffAuthContext';
 import { createStudentsApi } from '@omar-makawy/shared';
@@ -382,9 +383,7 @@ export default function StaffStudentsPage() {
                         </div>
                         {student.section && (
                           <span className="text-[10px] text-emerald-400 font-bold block">
-                            {student.section === 'SCIENCE' ? (isAr ? 'علمي علوم' : 'Science') :
-                             student.section === 'MATH' ? (isAr ? 'علمي رياضة' : 'Math') :
-                             student.section === 'LITERARY' ? (isAr ? 'أدبي' : 'Literary') : student.section}
+                            {formatSectionLabel(student.section, student.education_type, isAr)}
                           </span>
                         )}
                       </td>

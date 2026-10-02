@@ -29,6 +29,10 @@ import {
   StudentDetail,
   SystemPermissions,
   UpdateStudentStatusResponse,
+  formatSectionLabel,
+  formatEducationTypeLabel,
+  formatStudyTypeLabel,
+  formatGenderLabel,
 } from '@omar-makawy/shared';
 import { staffApiClient } from '@/context/StaffAuthContext';
 import { createStudentsApi } from '@omar-makawy/shared';
@@ -276,10 +280,7 @@ export function StudentDetailClient({ studentId }: { studentId: string }) {
             <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
               <span className="text-neutral-400 block">{isAr ? 'الشعبة التخصصية:' : 'Section:'}</span>
               <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                {student.section === 'SCIENCE' ? (isAr ? 'علمي علوم' : 'Science') :
-                 student.section === 'MATH' ? (isAr ? 'علمي رياضة' : 'Math') :
-                 student.section === 'LITERARY' ? (isAr ? 'أدبي' : 'Literary') :
-                 student.section || (isAr ? 'غير محدد / عام' : 'General / None')}
+                {formatSectionLabel(student.section, student.education_type, isAr)}
               </span>
             </div>
 
@@ -287,7 +288,7 @@ export function StudentDetailClient({ studentId }: { studentId: string }) {
             <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
               <span className="text-neutral-400 block">{isAr ? 'نوع التعليم:' : 'Education Type:'}</span>
               <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                {student.education_type === 'AL_AZHAR' ? (isAr ? 'أزهر شريف' : 'Al-Azhar') : (isAr ? 'تعليم عام' : 'General Education')}
+                {formatEducationTypeLabel(student.education_type, isAr)}
               </span>
             </div>
 
@@ -295,7 +296,7 @@ export function StudentDetailClient({ studentId }: { studentId: string }) {
             <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
               <span className="text-neutral-400 block">{isAr ? 'نوع الدراسة:' : 'Study Type:'}</span>
               <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                {student.study_type === 'LANGUAGES' ? (isAr ? 'لغات / تجريبي' : 'Languages') : (isAr ? 'عربي' : 'Arabic')}
+                {formatStudyTypeLabel(student.study_type, isAr)}
               </span>
             </div>
 
@@ -319,11 +320,7 @@ export function StudentDetailClient({ studentId }: { studentId: string }) {
             <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-850/60 border border-neutral-200/60 dark:border-neutral-800 space-y-1">
               <span className="text-neutral-400 block">{isAr ? 'النوع:' : 'Gender:'}</span>
               <span className="font-semibold text-neutral-800 dark:text-neutral-200">
-                {student.gender === 'MALE'
-                  ? isAr ? 'ذكر' : 'Male'
-                  : student.gender === 'FEMALE'
-                  ? isAr ? 'أنثى' : 'Female'
-                  : '—'}
+                {formatGenderLabel(student.gender, isAr)}
               </span>
             </div>
 

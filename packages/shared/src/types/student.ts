@@ -92,9 +92,9 @@ export interface UpdateStudentPayload {
   gender?: 'MALE' | 'FEMALE';
   parent_phone?: string;
   whatsapp_phone?: string;
-  education_type?: 'GENERAL' | 'AL_AZHAR';
-  study_type?: 'ARABIC' | 'LANGUAGES';
-  section?: 'SCIENCE' | 'MATH' | 'LITERARY' | null;
+  education_type?: 'GENERAL' | 'AL_AZHAR' | string;
+  study_type?: 'ARABIC' | 'LANGUAGES' | string;
+  section?: 'SCIENCE_GENERAL' | 'SCIENCE_MATH' | 'LITERATURE' | 'SCIENCE' | 'MATH' | 'LITERARY' | string | null;
   address?: string;
 }
 
