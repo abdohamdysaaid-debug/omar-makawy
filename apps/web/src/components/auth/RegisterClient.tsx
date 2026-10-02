@@ -95,6 +95,7 @@ function RegisterForm() {
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [governorates, setGovernorates] = useState<Governorate[]>(FALLBACK_GOVERNORATES);
+  const [academicYears, setAcademicYears] = useState(ACADEMIC_YEAR_OPTIONS);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
@@ -127,20 +128,34 @@ function RegisterForm() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch Governorates on mount
+  // Fetch Governorates and Academic Years on mount
   useEffect(() => {
     let isMounted = true;
-    async function loadGovs() {
+    async function loadInitialData() {
       try {
-        const govs = await authApi.getGovernorates();
-        if (isMounted && Array.isArray(govs) && govs.length > 0) {
-          setGovernorates(govs);
+        const [govs, years] = await Promise.all([
+          authApi.getGovernorates(),
+          authApi.getAcademicYears(),
+        ]);
+        if (isMounted) {
+          if (Array.isArray(govs) && govs.length > 0) {
+            setGovernorates(govs);
+          }
+          if (Array.isArray(years) && years.length > 0) {
+            const mapped = years.map((y) => ({
+              id: y.id,
+              code: y.code,
+              title: y.name_ar,
+              hasSections: y.code === 'THIRD_SECONDARY',
+            }));
+            setAcademicYears(mapped);
+          }
         }
       } catch {
-        // Fallback already active
+        // Fallbacks already active
       }
     }
-    loadGovs();
+    loadInitialData();
     return () => {
       isMounted = false;
     };
@@ -952,7 +967,7 @@ function RegisterForm() {
                     errors.academicYearId ? 'border-red-500 ring-1 ring-red-500' : 'border-stone-300/90 dark:border-stone-800'
                   }`}
                 >
-                  {ACADEMIC_YEAR_OPTIONS.map((item) => (
+                  {academicYears.map((item) => (
                     <option key={item.id} value={item.id} className="bg-white dark:bg-[#121212] text-gray-900 dark:text-gray-100 font-medium">
                       {item.title}
                     </option>

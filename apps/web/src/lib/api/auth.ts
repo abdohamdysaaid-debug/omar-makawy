@@ -39,6 +39,14 @@ export interface Governorate {
   name_en: string;
 }
 
+export interface AcademicYear {
+  id: string;
+  code: string;
+  name_ar: string;
+  name_en: string;
+  stage_order: number;
+}
+
 export const authApi = {
   async register(data: RegisterPayload): Promise<AuthSuccessResponse> {
     const deviceUuid = getOrCreateDeviceUuid();
@@ -54,6 +62,10 @@ export const authApi = {
 
   async getGovernorates(): Promise<Governorate[]> {
     return apiClient.get<Governorate[]>('/auth/governorates').catch(() => []);
+  },
+
+  async getAcademicYears(): Promise<AcademicYear[]> {
+    return apiClient.get<AcademicYear[]>('/auth/academic-years').catch(() => []);
   },
 
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
