@@ -330,7 +330,7 @@ export default function StaffStudentsPage() {
                       onClick={(e) => {
                         const target = e.target as HTMLElement;
                         if (!target.closest('button') && !target.closest('a')) {
-                          window.location.href = `/staff/students/${student.id}`;
+                          window.location.href = `/staff/students/detail?id=${student.id}`;
                         }
                       }}
                       className="hover:bg-neutral-50 dark:hover:bg-neutral-850/70 transition-colors cursor-pointer group"
@@ -339,7 +339,7 @@ export default function StaffStudentsPage() {
                       <td className="py-3.5 px-4">
                         <div>
                           <Link
-                            href={`/staff/students/${student.id}`}
+                            href={`/staff/students/detail?id=${student.id}`}
                             className="font-bold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors block"
                           >
                             {student.full_name}
@@ -428,7 +428,7 @@ export default function StaffStudentsPage() {
                       <td className="py-3.5 px-4 text-end" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center gap-1.5">
                           <Link
-                            href={`/staff/students/${student.id}`}
+                            href={`/staff/students/detail?id=${student.id}`}
                             title={isAr ? 'عرض الملف الكامل والمعلومات' : 'View Full Profile & Details'}
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/60 dark:text-brand-300 dark:hover:bg-brand-900/60 border border-brand-200 dark:border-brand-800 transition-colors shadow-2xs"
                           >
@@ -487,7 +487,7 @@ export default function StaffStudentsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <Link
-                        href={`/staff/students/${student.id}`}
+                        href={`/staff/students/detail?id=${student.id}`}
                         className="font-bold text-sm text-neutral-900 dark:text-white line-clamp-1 hover:text-brand-600"
                       >
                         {student.full_name}
@@ -531,7 +531,7 @@ export default function StaffStudentsPage() {
 
                   <div className="flex items-center gap-1">
                     <Link
-                      href={`/staff/students/${student.id}`}
+                      href={`/staff/students/detail?id=${student.id}`}
                       className="px-2.5 py-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 text-neutral-700 dark:text-neutral-200 text-[11px] font-bold"
                     >
                       {isAr ? 'التفاصيل' : 'Details'}

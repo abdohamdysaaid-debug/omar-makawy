@@ -20,7 +20,7 @@ export default function NotFoundPage() {
         عذراً، لم نتمكن من العثور على المسار المطلوب في لوحة التحكم.
       </p>
       <Link
-        href="/staff/dashboard"
+        href="/staff"
         className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors"
       >
         <Home className="h-4 w-4" />

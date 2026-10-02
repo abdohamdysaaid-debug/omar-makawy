@@ -381,7 +381,7 @@ export default function StaffCoursesPage() {
                           </div>
                           <div className="truncate max-w-xs">
                             <Link
-                              href={`/staff/courses/${course.id}`}
+                              href={`/staff/courses/detail?id=${course.id}`}
                               className="font-bold text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors truncate block"
                             >
                               {course.title_ar}
@@ -453,7 +453,7 @@ export default function StaffCoursesPage() {
                       <td className="py-3.5 px-4 text-end">
                         <div className="inline-flex items-center gap-1">
                           <Link
-                            href={`/staff/courses/${course.id}`}
+                            href={`/staff/courses/detail?id=${course.id}`}
                             title={isAr ? 'عرض التفاصيل' : 'View Details'}
                             className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-800 dark:hover:text-white transition-colors"
                           >
@@ -511,7 +511,7 @@ export default function StaffCoursesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-1 mb-1">
                         <Link
-                          href={`/staff/courses/${course.id}`}
+                          href={`/staff/courses/detail?id=${course.id}`}
                           className="font-bold text-sm text-neutral-900 dark:text-white line-clamp-2 hover:text-brand-600"
                         >
                           {course.title_ar}
@@ -545,7 +545,7 @@ export default function StaffCoursesPage() {
 
                     <div className="flex items-center gap-1.5">
                       <Link
-                        href={`/staff/courses/${course.id}`}
+                        href={`/staff/courses/detail?id=${course.id}`}
                         className="px-2.5 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-semibold text-[11px]"
                       >
                         {isAr ? 'عرض' : 'View'}
