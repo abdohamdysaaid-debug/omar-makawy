@@ -6,13 +6,22 @@ import { useAuth } from '@/context/AuthContext';
 import { PlaySquare, Clock, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
+import { apiClient, resolveMediaUrl } from '@/lib/api';
+import { Course } from '@/types';
 
 export interface HomeCoursesSectionProps {
-  selectedAcademicYearId?: number | null;
+  selectedAcademicYearId?: number | string | null;
 }
 
+const GRADE_UUID_MAP: Record<number, string> = {
+  1: 'a0000000-0000-0000-0000-000000000001',
+  2: 'a0000000-0000-0000-0000-000000000002',
+  3: 'a0000000-0000-0000-0000-000000000003',
+  4: 'a0000000-0000-0000-0000-000000000004',
+};
+
 export default function HomeCoursesSection({ selectedAcademicYearId = null }: HomeCoursesSectionProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, openAuthGate } = useAuth();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -30,9 +39,9 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
     }
   };
 
-  const handleCourseClick = (courseId: number) => {
-    if (!isAuthenticated) {
-      window.location.href = `/login?returnUrl=${encodeURIComponent(`/courses/${courseId}`)}`;
+  const handleCourseClick = (courseId: string | number) => {
+    if (!isAuthenticated && openAuthGate) {
+      openAuthGate(`/courses/${courseId}`);
     } else {
       window.location.href = `/courses/${courseId}`;
     }
@@ -45,34 +54,50 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
     }
   };
 
-  const [availableCourses, setAvailableCourses] = useState<any[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
     let isMounted = true;
     async function fetchCourses() {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch('/api/courses').then((r) => r.json()).catch(() => []);
-        if (isMounted) {
-          setAvailableCourses(Array.isArray(res) ? res : []);
+        let endpoint = '/courses/public?limit=20';
+        if (selectedAcademicYearId) {
+          const uuid = typeof selectedAcademicYearId === 'number'
+            ? GRADE_UUID_MAP[selectedAcademicYearId]
+            : selectedAcademicYearId;
+          if (uuid) {
+            endpoint += `&academic_year_id=${encodeURIComponent(uuid)}`;
+          }
         }
-      } catch {
-        if (isMounted) setAvailableCourses([]);
+        const res = await apiClient.get<any>(endpoint);
+        if (isMounted) {
+          if (res && Array.isArray(res.data)) {
+            setAvailableCourses(res.data);
+          } else if (Array.isArray(res)) {
+            setAvailableCourses(res);
+          } else {
+            setAvailableCourses([]);
+          }
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err?.message || 'تعذر تحميل الكورسات');
+          setAvailableCourses([]);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
     }
     fetchCourses();
     return () => { isMounted = false; };
-  }, []);
+  }, [selectedAcademicYearId]);
 
-  const activeCourses = availableCourses.filter((c) => {
-    if (c.isActive === false) return false;
-    if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
-      return c.academicYearId === selectedAcademicYearId;
-    }
-    return true;
-  });
+  const activeCourses = availableCourses;
+
 
   return (
     <section id="courses" className="py-14 sm:py-20 bg-white dark:bg-[#080b11] transition-colors font-cairo scroll-mt-20">
@@ -94,71 +119,113 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
           </p>
         </motion.div>
 
-        {/* Courses Container or Empty State */}
-        {activeCourses.length > 0 ? (
+        {/* Courses Container or States */}
+        {loading ? (
+          <div className="flex overflow-x-auto snap-x snap-proximity scrollbar-none py-6 -mx-4 px-4 gap-5 sm:gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="snap-center shrink-0 w-[280px] sm:w-[330px] h-80 rounded-3xl bg-stone-100 dark:bg-stone-900 animate-pulse border border-stone-200/80 dark:border-stone-800"
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="w-full py-12 px-6 rounded-3xl bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-center flex flex-col items-center justify-center space-y-3">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">تعذر تحميل الكورسات</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md">{error}</p>
+          </div>
+        ) : activeCourses.length > 0 ? (
           <div
             ref={sliderRef}
             onScroll={handleScroll}
             className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
           >
-            {activeCourses.map((course, index) => (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                whileHover={{ scale: 1.05, y: -10 }}
-                whileTap={{ scale: 0.98 }}
-                viewport={{ amount: 0.55 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                onClick={() => handleCourseClick(course.id)}
-                className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
-                style={{ touchAction: 'pan-x pan-y' }}
-              >
-              {/* Card Header Banner */}
-              <div className="relative h-40 bg-[#0d6e4f] p-5 flex flex-col justify-between text-white overflow-hidden">
-                <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
-                <div className="flex items-center justify-between relative z-10">
-                  <span className="bg-white/20 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full">
-                    {course.teacher || 'مستر عمر مكاوي'}
-                  </span>
-                  <span className="bg-emerald-400 text-stone-900 font-black text-[11px] px-2.5 py-0.5 rounded-full">
-                    {course.price} ج.م
-                  </span>
-                </div>
-                <div className="relative z-10">
-                  <h3 className="text-base sm:text-lg font-black leading-snug line-clamp-2">
-                    {course.title}
-                  </h3>
-                </div>
-              </div>
+            {activeCourses.map((course) => {
+              const title = course.title_ar || course.title || 'كورس تعليمي';
+              const description = course.description_ar || course.description;
+              const rawImage = course.thumbnail_url || course.imageUrl;
+              const image = resolveMediaUrl(rawImage);
+              const hasDiscount =
+                typeof course.discount_price === 'number' &&
+                course.discount_price > 0 &&
+                course.discount_price < course.price;
 
-              {/* Card Content Body */}
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <p className="text-gray-600 dark:text-gray-400 text-xs font-medium line-clamp-2 mb-5">
-                  {course.description}
-                </p>
-
-                <div>
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 border-t border-stone-100 dark:border-stone-800 pt-3 mb-4">
-                    <div className="flex items-center gap-1.5">
-                      <PlaySquare className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-                      <span>{course.lectureCount} محاضرة</span>
+              return (
+                <motion.div
+                  key={course.id}
+                  initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
+                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                  whileHover={{ scale: 1.03, y: -6 }}
+                  whileTap={{ scale: 0.98 }}
+                  viewport={{ amount: 0.55 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  onClick={() => handleCourseClick(course.id)}
+                  className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
+                  style={{ touchAction: 'pan-x pan-y' }}
+                >
+                  {/* Card Header Banner */}
+                  <div className="relative h-44 bg-[#0d6e4f] p-5 flex flex-col justify-between text-white overflow-hidden">
+                    {image && (
+                      <img
+                        src={image}
+                        alt={title}
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
+                      />
+                    )}
+                    <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+                    <div className="flex items-center justify-between relative z-10">
+                      <span className="bg-black/40 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full border border-white/10">
+                        {course.teacher || t('teacher.title', 'Mr. Omar Meckawy')}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {hasDiscount ? (
+                          <span className="bg-emerald-400 text-stone-900 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-xs">
+                            {course.discount_price} {t('ui.currency', 'ج.م')}
+                          </span>
+                        ) : (
+                          <span className="bg-emerald-400 text-stone-900 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-xs">
+                            {course.price > 0 ? `${course.price} ${t('ui.currency', 'ج.م')}` : t('courses.free', 'مجاني')}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-                      <span>{course.duration}</span>
+                    <div className="relative z-10">
+                      <h3 className="text-base sm:text-lg font-black leading-snug line-clamp-2 drop-shadow-xs">
+                        {title}
+                      </h3>
                     </div>
                   </div>
 
-                  <button className="w-full py-2.5 bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white font-extrabold rounded-full text-xs flex items-center justify-center gap-2 transition-all">
-                    <span>استكشف الكورس</span>
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+                  {/* Card Content Body */}
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    {description && (
+                      <p className="text-gray-600 dark:text-gray-400 text-xs font-medium line-clamp-2 mb-5">
+                        {description}
+                      </p>
+                    )}
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 border-t border-stone-100 dark:border-stone-800 pt-3 mb-4">
+                        <div className="flex items-center gap-1.5">
+                          <PlaySquare className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
+                          <span>{course.lectureCount || 0} {t('courses.lecturesCount', 'محاضرة')}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
+                          <span>{course.duration || '0 h'}</span>
+                        </div>
+                      </div>
+
+                      <button className="w-full py-2.5 bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white font-extrabold rounded-full text-xs flex items-center justify-center gap-2 transition-all">
+                        <span>{t('courses.exploreCourse', 'استكشف الكورس')}</span>
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
           <div className="w-full py-12 px-6 rounded-3xl bg-stone-50 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800 text-center flex flex-col items-center justify-center space-y-3">

@@ -201,6 +201,24 @@ export async function request<T>(
   }
 }
 
+export function resolveMediaUrl(url?: string | null): string | undefined {
+  if (!url) return undefined;
+  if (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('blob:') ||
+    url.startsWith('data:')
+  ) {
+    return url;
+  }
+  const base = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1').replace(
+    /\/api\/v1\/?$/,
+    '',
+  );
+  const cleanPath = url.startsWith('/') ? url : `/${url}`;
+  return `${base}${cleanPath}`;
+}
+
 export const apiClient = {
   get: <T>(endpoint: string, headers?: HeadersInit) =>
     request<T>(endpoint, { method: 'GET', headers }),

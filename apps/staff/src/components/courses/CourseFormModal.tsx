@@ -49,6 +49,7 @@ export function CourseFormModal({
   const [descriptionAr, setDescriptionAr] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const [price, setPrice] = useState<number | ''>(0);
   const [hasDiscount, setHasDiscount] = useState<boolean>(false);
@@ -78,6 +79,7 @@ export function CourseFormModal({
         setDescriptionAr(courseToEdit.description_ar || '');
         setDescriptionEn(courseToEdit.description_en || '');
         setThumbnailUrl(courseToEdit.thumbnail_url || '');
+        setPreviewUrl(courseToEdit.thumbnail_url || null);
         setPrice(courseToEdit.price ?? 0);
 
         const discountVal = courseToEdit.discount_price;
@@ -102,6 +104,7 @@ export function CourseFormModal({
         setDescriptionAr('');
         setDescriptionEn('');
         setThumbnailUrl('');
+        setPreviewUrl(null);
         setPrice(0);
         setHasDiscount(false);
         setDiscountPrice('');
@@ -120,6 +123,8 @@ export function CourseFormModal({
 
   // Image Upload handler
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isUploadingImage || isSubmitting) return;
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -148,21 +153,30 @@ export function CourseFormModal({
 
     // Local instant preview
     const objectUrl = URL.createObjectURL(file);
-    setThumbnailUrl(objectUrl);
+    setPreviewUrl(objectUrl);
 
     setIsUploadingImage(true);
     try {
       const res = await defaultCoursesApi.uploadThumbnail(file, academicYearId || undefined);
-      if (res.url) {
+      if (res && res.url) {
         setThumbnailUrl(res.url);
+        setPreviewUrl(res.url);
+        setImageError(null);
+      } else {
+        throw new Error(isArabic ? 'لم يتم استلام رابط الصورة من السيرفر' : 'No image URL returned from server');
       }
     } catch (err: any) {
       setImageError(
         err.message ||
           (isArabic
-            ? 'تعذر رفع الصورة على السيرفر. تم احتفاظ بالمعاينة المحلية.'
+            ? 'تعذر رفع الصورة على السيرفر. يرجى إعادة المحاولة.'
             : 'Failed to upload thumbnail to server.')
       );
+      setThumbnailUrl('');
+      setPreviewUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setIsUploadingImage(false);
     }
@@ -170,10 +184,13 @@ export function CourseFormModal({
 
   const removeThumbnail = () => {
     setThumbnailUrl('');
+    setPreviewUrl(null);
+    setImageError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
 
   // Form Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -214,6 +231,27 @@ export function CourseFormModal({
       finalDiscount = numericDiscount;
     }
 
+    if (isUploadingImage) {
+      setSubmitError(
+        isArabic
+          ? 'جاري رفع صورة الكورس، يرجى الانتظار حتى اكتمال الرفع قبل الحفظ.'
+          : 'Thumbnail image is still uploading. Please wait until upload completes.'
+      );
+      return;
+    }
+
+    if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
+      setSubmitError(
+        isArabic
+          ? 'فشل رفع صورة الكورس إلى السيرفر. يرجى حذف الصورة أو إعادة رفعها.'
+          : 'Thumbnail upload failed. Please remove or re-upload the image.'
+      );
+      return;
+    }
+
+    const safeThumbnailUrl =
+      thumbnailUrl && !thumbnailUrl.startsWith('blob:') ? thumbnailUrl : undefined;
+
     setIsSubmitting(true);
 
     try {
@@ -224,7 +262,7 @@ export function CourseFormModal({
           title_en: titleEn.trim() || titleAr.trim(),
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
-          thumbnail_url: thumbnailUrl || undefined,
+          thumbnail_url: safeThumbnailUrl,
           price: numericPrice,
           discount_price: finalDiscount,
           is_published: isPublished,
@@ -242,7 +280,7 @@ export function CourseFormModal({
           title_en: titleEn.trim() || titleAr.trim(),
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
-          thumbnail_url: thumbnailUrl || undefined,
+          thumbnail_url: safeThumbnailUrl,
           price: numericPrice,
           discount_price: finalDiscount,
           is_published: isPublished,
@@ -256,6 +294,7 @@ export function CourseFormModal({
 
       onSuccess();
       onClose();
+
     } catch (err: any) {
       setSubmitError(
         err.message ||
@@ -380,10 +419,15 @@ export function CourseFormModal({
               </label>
 
               <div className="p-4 rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/30 text-center space-y-3">
-                {thumbnailUrl ? (
+                {(previewUrl || (thumbnailUrl && !thumbnailUrl.startsWith('blob:'))) ? (
                   <div className="relative aspect-video w-full max-w-md mx-auto rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 shadow-sm group">
-                    <img src={thumbnailUrl} alt="Thumbnail preview" className="h-full w-full object-cover" />
+                    <img
+                      src={previewUrl || thumbnailUrl}
+                      alt="Thumbnail preview"
+                      className="h-full w-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
@@ -642,13 +686,18 @@ export function CourseFormModal({
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploadingImage}
                 className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-colors disabled:opacity-60"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>{isArabic ? 'جاري الحفظ...' : 'Saving...'}</span>
+                  </>
+                ) : isUploadingImage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{isArabic ? 'جاري رفع الصورة...' : 'Uploading image...'}</span>
                   </>
                 ) : (
                   <>
@@ -681,7 +730,7 @@ export function CourseFormModal({
               titleAr={titleAr}
               titleEn={titleEn}
               descriptionAr={descriptionAr}
-              thumbnailUrl={thumbnailUrl}
+              thumbnailUrl={previewUrl || (thumbnailUrl && !thumbnailUrl.startsWith('blob:') ? thumbnailUrl : undefined)}
               price={Number(price) || 0}
               hasDiscount={hasDiscount}
               discountPrice={hasDiscount ? Number(discountPrice) : undefined}
@@ -691,6 +740,7 @@ export function CourseFormModal({
               isPublic={isPublic}
               isArabic={isArabic}
             />
+
 
             <p className="text-[11px] text-neutral-400 text-center leading-relaxed">
               {isArabic

@@ -10,7 +10,8 @@ import EmptyState from '@/components/ui/EmptyState';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { Course } from '@/types';
 import { apiClient } from '@/lib/api';
-import { ChevronDown, Filter } from 'lucide-react';
+import { ChevronDown, Filter, AlertCircle, RefreshCw } from 'lucide-react';
+
 
 const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
 
@@ -59,6 +60,7 @@ function CoursesContent() {
 
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Initialize grade from persistent localStorage selection, URL parameter, or student default
   const [selectedYearId, setSelectedYearId] = useState<number | 'all'>(() => {
@@ -81,28 +83,28 @@ function CoursesContent() {
     }
   }, [student?.academicYearId]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadCourses() {
-      setLoading(true);
-      try {
-        const res = await apiClient.get<Course[]>('/courses').catch(() => []);
-        if (isMounted) {
-          setAvailableCourses(Array.isArray(res) ? res : []);
-        }
-      } catch {
-        if (isMounted) setAvailableCourses([]);
-      } finally {
-        if (isMounted) setLoading(false);
+  const loadCourses = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get<any>('/courses');
+      if (res && Array.isArray(res.data)) {
+        setAvailableCourses(res.data);
+      } else if (Array.isArray(res)) {
+        setAvailableCourses(res);
+      } else {
+        setAvailableCourses([]);
       }
+    } catch (err: any) {
+      setError(err?.message || 'حدث خطأ أثناء تحميل الكورسات. يرجى المحاولة مرة أخرى.');
+      setAvailableCourses([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadCourses();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const handleYearChange = (newVal: number | 'all') => {
@@ -112,16 +114,20 @@ function CoursesContent() {
 
   // Filter by academic year and search query
   const filteredCourses = availableCourses.filter((course) => {
-    if (selectedYearId !== 'all' && course.academicYearId !== selectedYearId) {
-      return false;
+    if (selectedYearId !== 'all') {
+      const courseGrade = parseGrade(course.academic_year_id || course.academicYearId);
+      if (courseGrade && courseGrade !== selectedYearId) {
+        return false;
+      }
     }
     if (searchQuery) {
-      const matchTitle = course.title.toLowerCase().includes(searchQuery);
-      const matchDesc = course.description?.toLowerCase().includes(searchQuery);
-      return matchTitle || matchDesc;
+      const title = (course.title_ar || course.title || '').toLowerCase();
+      const desc = (course.description_ar || course.description || '').toLowerCase();
+      return title.includes(searchQuery) || desc.includes(searchQuery);
     }
     return true;
   });
+
 
   const selectedYearObj = academicYears.find((y) => y.id === selectedYearId);
 
@@ -169,7 +175,7 @@ function CoursesContent() {
           </div>
         </div>
 
-        {/* Course Grid */}
+        {/* Course State Render */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
@@ -178,6 +184,19 @@ function CoursesContent() {
                 className="h-64 rounded-3xl bg-gray-100 dark:bg-gray-800 animate-pulse border border-gray-100 dark:border-gray-800"
               />
             ))}
+          </div>
+        ) : error ? (
+          <div className="py-12 flex flex-col items-center justify-center text-center p-6 bg-red-50/50 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/40">
+            <AlertCircle className="w-12 h-12 text-red-500 mb-3" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">تعذر تحميل الكورسات</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mb-4">{error}</p>
+            <button
+              onClick={() => loadCourses()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
+            >
+              <RefreshCw className="w-4 h-4" />
+              إعادة المحاولة
+            </button>
           </div>
         ) : filteredCourses.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

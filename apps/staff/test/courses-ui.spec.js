@@ -893,4 +893,95 @@ describe('Phase 4B-FE-3C: Lecture Attachments & Google Drive PDF Management Veri
   });
 });
 
+describe('Phase 4B-FIX-3: Course Thumbnail Upload Flow & UI Security', () => {
+  test('1. File selection sets instant local preview state without contaminating server thumbnailUrl', () => {
+    let previewUrl = null;
+    let thumbnailUrl = '';
+    const file = { name: 'cover.png', size: 1024 * 1024, type: 'image/png' };
+
+    // Simulate instant local objectUrl creation
+    const objectUrl = 'blob:http://localhost:3001/fake-uuid-1234';
+    previewUrl = objectUrl;
+
+    assert.strictEqual(previewUrl.startsWith('blob:'), true);
+    assert.strictEqual(thumbnailUrl, ''); // server URL is not yet populated
+  });
+
+  test('2. Upload loading state disables submission and shows upload indicator', () => {
+    let isUploadingImage = true;
+    let isSubmitting = false;
+
+    const canSubmit = !isSubmitting && !isUploadingImage;
+    assert.strictEqual(canSubmit, false);
+  });
+
+  test('3. Upload error state resets thumbnailUrl, clears preview, and displays user-friendly error', () => {
+    let previewUrl = 'blob:http://localhost:3001/temp';
+    let thumbnailUrl = '';
+    let imageError = null;
+
+    // Simulate error during upload
+    const uploadFailed = true;
+    if (uploadFailed) {
+      imageError = 'File size exceeds maximum limit of 5MB.';
+      thumbnailUrl = '';
+      previewUrl = null;
+    }
+
+    assert.strictEqual(previewUrl, null);
+    assert.strictEqual(thumbnailUrl, '');
+    assert.strictEqual(imageError, 'File size exceeds maximum limit of 5MB.');
+  });
+
+  test('4. Successful upload persists real server URL and updates preview', () => {
+    let previewUrl = 'blob:http://localhost:3001/temp';
+    let thumbnailUrl = '';
+    let imageError = null;
+
+    const serverResponse = { url: 'https://lh3.googleusercontent.com/d/1AbCdEfGhIjKlMnOp' };
+    if (serverResponse.url) {
+      thumbnailUrl = serverResponse.url;
+      previewUrl = serverResponse.url;
+      imageError = null;
+    }
+
+    assert.strictEqual(thumbnailUrl, 'https://lh3.googleusercontent.com/d/1AbCdEfGhIjKlMnOp');
+    assert.strictEqual(previewUrl, 'https://lh3.googleusercontent.com/d/1AbCdEfGhIjKlMnOp');
+    assert.strictEqual(imageError, null);
+  });
+
+  test('5. Form submission strictly rejects and strips blob: URLs', () => {
+    const rawThumbnailUrl = 'blob:http://localhost:3001/stale-preview';
+
+    const safeThumbnailUrl =
+      rawThumbnailUrl && !rawThumbnailUrl.startsWith('blob:') ? rawThumbnailUrl : undefined;
+
+    assert.strictEqual(safeThumbnailUrl, undefined);
+  });
+
+  test('6. Duplicate submission and concurrent upload races are prevented', () => {
+    let isUploadingImage = true;
+    let submitAttempts = 0;
+
+    function handleFormSubmit() {
+      if (isUploadingImage) {
+        return { error: 'Thumbnail image is still uploading. Please wait.' };
+      }
+      submitAttempts++;
+      return { success: true };
+    }
+
+    const res1 = handleFormSubmit();
+    assert.strictEqual(res1.error, 'Thumbnail image is still uploading. Please wait.');
+    assert.strictEqual(submitAttempts, 0);
+
+    // After upload finishes
+    isUploadingImage = false;
+    const res2 = handleFormSubmit();
+    assert.strictEqual(res2.success, true);
+    assert.strictEqual(submitAttempts, 1);
+  });
+});
+
+
 

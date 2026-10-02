@@ -33,18 +33,42 @@ export interface PromotionalBanner {
 }
 
 export interface Course {
-  id: number;
-  title: string;
-  academicYearId: number;
-  imageUrl: string;
-  description: string;
+  id: string | number;
+  title?: string;
+  title_ar?: string;
+  title_en?: string;
+  slug?: string;
+  academicYearId?: number | string;
+  academic_year_id?: string;
+  academic_year_name_ar?: string;
+  academic_year_name_en?: string;
+  imageUrl?: string;
+  thumbnail_url?: string | null;
+  description?: string;
+  description_ar?: string;
+  description_en?: string;
   price: number;
-  lectureCount: number;
-  duration: string;
-  features: string[];
-  isActive: boolean;
-  teacher: string;
+  discount_price?: number | null;
+  lectureCount?: number;
+  duration?: string;
+  features?: string[];
+  isActive?: boolean;
+  is_published?: boolean;
+  is_public?: boolean;
+  is_featured?: boolean;
+  status?: string;
+  sort_order?: number;
+  teacher?: string;
 }
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 
 export interface Package {
   id: number;
