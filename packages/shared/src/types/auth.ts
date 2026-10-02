@@ -59,6 +59,7 @@ export interface RegisterPayload {
   academic_year_id: string;
   section?: string;
   school_name?: string;
+  address?: string;
   device_uuid?: string;
   device_type?: 'WEB' | 'ANDROID' | 'IOS' | 'DESKTOP';
   os_info?: string;

@@ -327,14 +327,20 @@ export default function StaffStudentsPage() {
                   return (
                     <tr
                       key={student.id}
-                      className="hover:bg-neutral-50/60 dark:hover:bg-neutral-850/50 transition-colors"
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (!target.closest('button') && !target.closest('a')) {
+                          window.location.href = `/staff/students/${student.id}`;
+                        }
+                      }}
+                      className="hover:bg-neutral-50 dark:hover:bg-neutral-850/70 transition-colors cursor-pointer group"
                     >
                       {/* Name and Email */}
                       <td className="py-3.5 px-4">
                         <div>
                           <Link
                             href={`/staff/students/${student.id}`}
-                            className="font-bold text-neutral-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors block"
+                            className="font-bold text-neutral-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors block"
                           >
                             {student.full_name}
                           </Link>
@@ -365,6 +371,7 @@ export default function StaffStudentsPage() {
                             href={`https://wa.me/${waNumber}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
                             className="inline-flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
                             title={isAr ? 'فتح محادثة واتساب' : 'Open WhatsApp Chat'}
                           >
@@ -418,14 +425,15 @@ export default function StaffStudentsPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 px-4 text-end">
-                        <div className="inline-flex items-center gap-1">
+                      <td className="py-3.5 px-4 text-end" onClick={(e) => e.stopPropagation()}>
+                        <div className="inline-flex items-center gap-1.5">
                           <Link
                             href={`/staff/students/${student.id}`}
-                            title={isAr ? 'عرض التفاصيل والأجهزة' : 'View Details & Devices'}
-                            className="p-1.5 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-800 dark:hover:text-white transition-colors"
+                            title={isAr ? 'عرض الملف الكامل والمعلومات' : 'View Full Profile & Details'}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/60 dark:text-brand-300 dark:hover:bg-brand-900/60 border border-brand-200 dark:border-brand-800 transition-colors shadow-2xs"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">{isAr ? 'عرض الملف' : 'Profile'}</span>
                           </Link>
 
                           {canManage && (

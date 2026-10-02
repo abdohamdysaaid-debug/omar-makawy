@@ -100,6 +100,7 @@ function RegisterForm() {
     parentPhone: '',
     email: '',
     governorateId: 'b0000000-0000-0000-0000-000000000001',
+    address: '',
     gender: 'MALE',
     password: '',
     confirmPassword: '',
@@ -352,6 +353,7 @@ function RegisterForm() {
       parent_phone: formData.parentPhone.trim(),
       email: formData.email.trim() || undefined,
       governorate_id: formData.governorateId,
+      address: formData.address.trim() || undefined,
       gender: formData.gender,
       password: formData.password,
       education_type: formData.educationType,
@@ -370,6 +372,7 @@ function RegisterForm() {
         password: formData.password,
         academicYearId: formData.academicYearId,
         governorateId: formData.governorateId,
+        address: formData.address.trim() || undefined,
         gender: formData.gender,
         educationType: formData.educationType,
         studyType: formData.studyType,
@@ -726,8 +729,24 @@ function RegisterForm() {
                 )}
               </div>
 
-              {/* 7. Gender */}
+              {/* 7. Detailed Address (العنوان بالتفصيل) */}
               <div className="space-y-1.5 text-start">
+                <label className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  العنوان بالتفصيل <span className="text-gray-500 dark:text-gray-400 font-normal">(اختياري)</span>
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="مثال: شارع التحرير، الدقي، الجيزة"
+                  className="w-full px-4 py-3 rounded-xl bg-[#f4f7f4] dark:bg-[#1a1a1a] border-2 text-sm font-semibold text-gray-900 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-[#222222] focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all border-stone-300/90 dark:border-stone-800"
+                />
+              </div>
+
+              {/* 8. Gender */}
+              <div className="space-y-1.5 text-start sm:col-span-2">
                 <label className="text-xs font-bold text-gray-800 dark:text-gray-200">
                   النوع <span className="text-red-500">*</span>
                 </label>
@@ -1108,6 +1127,12 @@ function RegisterForm() {
                   <span className="text-gray-500 dark:text-gray-400 block font-medium">المحافظة:</span>
                   <span className="font-bold text-gray-900 dark:text-white">{selectedGovObj?.name_ar || 'غير محدد'}</span>
                 </div>
+                {formData.address.trim() && (
+                  <div className="sm:col-span-2">
+                    <span className="text-gray-500 dark:text-gray-400 block font-medium">العنوان بالتفصيل:</span>
+                    <span className="font-bold text-gray-900 dark:text-white">{formData.address}</span>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -41,6 +41,7 @@ export interface RegisterData {
   educationType?: string;
   studyType?: string;
   section?: string;
+  address?: string;
 }
 
 function mapUserToStudent(user: User): Student {
@@ -169,6 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       study_type: data.studyType || 'ARABIC',
       academic_year_id: String(data.academicYearId),
       section: isPrep3 ? undefined : (data.section || undefined),
+      address: data.address?.trim() || undefined,
     };
 
     const res = await authApi.register(payload);

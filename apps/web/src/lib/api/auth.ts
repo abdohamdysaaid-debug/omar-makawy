@@ -25,6 +25,7 @@ export interface RegisterPayload {
   academic_year_id: string;
   section?: string;
   school_name?: string;
+  address?: string;
   device_uuid?: string;
   device_type?: string;
   os_info?: string;
