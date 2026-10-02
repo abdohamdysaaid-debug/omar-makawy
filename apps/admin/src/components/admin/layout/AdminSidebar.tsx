@@ -90,13 +90,13 @@ export function AdminSidebar({
         { key: 'nav.videos', href: '/admin/videos', icon: Video },
         { key: 'nav.attachments', href: '/admin/attachments', icon: FileText },
         { key: 'nav.packages', href: '/admin/packages', icon: Package },
-        { key: 'nav.activation_and_recharge', href: '/admin/activation-and-recharge', icon: Ticket },
       ],
     },
     {
       groupKey: 'nav.students',
       items: [
         { key: 'nav.students_list', href: '/admin/students', icon: Users },
+        { key: 'nav.activation_and_recharge', href: '/admin/activation-and-recharge', icon: Ticket },
         { key: 'nav.devices', href: '/admin/devices', icon: Smartphone },
         { key: 'nav.subscriptions', href: '/admin/subscriptions', icon: CreditCard },
       ],
@@ -105,9 +105,7 @@ export function AdminSidebar({
       groupKey: 'nav.financial',
       items: [
         { key: 'nav.wallets', href: '/admin/wallets', icon: Wallet },
-        { key: 'nav.recharge_codes', href: '/admin/recharge-codes', icon: KeyRound },
-        { key: 'nav.activation_codes', href: '/admin/activation-codes', icon: Ticket },
-        { key: 'nav.discounts', href: '/admin/discounts', icon: Layers },
+        { key: 'nav.activation_and_recharge', href: '/admin/activation-and-recharge', icon: Ticket },
         { key: 'nav.invoices', href: '/admin/invoices', icon: FileSpreadsheet },
       ],
     },

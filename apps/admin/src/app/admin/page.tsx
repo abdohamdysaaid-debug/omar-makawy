@@ -240,13 +240,13 @@ export default function AdminDashboardOverviewPage() {
         </Link>
 
         <Link
-          href="/admin/recharge-codes"
+          href="/admin/activation-and-recharge"
           className="flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3 text-xs font-semibold text-gray-800 shadow-2xs hover:border-brand-500 hover:text-brand-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-brand-500 transition-all"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-400">
             <KeyRound className="h-4 w-4" />
           </div>
-          <span>{t('action.generate_codes')}</span>
+          <span>{t('nav.activation_and_recharge')}</span>
         </Link>
 
         <Link
