@@ -369,7 +369,13 @@ function RegisterForm() {
         router.push(returnUrl);
       }, 2000);
     } catch (err: any) {
-      const msg = err?.message || err?.error_code || 'حدث خطأ أثناء التسجيل. يرجى التأكد من البيانات والمحاولة مرة أخرى.';
+      let msg = err?.message || err?.details?.message;
+      if (err?.details?.errors?.general && Array.isArray(err.details.errors.general)) {
+        msg = err.details.errors.general.join(' - ');
+      }
+      if (!msg || msg === 'Validation failed') {
+        msg = 'بيانات التسجيل غير مكتملة أو غير صحيحة. يرجى مراجعة كافة الحقول.';
+      }
       setSubmitError(msg);
     } finally {
       setIsSubmitting(false);
