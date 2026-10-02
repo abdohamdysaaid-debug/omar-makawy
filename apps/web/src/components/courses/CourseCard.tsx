@@ -114,7 +114,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             onClick={handleCTA}
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
           >
-            {t('courses.viewDetails', 'عرض الكورس')}
+            {t('courses.viewDetails', 'تفاصيل الكورس')}
           </button>
         </div>
       </div>

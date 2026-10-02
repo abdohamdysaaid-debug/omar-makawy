@@ -224,7 +224,7 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
                       </div>
 
                       <button className="w-full py-2.5 bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white font-extrabold rounded-full text-xs flex items-center justify-center gap-2 transition-all">
-                        <span>{t('courses.exploreCourse', 'استكشف الكورس')}</span>
+                        <span>{t('courses.exploreCourse', 'تفاصيل الكورس')}</span>
                         <ArrowLeft className="w-3.5 h-3.5" />
                       </button>
                     </div>

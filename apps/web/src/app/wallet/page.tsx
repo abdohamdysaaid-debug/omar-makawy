@@ -58,18 +58,41 @@ export default function WalletPage() {
     setMessage(null);
 
     try {
-      const res: any = await apiClient.post('/financial/activation/redeem-code', {
-        code: rechargeCode.trim(),
-      });
-      setMessage({ type: 'success', text: res?.message || 'تم شحن المحفظة بنجاح!' });
-      if (typeof res?.newBalance === 'number') {
-        setBalance(res.newBalance);
+      let res: any = null;
+      try {
+        res = await apiClient.post('/api/v1/wallet/recharge/redeem', {
+          code: rechargeCode.trim(),
+        });
+      } catch {
+        res = await apiClient.post('/financial/activation/redeem-code', {
+          code: rechargeCode.trim(),
+        });
       }
+
+      const creditedAmount = res?.credited_amount || res?.amount || '';
+      const newBal = typeof res?.new_balance === 'number' ? res.new_balance : typeof res?.newBalance === 'number' ? res.newBalance : balance + (Number(creditedAmount) || 0);
+
+      setMessage({
+        type: 'success',
+        text: res?.message || `تم شحن المحفظة بنجاح${creditedAmount ? ` بمبلغ ${creditedAmount} ج.م` : ''}!`,
+      });
+
+      setBalance(newBal);
+      setTransactions((prev) => [
+        {
+          id: Date.now().toString(),
+          type: 'DEPOSIT',
+          description: `شحن رصيد بكارت شحن (${rechargeCode.trim().slice(0, 4)}****)`,
+          amount: creditedAmount || 'شحن رصيد',
+          date: new Date().toLocaleDateString('ar-EG'),
+        },
+        ...prev,
+      ]);
       setRechargeCode('');
     } catch (err: any) {
       setMessage({
         type: 'error',
-        text: err?.message || 'كود الشحن غير صحيح أو تم استخدامه من قبل',
+        text: err?.message || 'كود الشحن غير صحيح أو تم استخدامه من قبل أو منتهي الصلاحية',
       });
     } finally {
       setCharging(false);
