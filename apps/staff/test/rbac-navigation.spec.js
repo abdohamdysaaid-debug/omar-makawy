@@ -5,11 +5,16 @@ const {
   CANONICAL_ACADEMIC_YEARS,
 } = require('@omar-makawy/shared');
 
-// Minimal Phase 0 Navigation items matching config/navigation.ts
+// Navigation items matching config/navigation.ts
 const STAFF_NAVIGATION_ITEMS = [
   {
     key: 'nav.dashboard',
     href: '/staff',
+  },
+  {
+    key: 'nav.courses',
+    href: '/staff/courses',
+    permission: SystemPermissions.COURSES_READ,
   },
   {
     key: 'nav.settings',
@@ -18,7 +23,7 @@ const STAFF_NAVIGATION_ITEMS = [
   },
 ];
 
-// Helper to simulate RBAC navigation filter for Phase 0
+// Helper to simulate RBAC navigation filter
 function filterNavigation(role, permissions = []) {
   const isTeacher = role === 'TEACHER';
   const permSet = new Set(permissions);
@@ -45,7 +50,7 @@ function evaluateAcademicYearScope(user, selectedYearId) {
 
   if (selectedYearId === null) {
     if (isTeacher) return { allowed: true, resolvedYearId: null };
-    return { allowed: false, resolvedYearId: null }; // Supervisor cannot access global scope
+    return { allowed: false, resolvedYearId: null };
   }
 
   if (isTeacher) {
@@ -62,36 +67,40 @@ function evaluateAcademicYearScope(user, selectedYearId) {
   return { allowed: false, resolvedYearId: null };
 }
 
-test('1. Teacher sees all Phase 0 navigation items (الرئيسية and الإعدادات)', () => {
+test('1. Teacher sees all Phase 1 navigation items (الرئيسية, الكورسات, and الإعدادات)', () => {
   const nav = filterNavigation('TEACHER', []);
   const allItemKeys = nav.map((i) => i.key);
 
   assert.ok(allItemKeys.includes('nav.dashboard'));
+  assert.ok(allItemKeys.includes('nav.courses'));
   assert.ok(allItemKeys.includes('nav.settings'));
-  assert.equal(nav.length, 2);
+  assert.equal(nav.length, 3);
 });
 
-test('2. Supervisor with SETTINGS_READ sees Settings navigation item', () => {
+test('2. Supervisor with COURSES_READ sees Courses navigation item', () => {
+  const nav = filterNavigation('SUPERVISOR', [SystemPermissions.COURSES_READ]);
+  const allItemKeys = nav.map((i) => i.key);
+
+  assert.ok(allItemKeys.includes('nav.dashboard'));
+  assert.ok(allItemKeys.includes('nav.courses'));
+  assert.equal(allItemKeys.includes('nav.settings'), false);
+});
+
+test('3. Supervisor with SETTINGS_READ sees Settings navigation item', () => {
   const nav = filterNavigation('SUPERVISOR', [SystemPermissions.SETTINGS_READ]);
   const allItemKeys = nav.map((i) => i.key);
 
   assert.ok(allItemKeys.includes('nav.dashboard'));
   assert.ok(allItemKeys.includes('nav.settings'));
+  assert.equal(allItemKeys.includes('nav.courses'), false);
 });
 
-test('3. Supervisor with SETTINGS_MANAGE sees Settings navigation item', () => {
-  const nav = filterNavigation('SUPERVISOR', [SystemPermissions.SETTINGS_MANAGE]);
+test('4. Supervisor without permissions sees only dashboard', () => {
+  const nav = filterNavigation('SUPERVISOR', []);
   const allItemKeys = nav.map((i) => i.key);
 
   assert.ok(allItemKeys.includes('nav.dashboard'));
-  assert.ok(allItemKeys.includes('nav.settings'));
-});
-
-test('4. Supervisor without SETTINGS_READ or SETTINGS_MANAGE sees only dashboard', () => {
-  const nav = filterNavigation('SUPERVISOR', [SystemPermissions.STUDENTS_READ]);
-  const allItemKeys = nav.map((i) => i.key);
-
-  assert.ok(allItemKeys.includes('nav.dashboard'));
+  assert.equal(allItemKeys.includes('nav.courses'), false);
   assert.equal(allItemKeys.includes('nav.settings'), false);
   assert.equal(nav.length, 1);
 });
@@ -117,10 +126,10 @@ test('7. Supervisor passes Supervisor RoleGate evaluation', () => {
 test('8. Supervisor cannot select an unassigned academic year', () => {
   const supervisor = {
     role: 'SUPERVISOR',
-    assigned_academic_years: ['a0000000-0000-0000-0000-000000000002'], // Senior 1 only
+    assigned_academic_years: ['a0000000-0000-0000-0000-000000000002'],
   };
 
-  const unassignedYearId = 'a0000000-0000-0000-0000-000000000004'; // Senior 3
+  const unassignedYearId = 'a0000000-0000-0000-0000-000000000004';
   const result = evaluateAcademicYearScope(supervisor, unassignedYearId);
 
   assert.equal(result.allowed, false);
@@ -130,12 +139,10 @@ test('8. Supervisor cannot select an unassigned academic year', () => {
 test('9. Teacher can select an allowed academic year and global scope (null)', () => {
   const teacher = { role: 'TEACHER' };
 
-  // Specific year
   const res1 = evaluateAcademicYearScope(teacher, 'a0000000-0000-0000-0000-000000000003');
   assert.equal(res1.allowed, true);
   assert.equal(res1.resolvedYearId, 'a0000000-0000-0000-0000-000000000003');
 
-  // Global Scope
   const res2 = evaluateAcademicYearScope(teacher, null);
   assert.equal(res2.allowed, true);
   assert.equal(res2.resolvedYearId, null);
@@ -154,9 +161,8 @@ test('10. Persisted invalid supervisor academic-year selection is rejected and r
   assert.equal(result.resolvedYearId, 'a0000000-0000-0000-0000-000000000001');
 });
 
-test('11. Minimal Phase 0 navigation contains strictly no feature routes (students, courses, lectures, packages, books, orders, exams, wallet, notifications, analytics)', () => {
+test('11. Minimal Phase 1 navigation contains strictly no unauthorized feature routes (students, lectures, packages, books, orders, exams, wallet, notifications, analytics)', () => {
   const forbiddenSubstrings = [
-    'courses',
     'students',
     'lectures',
     'packages',
@@ -174,13 +180,13 @@ test('11. Minimal Phase 0 navigation contains strictly no feature routes (studen
       assert.equal(
         href.includes(forbidden),
         false,
-        `Phase 0 navigation must not include route with '${forbidden}', found: ${href}`
+        `Navigation must not include route with '${forbidden}', found: ${href}`
       );
     }
   }
 });
 
-test('12. No fake dashboard statistics or fabricated numbers are defined in staff dashboard', () => {
+test('12. No fake dashboard statistics or fabricated numbers are defined in staff navigation', () => {
   const canonicalYears = CANONICAL_ACADEMIC_YEARS;
   assert.equal(canonicalYears.length, 4);
 
