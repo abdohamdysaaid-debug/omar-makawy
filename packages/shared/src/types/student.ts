@@ -77,3 +77,23 @@ export interface UpdateStudentStatusResponse {
   reason: string | null;
   updated_at: string;
 }
+
+export interface UpdateStudentPayload {
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  academic_year_id?: string;
+  governorate_id?: string;
+  school_name?: string;
+  gender?: 'MALE' | 'FEMALE';
+  parent_phone?: string;
+  address?: string;
+}
+
+export interface PasswordResetLinkResponse {
+  success: boolean;
+  token: string;
+  reset_url: string;
+  expires_in: number;
+}
+

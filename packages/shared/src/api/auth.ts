@@ -80,6 +80,10 @@ export function createAuthApi(apiClient = createApiClient()) {
     async changePassword(dto: { current_password: string; new_password: string }): Promise<{ success: boolean; message: string }> {
       return apiClient.post<{ success: boolean; message: string }>('/auth/change-password', dto);
     },
+
+    async getGovernorates(): Promise<Array<{ id: string; code: string; name_ar: string; name_en: string }>> {
+      return apiClient.get<Array<{ id: string; code: string; name_ar: string; name_en: string }>>('/auth/governorates', { skipAuth: true });
+    },
   };
 }
 

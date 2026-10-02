@@ -10,6 +10,8 @@ import {
   StudentDevice,
   UpdateStudentStatusPayload,
   UpdateStudentStatusResponse,
+  UpdateStudentPayload,
+  PasswordResetLinkResponse,
 } from '../types/student';
 
 export function createStudentsApi(client = defaultApiClient) {
@@ -63,6 +65,18 @@ export function createStudentsApi(client = defaultApiClient) {
       return client.get<StudentDetail>(`/admin/students/${id}`, options);
     },
 
+    async updateStudent(
+      id: string,
+      payload: UpdateStudentPayload,
+      academicYearId?: string
+    ): Promise<StudentDetail> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.patch<StudentDetail>(`/admin/students/${id}`, payload, options);
+    },
+
     async updateStudentStatus(
       id: string,
       payload: UpdateStudentStatusPayload,
@@ -75,6 +89,21 @@ export function createStudentsApi(client = defaultApiClient) {
       return client.patch<UpdateStudentStatusResponse>(
         `/admin/students/${id}/status`,
         payload,
+        options
+      );
+    },
+
+    async generatePasswordResetLink(
+      id: string,
+      academicYearId?: string
+    ): Promise<PasswordResetLinkResponse> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.post<PasswordResetLinkResponse>(
+        `/admin/students/${id}/password-reset-link`,
+        {},
         options
       );
     },
@@ -108,3 +137,4 @@ export function createStudentsApi(client = defaultApiClient) {
 }
 
 export const defaultStudentsApi = createStudentsApi();
+

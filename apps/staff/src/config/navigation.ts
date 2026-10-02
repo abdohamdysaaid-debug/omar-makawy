@@ -1,4 +1,4 @@
-import { LayoutDashboard, BookOpen, Settings } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Settings } from 'lucide-react';
 import { SystemPermissions, SystemPermissionCode, UserRole } from '@omar-makawy/shared';
 
 export interface NavItemConfig {
@@ -23,9 +23,16 @@ export const STAFF_NAVIGATION_ITEMS: NavItemConfig[] = [
     permission: SystemPermissions.COURSES_READ,
   },
   {
+    key: 'nav.students',
+    href: '/staff/students',
+    icon: Users,
+    permission: SystemPermissions.STUDENTS_READ,
+  },
+  {
     key: 'nav.settings',
     href: '/staff/settings',
     icon: Settings,
     permission: SystemPermissions.SETTINGS_READ,
   },
 ];
+
