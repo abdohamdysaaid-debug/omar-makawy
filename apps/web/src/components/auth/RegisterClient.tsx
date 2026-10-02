@@ -59,7 +59,7 @@ const FALLBACK_GOVERNORATES: Governorate[] = [
   { id: 'b0000000-0000-0000-0000-000000000027', code: 'SOUTH_SINAI', name_ar: 'جنوب سيناء', name_en: 'South Sinai' },
 ];
 
-// Academic Year UUID Mappings
+// Academic Year UUID Mappings (Active fallback)
 const ACADEMIC_YEAR_OPTIONS = [
   {
     id: 'a0000000-0000-0000-0000-000000000001',
@@ -72,18 +72,6 @@ const ACADEMIC_YEAR_OPTIONS = [
     code: 'FIRST_SECONDARY',
     title: 'الصف الأول الثانوي',
     hasSections: false,
-  },
-  {
-    id: 'a0000000-0000-0000-0000-000000000003',
-    code: 'SECOND_SECONDARY',
-    title: 'الصف الثاني الثانوي',
-    hasSections: false,
-  },
-  {
-    id: 'a0000000-0000-0000-0000-000000000004',
-    code: 'THIRD_SECONDARY',
-    title: 'الصف الثالث الثانوي',
-    hasSections: true,
   },
 ];
 
@@ -111,7 +99,7 @@ function RegisterForm() {
     whatsappPhone: '',
     parentPhone: '',
     email: '',
-    governorateId: '',
+    governorateId: 'b0000000-0000-0000-0000-000000000001',
     gender: 'MALE',
     password: '',
     confirmPassword: '',
@@ -119,7 +107,7 @@ function RegisterForm() {
     // Step 2: Academic
     educationType: 'GENERAL',
     studyType: 'ARABIC',
-    academicYearId: 'a0000000-0000-0000-0000-000000000004',
+    academicYearId: 'a0000000-0000-0000-0000-000000000001',
     section: 'SCIENCE_GENERAL',
 
     // Step 3: Terms
@@ -140,6 +128,10 @@ function RegisterForm() {
         if (isMounted) {
           if (Array.isArray(govs) && govs.length > 0) {
             setGovernorates(govs);
+            setFormData((prev) => {
+              const hasGov = govs.some((g) => g.id === prev.governorateId);
+              return hasGov ? prev : { ...prev, governorateId: govs[0].id };
+            });
           }
           if (Array.isArray(years) && years.length > 0) {
             const mapped = years.map((y) => ({
@@ -149,6 +141,13 @@ function RegisterForm() {
               hasSections: y.code === 'THIRD_SECONDARY',
             }));
             setAcademicYears(mapped);
+            setFormData((prev) => {
+              const currentValid = mapped.some((m) => m.id === prev.academicYearId);
+              return {
+                ...prev,
+                academicYearId: currentValid ? prev.academicYearId : mapped[0].id,
+              };
+            });
           }
         }
       } catch {
@@ -403,7 +402,7 @@ function RegisterForm() {
   const hasDigit = /[0-9]/.test(formData.password);
   const hasMinLength = formData.password.length >= 8;
 
-  const currentYearObj = ACADEMIC_YEAR_OPTIONS.find((y) => y.id === formData.academicYearId);
+  const currentYearObj = academicYears.find((y) => y.id === formData.academicYearId);
   const selectedGovObj = governorates.find((g) => g.id === formData.governorateId);
   const isPrep3Selected = formData.academicYearId === 'a0000000-0000-0000-0000-000000000001';
 

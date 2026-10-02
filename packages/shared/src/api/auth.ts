@@ -1,6 +1,7 @@
 import { createApiClient, getOrCreateDeviceUuid, DEFAULT_STORAGE_KEYS } from './client';
 import {
   LoginPayload,
+  RegisterPayload,
   LoginResponse,
   AuthSuccessResponse,
   TwoFactorVerifyChallengePayload,
@@ -12,6 +13,18 @@ import {
 
 export function createAuthApi(apiClient = createApiClient()) {
   return {
+    async register(payload: RegisterPayload): Promise<AuthSuccessResponse> {
+      const deviceUuid = payload.device_uuid || getOrCreateDeviceUuid(DEFAULT_STORAGE_KEYS.DEVICE_UUID);
+      return apiClient.post<AuthSuccessResponse>(
+        '/auth/register',
+        {
+          ...payload,
+          device_uuid: deviceUuid,
+        },
+        { skipAuth: true }
+      );
+    },
+
     async login(credentials: Omit<LoginPayload, 'device_uuid'> & { device_uuid?: string }): Promise<LoginResponse> {
       const deviceUuid = credentials.device_uuid || getOrCreateDeviceUuid(DEFAULT_STORAGE_KEYS.DEVICE_UUID);
       return apiClient.post<LoginResponse>(
@@ -83,6 +96,10 @@ export function createAuthApi(apiClient = createApiClient()) {
 
     async getGovernorates(): Promise<Array<{ id: string; code: string; name_ar: string; name_en: string }>> {
       return apiClient.get<Array<{ id: string; code: string; name_ar: string; name_en: string }>>('/auth/governorates', { skipAuth: true });
+    },
+
+    async getAcademicYears(): Promise<Array<{ id: string; code: string; name_ar: string; name_en: string; stage_order: number; is_active: boolean }>> {
+      return apiClient.get<Array<{ id: string; code: string; name_ar: string; name_en: string; stage_order: number; is_active: boolean }>>('/auth/academic-years', { skipAuth: true });
     },
   };
 }

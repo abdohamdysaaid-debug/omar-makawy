@@ -8,18 +8,46 @@ const REFRESH_TOKEN_KEY = 'omar_student_refresh_token';
 const DEVICE_UUID_KEY = 'omar_device_uuid';
 const USER_KEY = 'omar_student_user';
 
+export function generateSecureDeviceUuid(): string {
+  if (typeof crypto !== 'undefined') {
+    if (typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    if (typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+      bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 1 (RFC 4122)
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+    }
+  }
+  // Node.js environment fallback (for SSR / test runners)
+  try {
+    const nodeCrypto = require('crypto');
+    if (typeof nodeCrypto?.randomUUID === 'function') {
+      return nodeCrypto.randomUUID();
+    }
+    if (typeof nodeCrypto?.randomBytes === 'function') {
+      const bytes = nodeCrypto.randomBytes(16);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = bytes.toString('hex');
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+    }
+  } catch {
+    // ignore
+  }
+  throw new Error('Secure Web Crypto API is unavailable to generate device UUID');
+}
+
 export function getOrCreateDeviceUuid(): string {
   if (typeof window === 'undefined') {
-    return '00000000-0000-0000-0000-000000000001';
+    return generateSecureDeviceUuid();
   }
   let uuid = localStorage.getItem(DEVICE_UUID_KEY);
   if (!uuid) {
-    // Generate standard v4 UUID
-    uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+    uuid = generateSecureDeviceUuid();
     localStorage.setItem(DEVICE_UUID_KEY, uuid);
   }
   return uuid;

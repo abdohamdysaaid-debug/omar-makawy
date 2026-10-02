@@ -45,6 +45,27 @@ export interface LoginPayload {
   two_factor_code?: string;
 }
 
+export interface RegisterPayload {
+  full_name: string;
+  phone: string;
+  whatsapp_phone: string;
+  parent_phone: string;
+  email?: string;
+  governorate_id: string;
+  gender: string;
+  password: string;
+  education_type: string;
+  study_type: string;
+  academic_year_id: string;
+  section?: string;
+  school_name?: string;
+  device_uuid?: string;
+  device_type?: 'WEB' | 'ANDROID' | 'IOS' | 'DESKTOP';
+  os_info?: string;
+  browser_info?: string;
+  model_name?: string;
+}
+
 export interface AuthSuccessResponse {
   user: User;
   tokens: Tokens;
