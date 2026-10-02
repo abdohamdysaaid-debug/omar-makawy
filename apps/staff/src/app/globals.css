@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: #fafaf5;
-    --foreground: #171717;
+    --background: #090c0a;
+    --foreground: #f4f4f5;
   }
 
   .dark {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #090c0a;
+    --foreground: #f4f4f5;
   }
 
   body {
@@ -27,14 +27,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #090c0a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.3);
+  background: rgba(16, 185, 129, 0.25);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(150, 150, 150, 0.5);
+  background: rgba(16, 185, 129, 0.5);
 }

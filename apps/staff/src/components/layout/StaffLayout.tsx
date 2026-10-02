@@ -17,7 +17,7 @@ export function StaffLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-background-light dark:bg-background-dark font-cairo">
+    <div className="flex min-h-screen bg-[#090c0a] text-neutral-100 font-cairo">
       {/* Sidebar */}
       <StaffSidebar isMobileOpen={isMobileOpen} setIsMobileOpen={setIsMobileOpen} />
 

@@ -51,19 +51,19 @@ export function StaffSidebar({
   const CollapseIcon = dir === 'rtl' ? ChevronRight : ChevronLeft;
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-white border-e border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-200">
+    <div className="flex h-full flex-col bg-[#0c100d] border-e border-neutral-800/80 text-neutral-200">
       {/* Brand Header */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-neutral-100 dark:border-neutral-800">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-neutral-800/80">
         <Link href="/staff" className="flex items-center gap-2.5 overflow-hidden">
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white font-bold text-base shadow-sm">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-black text-base shadow-sm shadow-emerald-950/40">
             OM
           </div>
           {!isCollapsed && (
             <div className="flex flex-col truncate">
-              <span className="font-bold text-sm tracking-tight text-neutral-900 dark:text-neutral-50 truncate">
+              <span className="font-bold text-sm tracking-tight text-white truncate">
                 {t('brand.teacher_name')}
               </span>
-              <span className="text-[10px] font-medium text-brand-600 dark:text-brand-400">
+              <span className="text-[10px] font-semibold text-emerald-400">
                 {t('brand.title')}
               </span>
             </div>
@@ -74,7 +74,7 @@ export function StaffSidebar({
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex h-7 w-7 items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="hidden lg:flex h-7 w-7 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 transition-colors"
           >
             <CollapseIcon className="h-4 w-4" />
           </button>
@@ -83,18 +83,18 @@ export function StaffSidebar({
         <button
           type="button"
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden flex h-8 w-8 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+          className="lg:hidden flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
       {/* Navigation List */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
         {authorizedNavItems.map((item) => {
           const isActive =
             pathname === item.href ||
-            (item.href !== '/staff' && pathname.startsWith(`${item.href}/`));
+            (item.href !== '/staff' && pathname.startsWith(`${item.href}`));
           const Icon = item.icon;
 
           return (
@@ -104,13 +104,13 @@ export function StaffSidebar({
               prefetch={false}
               onClick={() => setIsMobileOpen(false)}
               title={isCollapsed ? t(item.key) : undefined}
-              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all ${
                 isActive
-                  ? 'bg-brand-50 text-brand-700 border-s-3 border-brand-600 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-500 shadow-xs'
-                  : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                  ? 'bg-emerald-950/70 text-emerald-300 border-s-4 border-emerald-500 shadow-xs'
+                  : 'text-neutral-400 hover:bg-neutral-850 hover:text-neutral-200'
               }`}
             >
-              <Icon className="h-4 w-4 flex-shrink-0" />
+              <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-emerald-400' : 'text-neutral-400'}`} />
               {!isCollapsed && <span className="truncate">{t(item.key)}</span>}
             </Link>
           );
@@ -118,19 +118,19 @@ export function StaffSidebar({
       </nav>
 
       {/* Footer Identity Card */}
-      <div className="p-3 border-t border-neutral-100 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/80">
+      <div className="p-3 border-t border-neutral-800/80 bg-[#080b09]">
         <div className="rounded-xl p-1.5">
           {!isCollapsed ? (
             <div>
               <div className="flex items-center gap-2.5 mb-1.5">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-950 text-emerald-300 font-bold text-xs border border-emerald-800/60 shadow-xs">
                   {user?.full_name?.charAt(0) || 'OM'}
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+                  <p className="text-xs font-bold text-white truncate">
                     {user?.full_name || (isAr ? 'مستر عمر مكاوي' : 'Mr. Omar Meckawy')}
                   </p>
-                  <p className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate">
+                  <p className="text-[10px] text-neutral-400 font-mono truncate">
                     {user?.phone}
                   </p>
                 </div>
@@ -143,7 +143,7 @@ export function StaffSidebar({
             </div>
           ) : (
             <div className="flex justify-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-800 font-bold text-xs dark:bg-brand-950 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-950 text-emerald-300 font-bold text-xs border border-emerald-800/60 shadow-xs">
                 {user?.full_name?.charAt(0) || 'OM'}
               </div>
             </div>
@@ -165,7 +165,7 @@ export function StaffSidebar({
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileOpen(false)}
           />
           <div className="relative flex w-72 max-w-xs flex-1 flex-col shadow-2xl animate-in slide-in-from-start duration-200">

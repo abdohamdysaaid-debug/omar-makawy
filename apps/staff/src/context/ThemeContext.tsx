@@ -10,23 +10,17 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
+    document.documentElement.classList.add('dark');
     const stored = localStorage.getItem('staff_theme');
-    if (stored === 'dark') {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    } else if (stored === 'light') {
+    if (stored === 'light') {
       setIsDark(false);
       document.documentElement.classList.remove('dark');
     } else {
-      // Default to dark or system
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        setIsDark(true);
-        document.documentElement.classList.add('dark');
-      }
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
     }
   }, []);
 

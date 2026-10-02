@@ -23,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" className={cairo.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-background-light dark:bg-background-dark text-neutral-900 dark:text-neutral-50 font-cairo antialiased selection:bg-brand-500 selection:text-white">
+    <html lang="ar" dir="rtl" className={`dark ${cairo.variable}`} style={{ colorScheme: 'dark' }} suppressHydrationWarning>
+      <body className="min-h-screen bg-[#090c0a] text-neutral-100 font-cairo antialiased selection:bg-emerald-600 selection:text-white">
         <Providers>{children}</Providers>
       </body>
     </html>
