@@ -10,7 +10,19 @@ import { Search, ChevronDown, Filter } from 'lucide-react';
 
 const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
 
-function getStoredGrade(studentAcademicYearId?: number): number | 'all' {
+function parseGrade(id?: string | number): number | undefined {
+  if (!id) return undefined;
+  if (typeof id === 'number') return id;
+  const map: Record<string, number> = {
+    'a0000000-0000-0000-0000-000000000001': 1,
+    'a0000000-0000-0000-0000-000000000002': 2,
+    'a0000000-0000-0000-0000-000000000003': 3,
+    'a0000000-0000-0000-0000-000000000004': 4,
+  };
+  return map[id] || parseInt(id, 10) || undefined;
+}
+
+function getStoredGrade(studentAcademicYearId?: string | number): number | 'all' {
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
@@ -23,7 +35,7 @@ function getStoredGrade(studentAcademicYearId?: number): number | 'all' {
       }
     } catch {}
   }
-  return studentAcademicYearId || 'all';
+  return parseGrade(studentAcademicYearId) || 'all';
 }
 
 function saveStoredGrade(grade: number | 'all') {
@@ -47,9 +59,10 @@ export default function BookstoreClient() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
-      if (!saved && student?.academicYearId) {
-        setSelectedYearId(student.academicYearId);
-        saveStoredGrade(student.academicYearId);
+      const studentGrade = parseGrade(student?.academicYearId);
+      if (!saved && studentGrade) {
+        setSelectedYearId(studentGrade);
+        saveStoredGrade(studentGrade);
       }
     }
   }, [student?.academicYearId]);

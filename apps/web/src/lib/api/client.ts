@@ -2,11 +2,11 @@ import { ApiError, Tokens } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1';
 
-// Key names for storage
-const ACCESS_TOKEN_KEY = 'omar_admin_access_token';
-const REFRESH_TOKEN_KEY = 'omar_admin_refresh_token';
+// Key names for student portal storage
+const ACCESS_TOKEN_KEY = 'omar_student_access_token';
+const REFRESH_TOKEN_KEY = 'omar_student_refresh_token';
 const DEVICE_UUID_KEY = 'omar_device_uuid';
-const USER_KEY = 'omar_admin_user';
+const USER_KEY = 'omar_student_user';
 
 export function getOrCreateDeviceUuid(): string {
   if (typeof window === 'undefined') {
@@ -27,18 +27,21 @@ export function getOrCreateDeviceUuid(): string {
 
 export function getStoredAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  return localStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem('omar_admin_access_token');
 }
 
 export function getStoredRefreshToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || localStorage.getItem('omar_admin_refresh_token');
 }
 
 export function storeTokens(tokens: Tokens): void {
   if (typeof window === 'undefined') return;
+  if (!tokens || !tokens.access_token) return;
   localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
-  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
+  if (tokens.refresh_token) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
+  }
 }
 
 export function clearStoredAuth(): void {
@@ -46,6 +49,8 @@ export function clearStoredAuth(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem('omar_student_auth');
+  localStorage.removeItem('omar_student_data');
 }
 
 export function getStoredUser(): any | null {
@@ -110,7 +115,7 @@ export async function request<T>(
 
     if (res.status === 401 && retry) {
       const refreshToken = getStoredRefreshToken();
-      if (refreshToken) {
+      if (refreshToken && refreshToken.trim().length > 0) {
         if (!isRefreshing) {
           isRefreshing = true;
           try {
@@ -126,14 +131,17 @@ export async function request<T>(
 
             if (refreshRes.ok) {
               const data = await refreshRes.json();
-              const newTokens: Tokens = data.data?.tokens || data.tokens;
-              if (newTokens) {
+              const newTokens: Tokens = data.data?.tokens || data.tokens || data.data || data;
+              if (newTokens && newTokens.access_token) {
                 storeTokens(newTokens);
                 isRefreshing = false;
                 onRefreshed(newTokens.access_token);
                 // Retry with new token
                 headers.set('Authorization', `Bearer ${newTokens.access_token}`);
                 return request<T>(endpoint, { ...options, headers }, false);
+              } else {
+                clearStoredAuth();
+                isRefreshing = false;
               }
             } else {
               // Refresh failed, clear credentials
@@ -155,6 +163,9 @@ export async function request<T>(
             });
           });
         }
+      } else {
+        // No refresh token available, clear credentials immediately
+        clearStoredAuth();
       }
     }
 

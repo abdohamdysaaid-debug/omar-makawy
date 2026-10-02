@@ -20,7 +20,7 @@ function LoginForm() {
   const [errors, setErrors] = useState({ identifier: '', password: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     let isValid = true;
@@ -40,11 +40,15 @@ function LoginForm() {
     if (isValid) {
       setIsSubmitting(true);
       try {
-        login(identifier, password);
+        await login(identifier, password);
         const returnUrl = searchParams.get('returnUrl') || '/';
         router.push(returnUrl);
-      } catch {
-        setErrors({ ...newErrors, password: t('auth.invalidCredentials', 'بيانات الدخول غير صحيحة') });
+      } catch (err: any) {
+        const errorMsg =
+          err?.message ||
+          err?.error_code ||
+          t('auth.invalidCredentials', 'بيانات الدخول غير صحيحة');
+        setErrors({ ...newErrors, password: errorMsg });
       } finally {
         setIsSubmitting(false);
       }

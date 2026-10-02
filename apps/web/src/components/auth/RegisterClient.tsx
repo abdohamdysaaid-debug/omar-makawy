@@ -347,10 +347,7 @@ function RegisterForm() {
     };
 
     try {
-      await authApi.register(payload);
-      
-      // Update Client Auth State
-      setAuthContextState({
+      await setAuthContextState({
         fullName: formData.fullName,
         phone: formData.studentPhone,
         whatsapp: formData.whatsappPhone,
@@ -358,6 +355,11 @@ function RegisterForm() {
         email: formData.email,
         password: formData.password,
         academicYearId: formData.academicYearId,
+        governorateId: formData.governorateId,
+        gender: formData.gender,
+        educationType: formData.educationType,
+        studyType: formData.studyType,
+        section: isPrep3 ? undefined : (formData.section || undefined),
       });
 
       setStep(4); // Success screen

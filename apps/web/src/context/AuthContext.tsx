@@ -2,17 +2,25 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { Student } from '@/types';
-import { mockStudent } from '@/data/mock';
-import { apiClient } from '@/lib/api';
+import { authApi, RegisterPayload } from '@/lib/api/auth';
+import {
+  apiClient,
+  getStoredAccessToken,
+  getStoredUser,
+  storeTokens,
+  storeUser,
+  clearStoredAuth,
+} from '@/lib/api/client';
+import { AuthSuccessResponse, User } from '@/lib/api/types';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isInitialized: boolean;
   student: Student | null;
   returnUrl: string | null;
-  login: (email: string, password: string) => boolean;
-  register: (data: RegisterData) => boolean;
-  logout: () => void;
+  login: (phoneOrEmail: string, password: string) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<boolean>;
+  logout: () => Promise<void>;
   setReturnUrl: (url: string | null) => void;
   showAuthGate: boolean;
   openAuthGate: (returnUrl?: string) => void;
@@ -25,7 +33,7 @@ export interface RegisterData {
   phone: string;
   whatsapp?: string;
   parentPhone: string;
-  email: string;
+  email?: string;
   password: string;
   academicYearId: number | string;
   governorateId?: string;
@@ -35,99 +43,165 @@ export interface RegisterData {
   section?: string;
 }
 
+function mapUserToStudent(user: User): Student {
+  const profile = user.student_profile || {};
+  return {
+    id: user.id,
+    fullName: user.full_name,
+    phone: user.phone,
+    whatsapp: profile.whatsapp_phone || user.phone,
+    parentPhone: profile.parent_phone || '',
+    email: user.email || '',
+    academicYearId: user.academic_year_id || profile.academic_year_id || '',
+    avatarUrl: profile.avatar_url || '',
+    role: user.role,
+  };
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedAuth = localStorage.getItem('omar_student_auth');
-        const storedStudent = localStorage.getItem('omar_student_data');
-        return storedAuth === 'true' && !!storedStudent;
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
-
-  const [student, setStudent] = useState<Student | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedAuth = localStorage.getItem('omar_student_auth');
-        const storedStudent = localStorage.getItem('omar_student_data');
-        if (storedAuth === 'true' && storedStudent) {
-          return JSON.parse(storedStudent);
-        }
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  });
-
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [student, setStudent] = useState<Student | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);
 
+  // Initial session hydration on mount
   useEffect(() => {
-    try {
-      const storedAuth = localStorage.getItem('omar_student_auth');
-      const storedStudent = localStorage.getItem('omar_student_data');
-      if (storedAuth === 'true' && storedStudent) {
-        setIsAuthenticated(true);
-        setStudent(JSON.parse(storedStudent));
+    let isMounted = true;
+
+    async function initAuth() {
+      const token = getStoredAccessToken();
+      if (!token) {
+        if (isMounted) {
+          clearStoredAuth();
+          setIsAuthenticated(false);
+          setStudent(null);
+          setIsInitialized(true);
+        }
+        return;
       }
-    } catch {
-      // Fallback
-    } finally {
-      setIsInitialized(true);
+
+      // Optimistically restore cached user while validating session with backend
+      const cachedUser = getStoredUser();
+      if (cachedUser && cachedUser.role === 'STUDENT' && isMounted) {
+        setStudent(mapUserToStudent(cachedUser));
+        setIsAuthenticated(true);
+      }
+
+      try {
+        const user = await authApi.getMe();
+        if (isMounted) {
+          if (user && user.role === 'STUDENT') {
+            const studentData = mapUserToStudent(user);
+            setStudent(studentData);
+            setIsAuthenticated(true);
+            storeUser(user);
+          } else {
+            // Reject non-student roles on the student portal
+            clearStoredAuth();
+            setIsAuthenticated(false);
+            setStudent(null);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          clearStoredAuth();
+          setIsAuthenticated(false);
+          setStudent(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsInitialized(true);
+        }
+      }
     }
-  }, []);
 
-  const login = useCallback((email: string, _password: string) => {
-    void email;
-    void _password;
-    setStudent(mockStudent);
-    setIsAuthenticated(true);
-    setShowAuthGate(false);
-    try {
-      localStorage.setItem('omar_student_auth', 'true');
-      localStorage.setItem('omar_student_data', JSON.stringify(mockStudent));
-    } catch {}
-    return true;
-  }, []);
+    initAuth();
 
-  const register = useCallback((data: RegisterData) => {
-    const newStudent: Student = {
-      id: Date.now(),
-      fullName: data.fullName,
-      phone: data.phone,
-      whatsapp: data.whatsapp || data.phone,
-      parentPhone: data.parentPhone,
-      email: data.email,
-      academicYearId: typeof data.academicYearId === 'number' ? data.academicYearId : 1,
+    return () => {
+      isMounted = false;
     };
-    setStudent(newStudent);
+  }, []);
+
+  const login = useCallback(async (phoneOrEmail: string, password: string): Promise<boolean> => {
+    const res = await authApi.login({ phone: phoneOrEmail.trim(), password });
+
+    if ('two_factor_required' in res && res.two_factor_required) {
+      throw new Error('حسابك يتطلب رمز التحقق بخطوتين.');
+    }
+
+    const authRes = res as AuthSuccessResponse;
+    if (!authRes || !authRes.user || !authRes.tokens) {
+      throw new Error('فشل تسجيل الدخول. استجابة غير صحيحة من السيرفر.');
+    }
+
+    if (authRes.user.role !== 'STUDENT') {
+      clearStoredAuth();
+      throw new Error('هذا الحساب ليس حساب طالب. يرجى استخدام بوابة الإدارة.');
+    }
+
+    storeTokens(authRes.tokens);
+    storeUser(authRes.user);
+
+    const studentData = mapUserToStudent(authRes.user);
+    setStudent(studentData);
     setIsAuthenticated(true);
     setShowAuthGate(false);
-    try {
-      localStorage.setItem('omar_student_auth', 'true');
-      localStorage.setItem('omar_student_data', JSON.stringify(newStudent));
-    } catch {}
+
     return true;
   }, []);
 
-  const logout = useCallback(() => {
-    setStudent(null);
-    setIsAuthenticated(false);
-    setReturnUrl(null);
+  const register = useCallback(async (data: RegisterData): Promise<boolean> => {
+    const isPrep3 = String(data.academicYearId) === 'a0000000-0000-0000-0000-000000000001';
+
+    const payload: RegisterPayload = {
+      full_name: data.fullName.trim(),
+      phone: data.phone.trim(),
+      whatsapp_phone: (data.whatsapp || data.phone).trim(),
+      parent_phone: data.parentPhone.trim(),
+      email: data.email?.trim() || undefined,
+      governorate_id: data.governorateId || 'b0000000-0000-0000-0000-000000000001',
+      gender: data.gender || 'MALE',
+      password: data.password,
+      education_type: data.educationType || 'GENERAL',
+      study_type: data.studyType || 'ARABIC',
+      academic_year_id: String(data.academicYearId),
+      section: isPrep3 ? undefined : (data.section || undefined),
+    };
+
+    const res = await authApi.register(payload);
+    if (res && res.tokens && res.user) {
+      if (res.user.role !== 'STUDENT') {
+        clearStoredAuth();
+        throw new Error('نوع الحساب المسجل غير صالح لبوابة الطلاب.');
+      }
+
+      storeTokens(res.tokens);
+      storeUser(res.user);
+
+      const studentData = mapUserToStudent(res.user);
+      setStudent(studentData);
+      setIsAuthenticated(true);
+      setShowAuthGate(false);
+
+      return true;
+    }
+    return false;
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
-      localStorage.removeItem('omar_student_auth');
-      localStorage.removeItem('omar_student_data');
-    } catch {}
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
+      await authApi.logout().catch(() => null);
+    } finally {
+      clearStoredAuth();
+      setStudent(null);
+      setIsAuthenticated(false);
+      setReturnUrl(null);
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   }, []);
 
@@ -143,11 +217,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateStudentAvatar = useCallback(async (avatarUrl: string) => {
     setStudent((prev) => {
       const updated = prev ? { ...prev, avatarUrl } : prev;
-      if (updated) {
-        try {
-          localStorage.setItem('omar_student_data', JSON.stringify(updated));
-        } catch {}
-      }
       return updated;
     });
     try {

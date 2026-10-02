@@ -90,16 +90,17 @@ export interface CartItem {
 }
 
 export interface Student {
-  id: number;
+  id: string | number;
   fullName: string;
   phone: string;
   whatsapp: string;
   parentPhone: string;
   email: string;
-  academicYearId: number;
+  academicYearId: string | number;
   academicYearName?: string;
   walletBalance?: number;
   avatarUrl?: string;
+  role?: string;
 }
 
 export interface Notification {
