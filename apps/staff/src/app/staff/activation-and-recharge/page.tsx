@@ -391,14 +391,17 @@ export default function ActivationAndRechargePage() {
     try {
       if (activeTab === 'packages') {
         const pkgObj = packagesList.find((p) => p.id === pkgTargetId);
-        const payload = {
+        const effectiveYearId = pkgObj?.academic_year_id || (pkgAcademicYearId && pkgAcademicYearId.length === 36 ? pkgAcademicYearId : undefined);
+        const payload: any = {
           type: 'PACKAGE',
           target_id: pkgTargetId,
-          academic_year_id: pkgAcademicYearId || pkgObj?.academic_year_id || academicYears[0]?.id,
           count: Number(pkgCount),
           max_uses: Number(pkgMaxUses),
           expires_at: new Date(pkgExpiresAt).toISOString(),
         };
+        if (effectiveYearId) {
+          payload.academic_year_id = effectiveYearId;
+        }
         const res: any = await apiClient.post('/admin/activation-codes/generate', payload);
         const codesList = res?.codes || res?.data || [];
         setGeneratedBatch({
@@ -409,14 +412,17 @@ export default function ActivationAndRechargePage() {
         });
       } else if (activeTab === 'courses') {
         const courseObj = coursesList.find((c) => c.id === courseTargetId);
-        const payload = {
+        const effectiveYearId = courseObj?.academic_year_id || (courseAcademicYearId && courseAcademicYearId.length === 36 ? courseAcademicYearId : undefined);
+        const payload: any = {
           type: 'COURSE',
           target_id: courseTargetId,
-          academic_year_id: courseAcademicYearId || courseObj?.academic_year_id || academicYears[0]?.id,
           count: Number(courseCount),
           max_uses: Number(courseMaxUses),
           expires_at: new Date(courseExpiresAt).toISOString(),
         };
+        if (effectiveYearId) {
+          payload.academic_year_id = effectiveYearId;
+        }
         const res: any = await apiClient.post('/admin/activation-codes/generate', payload);
         const codesList = res?.codes || res?.data || [];
         setGeneratedBatch({
