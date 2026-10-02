@@ -33,17 +33,23 @@ export function CourseCardPreview({
   isFeatured = false,
   isArabic = true,
 }: CourseCardPreviewProps) {
+  const [imgError, setImgError] = React.useState<boolean>(false);
   const displayTitle = (isArabic ? titleAr : titleEn) || titleAr || (isArabic ? 'عنوان الكورس التعليمي' : 'Course Title');
   const hasDiscount = typeof discountPrice === 'number' && discountPrice > 0 && discountPrice < price;
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [thumbnailUrl]);
 
   return (
     <div className="w-full max-w-sm mx-auto rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col transition-all">
       {/* 16:9 Image / Banner Container */}
       <div className="relative aspect-video w-full bg-neutral-950 flex items-center justify-center overflow-hidden border-b border-neutral-100 dark:border-neutral-800">
-        {thumbnailUrl ? (
+        {thumbnailUrl && !imgError ? (
           <img
             src={thumbnailUrl}
             alt={displayTitle}
+            onError={() => setImgError(true)}
             className="w-full h-full object-cover"
           />
         ) : (

@@ -25,6 +25,7 @@ import {
   CourseItem,
   CoursesListQuery,
   SystemPermissions,
+  resolveCourseThumbnailUrl,
 } from '@omar-makawy/shared';
 import { staffApiClient } from '@/context/StaffAuthContext';
 import { createCoursesApi } from '@omar-makawy/shared';
@@ -34,6 +35,34 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { CourseFormModal } from '@/components/courses/CourseFormModal';
 
 const staffCoursesApi = createCoursesApi(staffApiClient);
+
+function CourseThumbnailItem({
+  course,
+  iconSize = 'h-5 w-5',
+}: {
+  course: CourseItem;
+  iconSize?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  const resolvedUrl = resolveCourseThumbnailUrl(course);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [course.thumbnail_url]);
+
+  if (!resolvedUrl || hasError) {
+    return <BookOpen className={`${iconSize} text-neutral-500 opacity-60`} />;
+  }
+
+  return (
+    <img
+      src={resolvedUrl}
+      alt={course.title_ar}
+      onError={() => setHasError(true)}
+      className="w-full h-full object-cover"
+    />
+  );
+}
 
 export default function StaffCoursesPage() {
   const { language } = useLanguage();
@@ -348,15 +377,7 @@ export default function StaffCoursesPage() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div className="relative aspect-video w-20 shrink-0 rounded-lg bg-neutral-900 overflow-hidden border border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
-                            {course.thumbnail_url ? (
-                              <img
-                                src={course.thumbnail_url}
-                                alt={course.title_ar}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <BookOpen className="h-5 w-5 text-neutral-500 opacity-60" />
-                            )}
+                            <CourseThumbnailItem course={course} iconSize="h-5 w-5" />
                           </div>
                           <div className="truncate max-w-xs">
                             <Link
@@ -484,15 +505,7 @@ export default function StaffCoursesPage() {
                 >
                   <div className="flex gap-3">
                     <div className="relative aspect-video w-24 shrink-0 rounded-xl bg-neutral-900 overflow-hidden border border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
-                      {course.thumbnail_url ? (
-                        <img
-                          src={course.thumbnail_url}
-                          alt={course.title_ar}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <BookOpen className="h-6 w-6 text-neutral-500 opacity-60" />
-                      )}
+                      <CourseThumbnailItem course={course} iconSize="h-6 w-6" />
                     </div>
 
                     <div className="flex-1 min-w-0">

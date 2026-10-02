@@ -139,7 +139,30 @@ export function createCoursesApi(client = defaultApiClient) {
       }
       return client.delete<DeleteCourseResponse>(`/courses/${id}`, options);
     },
+
+    getThumbnailUrl(courseId: string): string {
+      return `/courses/${courseId}/thumbnail`;
+    },
   };
 }
 
+export function resolveCourseThumbnailUrl(
+  course: { id?: string; thumbnail_url?: string | null },
+  apiBaseUrl?: string
+): string | null {
+  if (!course) return null;
+  if (course.thumbnail_url && course.thumbnail_url.startsWith('blob:')) {
+    return course.thumbnail_url;
+  }
+  if (course.thumbnail_url && (course.thumbnail_url.startsWith('data:') || course.thumbnail_url.startsWith('/'))) {
+    return course.thumbnail_url;
+  }
+  if (course.id) {
+    const base = (apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'https://api.omarmeckawy.com/api/v1').replace(/\/$/, '');
+    return `${base}/courses/${course.id}/thumbnail`;
+  }
+  return course.thumbnail_url || null;
+}
+
 export const defaultCoursesApi = createCoursesApi(defaultApiClient);
+

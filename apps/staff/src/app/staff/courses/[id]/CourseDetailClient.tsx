@@ -25,6 +25,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import {
   CourseDetail,
   SystemPermissions,
+  resolveCourseThumbnailUrl,
 } from '@omar-makawy/shared';
 import { staffApiClient } from '@/context/StaffAuthContext';
 import { createCoursesApi } from '@omar-makawy/shared';
@@ -53,6 +54,13 @@ export function CourseDetailClient({ courseId }: { courseId: string }) {
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
+  const [imgError, setImgError] = useState<boolean>(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [course?.thumbnail_url]);
+
+  const resolvedThumbnailUrl = course ? resolveCourseThumbnailUrl(course) : null;
 
   const BackIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
@@ -152,10 +160,11 @@ export function CourseDetailClient({ courseId }: { courseId: string }) {
         {/* 16:9 Thumbnail Column (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
           <div className="relative aspect-video w-full rounded-2xl bg-neutral-950 overflow-hidden border border-neutral-200 dark:border-neutral-800 flex items-center justify-center shadow-inner">
-            {course.thumbnail_url ? (
+            {resolvedThumbnailUrl && !imgError ? (
               <img
-                src={course.thumbnail_url}
+                src={resolvedThumbnailUrl}
                 alt={course.title_ar}
+                onError={() => setImgError(true)}
                 className="w-full h-full object-cover"
               />
             ) : (
