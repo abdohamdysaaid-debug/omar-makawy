@@ -26,7 +26,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   }, [isMobileOpen]);
 
   return (
-    <div className="min-h-screen bg-[#f6f8f5] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 flex flex-col font-cairo transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-screen bg-[#f6f8f5] dark:bg-black text-gray-900 dark:text-stone-100 flex flex-col font-cairo transition-colors duration-300 overflow-x-hidden">
       {/* Sidebar Component */}
       <Sidebar
         isCollapsed={isCollapsed}

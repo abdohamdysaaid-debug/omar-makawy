@@ -31,7 +31,7 @@ export default function ForgotPasswordClient() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f4f7f4] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
+    <div className="flex min-h-screen flex-col bg-[#f4f7f4] dark:bg-black text-gray-900 dark:text-stone-100 font-cairo transition-colors duration-300">
       <Navbar />
       <main className="flex flex-1 items-center justify-center p-4 py-12">
         <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#111827] p-8 sm:p-10 border border-stone-200/90 dark:border-gray-800/90 shadow-md transition-colors">

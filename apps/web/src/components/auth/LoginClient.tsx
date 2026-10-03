@@ -112,10 +112,10 @@ export default function LoginClient() {
   const { t } = useLanguage();
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f4f7f4] dark:bg-[#090d16] text-gray-900 dark:text-gray-100 font-cairo transition-colors duration-300">
+    <div className="flex min-h-screen flex-col bg-[#f4f7f4] dark:bg-black text-gray-900 dark:text-stone-100 font-cairo transition-colors duration-300">
       <Navbar />
       <main className="flex flex-1 items-center justify-center p-4 py-12">
-        <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#111827] p-8 sm:p-10 border border-stone-200/90 dark:border-gray-800/90 shadow-md transition-colors">
+        <div className="w-full max-w-md rounded-3xl bg-white dark:bg-stone-900 p-8 sm:p-10 border border-stone-200/90 dark:border-stone-800 shadow-md transition-colors">
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-black text-emerald-600 dark:text-emerald-400 font-cairo">{t('teacher.title', 'Mr. Omar Meckawy')}</h1>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white font-cairo">{t('auth.loginTitle', 'تسجيل الدخول')}</h2>

@@ -102,7 +102,7 @@ export default function Sidebar({
 
       {/* Persistent Collapsible Sidebar Drawer */}
       <aside
-        className={`fixed top-0 bottom-0 start-0 z-50 flex flex-col bg-[#064e3b] dark:bg-[#0b0f19] border-e border-emerald-800/60 dark:border-gray-800/80 shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed top-0 bottom-0 start-0 z-50 flex flex-col bg-[#064e3b] dark:bg-stone-950 border-e border-emerald-800/60 dark:border-stone-800/80 shadow-2xl transition-transform duration-300 ease-out ${
           isCollapsed ? 'lg:w-20' : 'lg:w-64'
         } ${
           isMobileOpen
@@ -116,7 +116,7 @@ export default function Sidebar({
         aria-label="Sidebar Menu"
       >
         {/* Brand Header */}
-        <div className={`flex items-center h-20 border-b border-emerald-800/60 dark:border-gray-800/60 ${
+        <div className={`flex items-center h-20 border-b border-emerald-800/60 dark:border-stone-800/80 ${
           isCollapsed ? 'px-3 justify-center' : 'px-6 justify-between'
         }`}>
           <Link href="/student" className="flex items-center gap-3 group" onClick={onCloseMobile}>
@@ -136,7 +136,7 @@ export default function Sidebar({
           {/* Close button on mobile */}
           <button
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-emerald-200 hover:text-white dark:text-gray-400 dark:hover:text-gray-200 lg:hidden"
+            className="p-1.5 rounded-lg text-emerald-200 hover:text-white dark:text-stone-300 dark:hover:text-white lg:hidden"
             aria-label="إغلاق القائمة"
           >
             <X className="w-5 h-5" />
@@ -148,7 +148,7 @@ export default function Sidebar({
           {navSections.map((section, idx) => (
             <div key={idx} className="space-y-2">
               {!isCollapsed && (
-                <span className="text-[9.5px] font-black uppercase tracking-wider text-emerald-300/80 dark:text-emerald-400/80 px-2 block text-start">
+                <span className="text-[9.5px] font-black uppercase tracking-wider text-emerald-300/80 dark:text-emerald-400 px-2 block text-start">
                   {section.category}
                 </span>
               )}
@@ -172,10 +172,10 @@ export default function Sidebar({
                         isCollapsed ? 'px-3 py-3 justify-center' : 'px-3.5 py-2.5'
                       } ${
                         isActive
-                          ? 'bg-emerald-700/90 dark:bg-emerald-600/90 text-white font-extrabold shadow-md shadow-emerald-950/40 border-s-4 border-emerald-300 dark:border-emerald-400'
+                          ? 'bg-emerald-700/90 dark:bg-[#0d6e4f] text-white font-extrabold shadow-md shadow-emerald-950/40 border-s-4 border-emerald-300 dark:border-emerald-400'
                           : isAi
-                          ? 'bg-emerald-950/60 dark:bg-emerald-950/80 text-emerald-200 border border-emerald-500/50 hover:bg-emerald-800/80 hover:text-white'
-                          : 'bg-emerald-900/40 dark:bg-gray-900/40 text-emerald-100/90 dark:text-gray-300 hover:bg-emerald-800/70 dark:hover:bg-gray-800/60 hover:text-white border border-emerald-800/40 dark:border-gray-800/50'
+                          ? 'bg-emerald-950/60 dark:bg-emerald-950/90 text-emerald-200 border border-emerald-500/50 hover:bg-emerald-800/80 hover:text-white'
+                          : 'bg-emerald-900/40 dark:bg-stone-900/90 text-emerald-100/90 dark:text-stone-200 hover:bg-emerald-800/70 dark:hover:bg-stone-800 hover:text-white border border-emerald-800/40 dark:border-stone-800'
                       }`}
                     >
                       <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : isAi ? 'text-emerald-300' : 'text-emerald-200/80 dark:text-gray-400 group-hover:text-white dark:group-hover:text-emerald-400'}`} />

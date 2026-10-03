@@ -119,7 +119,7 @@ function MyLecturesContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t('lectures.searchPlaceholder')}
-              className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white dark:bg-[#121814] border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-xs"
+              className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-white dark:bg-stone-900 border border-gray-200 dark:border-gray-800 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-xs"
             />
           </div>
         </div>
@@ -137,7 +137,7 @@ function MyLecturesContent() {
               className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                 selectedCourseFilter === 'all'
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                  : 'bg-white dark:bg-[#121814] text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
+                  : 'bg-white dark:bg-stone-900 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
               }`}
             >
               {t('lectures.allLectures')} ({lectures.length})
@@ -156,7 +156,7 @@ function MyLecturesContent() {
                   className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                     selectedCourseFilter === courseTitle
                       ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                      : 'bg-white dark:bg-[#121814] text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
+                      : 'bg-white dark:bg-stone-900 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
                   }`}
                 >
                   {courseTitle} ({count})
@@ -172,7 +172,7 @@ function MyLecturesContent() {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-72 rounded-2xl bg-gray-100 dark:bg-[#121814] animate-pulse border border-gray-100 dark:border-gray-800"
+                className="h-72 rounded-2xl bg-gray-100 dark:bg-stone-900 animate-pulse border border-gray-100 dark:border-gray-800"
               />
             ))}
           </div>
@@ -216,7 +216,7 @@ function MyLecturesContent() {
                 <Link
                   key={lecture.id}
                   href={`/student/lectures/${lecture.id}`}
-                  className="group rounded-2xl bg-white dark:bg-[#121814] border border-gray-200/90 dark:border-gray-800/80 overflow-hidden shadow-xs hover:shadow-xl hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all flex flex-col justify-between"
+                  className="group rounded-2xl bg-white dark:bg-stone-900 border border-gray-200/90 dark:border-gray-800/80 overflow-hidden shadow-xs hover:shadow-xl hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all flex flex-col justify-between"
                 >
                   {/* Lecture Thumbnail */}
                   <div className="relative aspect-video bg-gray-900 overflow-hidden flex items-center justify-center">

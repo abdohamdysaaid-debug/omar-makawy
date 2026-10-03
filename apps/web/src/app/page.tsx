@@ -24,7 +24,7 @@ export default function HomePage() {
 
   // Statically exported HTML & guest visitor view
   return (
-    <main className="min-h-screen flex flex-col font-cairo bg-[#f7f6ed] dark:bg-[#0b0f19] text-gray-900 dark:text-gray-100 transition-colors">
+    <main className="min-h-screen flex flex-col font-cairo bg-[#f7f6ed] dark:bg-black text-gray-900 dark:text-stone-100 transition-colors">
       <Navbar />
 
       <div className="flex-1">

@@ -498,7 +498,7 @@ export function StudentLectureViewClient({
     <StudentLayout>
       <div className="space-y-6 animate-fade-in max-w-7xl mx-auto py-2 font-cairo">
         {/* Top Header & Breadcrumb Bar with Context-Aware Back Link */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#121814] p-4 sm:p-5 rounded-3xl border border-gray-100 dark:border-gray-800/80 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-3xl border border-gray-100 dark:border-gray-800/80 shadow-xs">
           <Link
             href={backUrl}
             className="inline-flex items-center gap-2 text-xs font-black text-gray-700 dark:text-gray-300 hover:text-[#0d6e4f] dark:hover:text-emerald-400 transition-colors w-fit px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800"
@@ -525,7 +525,7 @@ export function StudentLectureViewClient({
 
         {/* Video Player Switcher Tabs (If Solution Video Exists) */}
         {hasSolutionVideo && (
-          <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-gray-100 dark:bg-[#121814] border border-gray-200 dark:border-gray-800 w-fit">
+          <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-gray-100 dark:bg-stone-900 border border-gray-200 dark:border-gray-800 w-fit">
             <button
               onClick={() => handleSelectVideoType('MAIN')}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
@@ -581,7 +581,7 @@ export function StudentLectureViewClient({
         </div>
 
         {/* Watch Progress Indicator */}
-        <div className="bg-white dark:bg-[#121814] rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-xs space-y-2">
+        <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
@@ -615,7 +615,7 @@ export function StudentLectureViewClient({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Lecture Metadata (Col 1 & 2) */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-[#121814] rounded-3xl p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-xs space-y-5">
+            <div className="bg-white dark:bg-stone-900 rounded-3xl p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-xs space-y-5">
               <div className="space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="px-3 py-1 rounded-lg bg-[#0d6e4f]/10 text-[#0d6e4f] dark:text-emerald-400 text-xs font-black">
@@ -700,7 +700,7 @@ export function StudentLectureViewClient({
 
           {/* Canonical Resource Section: "محتوى المحاضرة" (Col 3) */}
           <div className="space-y-4">
-            <div className="bg-white dark:bg-[#121814] rounded-3xl p-5 sm:p-6 border border-gray-100 dark:border-gray-800 shadow-xs space-y-4">
+            <div className="bg-white dark:bg-stone-900 rounded-3xl p-5 sm:p-6 border border-gray-100 dark:border-gray-800 shadow-xs space-y-4">
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2 font-black text-sm text-gray-900 dark:text-white">
@@ -743,7 +743,7 @@ export function StudentLectureViewClient({
                     </div>
 
                     {currentVideoType === 'MAIN' && (
-                      <span className="text-[10px] font-black text-[#0d6e4f] dark:text-emerald-400 bg-white dark:bg-[#121814] px-2 py-0.5 rounded-md border border-[#0d6e4f]/20 shadow-2xs">
+                      <span className="text-[10px] font-black text-[#0d6e4f] dark:text-emerald-400 bg-white dark:bg-stone-900 px-2 py-0.5 rounded-md border border-[#0d6e4f]/20 shadow-2xs">
                         {isAr ? 'يتم المشاهدة' : 'Active'}
                       </span>
                     )}
@@ -782,7 +782,7 @@ export function StudentLectureViewClient({
                     </div>
 
                     {currentVideoType === 'SOLUTION' ? (
-                      <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-white dark:bg-[#121814] px-2 py-0.5 rounded-md border border-amber-500/20 shadow-2xs">
+                      <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-white dark:bg-stone-900 px-2 py-0.5 rounded-md border border-amber-500/20 shadow-2xs">
                         {isAr ? 'يتم المشاهدة' : 'Active'}
                       </span>
                     ) : (
