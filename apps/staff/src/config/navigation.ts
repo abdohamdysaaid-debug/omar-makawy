@@ -40,6 +40,11 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         icon: Package,
         permission: SystemPermissions.PACKAGES_READ,
       },
+      {
+        key: 'nav.activation_and_recharge',
+        href: '/staff/codes',
+        icon: Ticket,
+      },
     ],
   },
   {
@@ -49,11 +54,6 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         href: '/staff/students',
         icon: Users,
         permission: SystemPermissions.STUDENTS_READ,
-      },
-      {
-        key: 'nav.activation_and_recharge',
-        href: '/staff/activation-and-recharge',
-        icon: Ticket,
       },
       {
         key: 'nav.settings',
