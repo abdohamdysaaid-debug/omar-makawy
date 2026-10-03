@@ -337,7 +337,7 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
 
                         {/* Watch CTA */}
                         <Link
-                          href={`/student/lectures/detail?id=${lecture.id}`}
+                          href={`/student/lectures/${lecture.id}?courseId=${effectiveCourseId}`}
                           className="w-full py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] text-white rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#0d6e4f]/20 hover:scale-[1.02]"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />

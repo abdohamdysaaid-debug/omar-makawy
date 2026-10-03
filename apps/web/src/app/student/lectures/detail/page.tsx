@@ -6,15 +6,11 @@ import { StudentLectureViewClient } from '@/components/lectures/StudentLectureVi
 
 function LectureDetailFromQuery() {
   const searchParams = useSearchParams();
-  const id = searchParams.get('id') || '';
-
-  if (!id) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <p className="text-gray-500 font-bold">المحاضرة غير محددة</p>
-      </div>
-    );
-  }
+  const id =
+    searchParams.get('id') ||
+    searchParams.get('lectureId') ||
+    searchParams.get('lecture_id') ||
+    '';
 
   return <StudentLectureViewClient lectureId={id} />;
 }
@@ -24,7 +20,7 @@ export default function StudentLectureDetailQueryPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
-          <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-4 border-[#0d6e4f] border-t-transparent rounded-full" />
         </div>
       }
     >

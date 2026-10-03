@@ -663,7 +663,9 @@ export default function StudentHomeClient() {
           ) : continueLearningList.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {continueLearningList.map((item) => {
-                const lectureUrl = `/student/lectures/detail?id=${item.id}`;
+                const lectureUrl = item.courseId
+                  ? `/student/lectures/${item.id}?courseId=${item.courseId}`
+                  : `/student/lectures/${item.id}`;
 
                 return (
                   <div
