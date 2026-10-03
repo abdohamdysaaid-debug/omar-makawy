@@ -103,29 +103,59 @@ export function createApiClient(
 
   function getAccessToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem(tokenKey);
+    return (
+      localStorage.getItem(tokenKey) ||
+      localStorage.getItem('omar_student_access_token') ||
+      localStorage.getItem('omar_staff_access_token') ||
+      localStorage.getItem('omar_access_token') ||
+      localStorage.getItem('omar_admin_access_token')
+    );
   }
 
   function getRefreshToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem(refreshKey);
+    return (
+      localStorage.getItem(refreshKey) ||
+      localStorage.getItem('omar_student_refresh_token') ||
+      localStorage.getItem('omar_staff_refresh_token') ||
+      localStorage.getItem('omar_refresh_token') ||
+      localStorage.getItem('omar_admin_refresh_token')
+    );
   }
 
   function storeTokens(tokens: Tokens): void {
     if (typeof window === 'undefined') return;
     localStorage.setItem(tokenKey, tokens.access_token);
     localStorage.setItem(refreshKey, tokens.refresh_token);
+    if (localStorage.getItem('omar_student_access_token') || tokenKey === 'omar_student_access_token') {
+      localStorage.setItem('omar_student_access_token', tokens.access_token);
+      localStorage.setItem('omar_student_refresh_token', tokens.refresh_token);
+    }
+    if (localStorage.getItem('omar_staff_access_token') || tokenKey === 'omar_staff_access_token') {
+      localStorage.setItem('omar_staff_access_token', tokens.access_token);
+      localStorage.setItem('omar_staff_refresh_token', tokens.refresh_token);
+    }
   }
 
   function clearTokens(): void {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(tokenKey);
     localStorage.removeItem(refreshKey);
+    localStorage.removeItem('omar_student_access_token');
+    localStorage.removeItem('omar_student_refresh_token');
+    localStorage.removeItem('omar_staff_access_token');
+    localStorage.removeItem('omar_staff_refresh_token');
+    localStorage.removeItem('omar_access_token');
+    localStorage.removeItem('omar_refresh_token');
   }
 
   function getStoredUser(): any | null {
     if (typeof window === 'undefined') return null;
-    const raw = localStorage.getItem(userKey);
+    const raw =
+      localStorage.getItem(userKey) ||
+      localStorage.getItem('omar_student_user') ||
+      localStorage.getItem('omar_staff_user') ||
+      localStorage.getItem('omar_user');
     if (!raw) return null;
     try {
       return JSON.parse(raw);
@@ -143,6 +173,9 @@ export function createApiClient(
     clearTokens();
     if (typeof window !== 'undefined') {
       localStorage.removeItem(userKey);
+      localStorage.removeItem('omar_student_user');
+      localStorage.removeItem('omar_staff_user');
+      localStorage.removeItem('omar_user');
     }
   }
 
