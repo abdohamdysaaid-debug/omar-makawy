@@ -91,17 +91,33 @@ export const defaultVideosApi = createVideosApi(defaultApiClient);
 /**
  * Helper to extract YouTube 11-char Video ID and construct privacy-enhanced embed URL
  * matching backend YouTubeVideoProvider implementation.
+ * Supports:
+ * - https://youtu.be/VIDEO_ID?si=...
+ * - https://www.youtube.com/watch?v=VIDEO_ID
+ * - https://youtube.com/shorts/VIDEO_ID
+ * - https://youtube.com/live/VIDEO_ID
+ * - https://www.youtube.com/embed/VIDEO_ID
+ * - <iframe src="https://..."></iframe>
+ * - raw 11-char ID
  */
 export function extractYouTubeVideoId(input: string): string | null {
   if (!input || typeof input !== 'string') return null;
-  const trimmed = input.trim();
+  let trimmed = input.trim();
 
-  // 1. Direct 11-char ID
+  // 1. If iframe HTML was pasted, extract src URL
+  if (trimmed.includes('<iframe') || trimmed.includes('src=')) {
+    const srcMatch = trimmed.match(/src=["']([^"']+)["']/i);
+    if (srcMatch && srcMatch[1]) {
+      trimmed = srcMatch[1].trim();
+    }
+  }
+
+  // 2. Direct 11-char ID
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
     return trimmed;
   }
 
-  // 2. Parse URL
+  // 3. Parse URL
   try {
     const url = new URL(trimmed);
     const hostname = url.hostname.toLowerCase();
@@ -116,6 +132,12 @@ export function extractYouTubeVideoId(input: string): string | null {
     } else if (url.pathname === '/watch') {
       const v = url.searchParams.get('v');
       return v && /^[a-zA-Z0-9_-]{11}$/.test(v) ? v : null;
+    } else if (url.pathname.startsWith('/shorts/')) {
+      const parts = url.pathname.split('/').filter(Boolean);
+      return parts[1] && /^[a-zA-Z0-9_-]{11}$/.test(parts[1]) ? parts[1] : null;
+    } else if (url.pathname.startsWith('/live/')) {
+      const parts = url.pathname.split('/').filter(Boolean);
+      return parts[1] && /^[a-zA-Z0-9_-]{11}$/.test(parts[1]) ? parts[1] : null;
     } else if (url.pathname.startsWith('/embed/')) {
       const parts = url.pathname.split('/').filter(Boolean);
       return parts[1] && /^[a-zA-Z0-9_-]{11}$/.test(parts[1]) ? parts[1] : null;
@@ -130,6 +152,12 @@ export function extractYouTubeVideoId(input: string): string | null {
   return null;
 }
 
-export function buildYouTubeEmbedUrl(videoId: string): string {
-  return `https://www.youtube-nocookie.com/embed/${videoId}?controls=1&rel=0&playsinline=1&modestbranding=1&enablejsapi=1`;
+export function buildYouTubeEmbedUrl(videoId: string, resumePosition = 0, customOrigin?: string): string {
+  const origin =
+    customOrigin ||
+    (typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://omarmeckawy.com');
+  const startParam = resumePosition > 0 ? `&start=${Math.floor(resumePosition)}` : '';
+  return `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(origin)}${startParam}`;
 }

@@ -21,6 +21,9 @@ function extractYouTubeVideoId(input) {
     } else if (url.pathname === '/watch') {
       const v = url.searchParams.get('v');
       return v && /^[a-zA-Z0-9_-]{11}$/.test(v) ? v : null;
+    } else if (url.pathname.startsWith('/shorts/')) {
+      const parts = url.pathname.split('/').filter(Boolean);
+      return parts[1] && /^[a-zA-Z0-9_-]{11}$/.test(parts[1]) ? parts[1] : null;
     } else if (url.pathname.startsWith('/embed/')) {
       const parts = url.pathname.split('/').filter(Boolean);
       return parts[1] && /^[a-zA-Z0-9_-]{11}$/.test(parts[1]) ? parts[1] : null;
@@ -32,7 +35,7 @@ function extractYouTubeVideoId(input) {
 }
 
 function buildYouTubeEmbedUrl(videoId, resumePosition = 0) {
-  const base = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&controls=1&rel=0&playsinline=1&modestbranding=1`;
+  const base = `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&enablejsapi=1&origin=https://omarmeckawy.com`;
   return resumePosition > 0 ? `${base}&start=${Math.floor(resumePosition)}` : base;
 }
 
@@ -50,18 +53,19 @@ function formatTimestamp(seconds) {
 
 test('Student Lectures UI & Player Integration Unit Tests', async (t) => {
   await t.test('1. YouTube Video ID extraction supports standard, short, embed formats and rejects non-YouTube URLs', () => {
-    assert.equal(extractYouTubeVideoId('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
-    assert.equal(extractYouTubeVideoId('https://youtu.be/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
-    assert.equal(extractYouTubeVideoId('https://www.youtube.com/embed/dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
-    assert.equal(extractYouTubeVideoId('dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
+    assert.equal(extractYouTubeVideoId('https://youtu.be/S_p-Q0h67os?si=9HfU8JWXrA0dbuwN'), 'S_p-Q0h67os');
+    assert.equal(extractYouTubeVideoId('https://www.youtube.com/watch?v=S_p-Q0h67os'), 'S_p-Q0h67os');
+    assert.equal(extractYouTubeVideoId('https://youtube.com/shorts/S_p-Q0h67os'), 'S_p-Q0h67os');
+    assert.equal(extractYouTubeVideoId('https://www.youtube.com/embed/S_p-Q0h67os'), 'S_p-Q0h67os');
+    assert.equal(extractYouTubeVideoId('S_p-Q0h67os'), 'S_p-Q0h67os');
     assert.equal(extractYouTubeVideoId('https://vimeo.com/12345678'), null);
     assert.equal(extractYouTubeVideoId(''), null);
   });
 
   await t.test('2. Privacy-enhanced embed URL uses youtube-nocookie with resume position & security flags', () => {
-    const embedUrlWithResume = buildYouTubeEmbedUrl('dQw4w9WgXcQ', 345);
-    assert.ok(embedUrlWithResume.startsWith('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'));
-    assert.ok(embedUrlWithResume.includes('&start=345'));
+    const embedUrlWithResume = buildYouTubeEmbedUrl('S_p-Q0h67os', 345);
+    assert.ok(embedUrlWithResume.startsWith('https://www.youtube-nocookie.com/embed/S_p-Q0h67os'));
+    assert.ok(embedUrlWithResume.includes('&start=345') || embedUrlWithResume.includes('start=345'));
     assert.ok(embedUrlWithResume.includes('playsinline=1'));
     assert.ok(embedUrlWithResume.includes('rel=0'));
     assert.ok(!embedUrlWithResume.includes('www.youtube.com')); // Must NOT use standard domain

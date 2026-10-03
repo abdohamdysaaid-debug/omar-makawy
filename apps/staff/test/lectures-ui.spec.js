@@ -91,18 +91,22 @@ describe('Lectures System — Phase 3: Staff UI & Navigation Tests', () => {
 
   // 4. YouTube Video ID Extraction & Privacy Embed URL
   test('4. YouTube video helper extracts clean 11-char ID and builds privacy embed URL', () => {
-    const watchUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-    const shortUrl = 'https://youtu.be/dQw4w9WgXcQ';
-    const rawId = 'dQw4w9WgXcQ';
+    const trackingUrl = 'https://youtu.be/S_p-Q0h67os?si=9HfU8JWXrA0dbuwN';
+    const watchUrl = 'https://www.youtube.com/watch?v=S_p-Q0h67os';
+    const shortsUrl = 'https://youtube.com/shorts/S_p-Q0h67os';
+    const rawId = 'S_p-Q0h67os';
 
-    assert.strictEqual(extractYouTubeVideoId(watchUrl), 'dQw4w9WgXcQ');
-    assert.strictEqual(extractYouTubeVideoId(shortUrl), 'dQw4w9WgXcQ');
-    assert.strictEqual(extractYouTubeVideoId(rawId), 'dQw4w9WgXcQ');
+    assert.strictEqual(extractYouTubeVideoId(trackingUrl), 'S_p-Q0h67os');
+    assert.strictEqual(extractYouTubeVideoId(watchUrl), 'S_p-Q0h67os');
+    assert.strictEqual(extractYouTubeVideoId(shortsUrl), 'S_p-Q0h67os');
+    assert.strictEqual(extractYouTubeVideoId(rawId), 'S_p-Q0h67os');
 
-    const embedUrl = buildYouTubeEmbedUrl('dQw4w9WgXcQ');
-    assert.strictEqual(embedUrl.includes('youtube-nocookie.com/embed/dQw4w9WgXcQ'), true);
-    assert.strictEqual(embedUrl.includes('controls=1'), true);
+    const embedUrl = buildYouTubeEmbedUrl('S_p-Q0h67os');
+    assert.strictEqual(embedUrl.includes('youtube-nocookie.com/embed/S_p-Q0h67os'), true);
+    assert.strictEqual(embedUrl.includes('playsinline=1'), true);
     assert.strictEqual(embedUrl.includes('rel=0'), true);
+    assert.strictEqual(embedUrl.includes('enablejsapi=1'), true);
+    assert.strictEqual(embedUrl.includes('origin='), true);
   });
 
   // 5. Timestamp Parsing and Formatting
