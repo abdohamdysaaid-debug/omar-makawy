@@ -10,7 +10,6 @@ import EmptyState from '@/components/ui/EmptyState';
 import {
   Package as PackageIcon,
   Play,
-  PlayCircle,
   Clock,
   CheckCircle2,
   BookOpen,
@@ -18,7 +17,7 @@ import {
   Sparkles,
   Video,
   FileText,
-  AlertCircle,
+  HelpCircle,
   Calendar,
   Layers,
   ArrowLeft,
@@ -37,7 +36,7 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
   const effectivePackageId = packageId || paramId || searchId;
 
   const { student, isAuthenticated, isSubscribedToPackage } = useAuth();
-  const [activeTab, setActiveTab] = useState<'lectures' | 'courses'>('lectures');
+  const [activeTab, setActiveTab] = useState<'lectures' | 'exams' | 'files'>('lectures');
   const [pkg, setPkg] = useState<any | null>(null);
   const [lectures, setLectures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,86 +155,92 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
   const description = pkg.description_ar || pkg.description || '';
   const rawImage = pkg.thumbnail_url || pkg.imageUrl;
   const image = resolveMediaUrl(rawImage);
-  const memberCourses = Array.isArray(pkg.courses) ? pkg.courses : [];
+  const academicStageName = pkg.academic_year_name_ar || 'الصف الدراسي';
   const lecturesCount = lectures.length;
 
   return (
     <StudentLayout>
-      <div className="space-y-6 animate-fade-in font-cairo">
+      <div className="space-y-8 animate-fade-in font-cairo">
         {/* Breadcrumb Header */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link
-            href="/student/packages"
-            className="hover:text-[#0d6e4f] dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-semibold"
-          >
-            <span>الباقات الشهرية</span>
-            <ChevronRight className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          <Link href="/student" className="hover:text-[#0d6e4f] dark:hover:text-emerald-400 transition-colors">
+            الرئيسية
           </Link>
-          <span className="text-gray-400">/</span>
-          <span className="text-gray-900 dark:text-white font-bold truncate">{title}</span>
+          <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180 text-gray-400" />
+          <Link href="/subscriptions" className="hover:text-[#0d6e4f] dark:hover:text-emerald-400 transition-colors">
+            اشتراكاتي
+          </Link>
+          <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180 text-gray-400" />
+          <span className="text-gray-900 dark:text-white font-bold line-clamp-1">{title}</span>
         </div>
 
-        {/* Package Hero Overview Card */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-start md:items-center gap-6">
-          {/* Cover / Icon */}
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-[#0d6e4f] to-[#073b2a] text-white flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-md relative overflow-hidden">
-            {image ? (
-              <img src={image} alt={title} className="w-full h-full object-cover" />
-            ) : (
-              <PackageIcon className="w-12 h-12 text-emerald-300" />
-            )}
-            <div className="absolute -end-4 -bottom-4 w-16 h-16 rounded-full bg-white/10 pointer-events-none" />
-          </div>
-
-          {/* Details */}
-          <div className="flex-1 space-y-3 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-[#0d6e4f] dark:text-emerald-300 text-xs font-black border border-emerald-300 dark:border-emerald-800">
-                {pkg.academic_year_name_ar || 'باقة معتمدة'}
-              </span>
-
-              {isPurchased && (
-                <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center gap-1.5 shadow-xs">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>تم الشراء ومفعلة بحسابك</span>
+        {/* Package Hero Banner Card */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#064e3b] via-[#0d6e4f] to-[#042f24] text-white p-6 sm:p-8 shadow-xl shadow-emerald-950/20 border border-emerald-700/40">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-3 max-w-2xl text-start">
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-emerald-200 text-xs font-black backdrop-blur-md border border-white/20">
+                  <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>باقة تعليمية</span>
                 </span>
+
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/30 text-emerald-100 text-xs font-bold border border-white/10">
+                  <span>{academicStageName}</span>
+                </span>
+
+                {isPurchased && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-black shadow-sm border border-emerald-400/40">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>أنت مشترك بهذه الباقة</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Title & Description */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight">
+                {title}
+              </h1>
+
+              {description && (
+                <p className="text-emerald-100/90 text-xs sm:text-sm font-medium leading-relaxed">
+                  {description}
+                </p>
+              )}
+
+              {/* Key Metrics */}
+              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-emerald-100/80">
+                <span className="flex items-center gap-1.5">
+                  <Video className="w-4 h-4 text-emerald-300" />
+                  <span>{lecturesCount} محاضرات متاحة</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Thumbnail Preview */}
+            <div className="relative shrink-0 w-full sm:w-64 h-40 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-emerald-950/60 flex items-center justify-center">
+              {image ? (
+                <img src={image} alt={title} className="w-full h-full object-cover" />
+              ) : (
+                <PackageIcon className="w-16 h-16 text-emerald-300/70" />
               )}
             </div>
-
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white leading-tight">
-              {title}
-            </h1>
-
-            {description && (
-              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl">
-                {description}
-              </p>
-            )}
-
-            {/* Quick Metrics */}
-            <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-gray-500 dark:text-gray-400 pt-2">
-              <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-stone-800 px-3 py-1.5 rounded-xl">
-                <Video className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
-                <span>عدد المحاضرات: {lecturesCount}</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-stone-800 px-3 py-1.5 rounded-xl">
-                <BookOpen className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
-                <span>الكورسات المضمنة: {memberCourses.length}</span>
-              </div>
-            </div>
           </div>
-        </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-2 border-b border-gray-200/80 dark:border-gray-800 pb-2">
+          {/* Subtle Ambient Background Light */}
+          <div className="absolute top-0 end-0 -mt-10 -me-10 w-48 h-48 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 start-0 -mb-10 -ms-10 w-48 h-48 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
+        </section>
+
+        {/* Tabs Bar: [المحاضرات (X)] [الاختبارات (0)] [الملفات (0)] */}
+        <div className="flex items-center gap-2 border-b border-gray-200/70 dark:border-gray-800 pb-3">
           <button
             type="button"
             onClick={() => setActiveTab('lectures')}
             className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'lectures'
-                ? 'bg-[#0d6e4f] text-white shadow-sm'
-                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+                ? 'bg-[#0d6e4f] text-white shadow-md shadow-[#0d6e4f]/20'
+                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200'
             }`}
           >
             <Video className="w-4 h-4" />
@@ -244,96 +249,115 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
 
           <button
             type="button"
-            onClick={() => setActiveTab('courses')}
+            onClick={() => setActiveTab('exams')}
             className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 cursor-pointer ${
-              activeTab === 'courses'
-                ? 'bg-[#0d6e4f] text-white shadow-sm'
-                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200 dark:hover:bg-stone-700'
+              activeTab === 'exams'
+                ? 'bg-[#0d6e4f] text-white shadow-md shadow-[#0d6e4f]/20'
+                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
-            <span>الكورسات المضمنة ({memberCourses.length})</span>
+            <HelpCircle className="w-4 h-4" />
+            <span>الاختبارات (0)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('files')}
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'files'
+                ? 'bg-[#0d6e4f] text-white shadow-md shadow-[#0d6e4f]/20'
+                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>المذكرات والملفات (0)</span>
           </button>
         </div>
 
-        {/* Tab 1: Lectures List */}
+        {/* Tab 1: المحاضرات */}
         {activeTab === 'lectures' && (
           <div className="space-y-4">
             {lecturesCount > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {lectures.map((lec: any, index: number) => {
-                  const lecTitle = lec.title_ar || lec.title || `محاضرة ${index + 1}`;
-                  const lecDescription = lec.description_ar || lec.description;
+                  const lecTitle = lec.title_ar || lec.title || `المحاضرة ${index + 1}`;
+                  const lecDesc = lec.description_ar || lec.description || '';
+                  const lecDuration =
+                    lec.duration ||
+                    (lec.duration_seconds
+                      ? `${Math.floor(lec.duration_seconds / 60)} دقيقة`
+                      : null);
                   const lecImage = resolveMediaUrl(lec.thumbnail_url || lec.imageUrl);
-                  const courseId = lec.course_id || (memberCourses[0]?.course_id || memberCourses[0]?.id);
-                  const playUrl = `/student/lectures/detail?id=${lec.id}`;
-
-                  const durationMinutes = lec.duration_seconds
-                    ? Math.round(lec.duration_seconds / 60)
-                    : lec.duration || '45';
+                  const isCompleted = Boolean(lec.is_completed || lec.status === 'completed');
 
                   return (
                     <div
                       key={lec.id || index}
-                      className="group rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:shadow-xl hover:border-[#0d6e4f] dark:hover:border-emerald-500/50 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                      className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-xl hover:border-[#0d6e4f] dark:hover:border-emerald-500/60 transition-all duration-300 overflow-hidden flex flex-col justify-between hover:-translate-y-1 text-start"
                     >
-                      {/* Top Thumbnail */}
-                      <div className="relative h-44 bg-gradient-to-br from-emerald-900 via-stone-900 to-black flex items-center justify-center p-4 overflow-hidden text-white">
+                      {/* Top Thumbnail Box */}
+                      <div className="relative h-44 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] flex items-center justify-center p-4 overflow-hidden text-white">
                         {lecImage ? (
                           <img
                             src={lecImage}
                             alt={lecTitle}
-                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-70"
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-60"
                           />
                         ) : (
-                          <Video className="w-12 h-12 text-emerald-400/80 group-hover:scale-110 transition-transform" />
+                          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xs">
+                            <Play className="w-6 h-6 text-white fill-current ms-0.5" />
+                          </div>
                         )}
 
+                        {/* Top Left Badge */}
                         <div className="absolute top-3 start-3">
-                          <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-emerald-200 text-xs font-bold rounded-full border border-emerald-400/20 shadow-xs">
+                          <span className="px-2.5 py-1 rounded-xl bg-black/40 backdrop-blur-md text-[11px] font-black text-emerald-200 border border-white/10">
                             محاضرة {index + 1}
                           </span>
                         </div>
 
-                        <div className="absolute bottom-3 end-3">
-                          <span className="px-2 py-0.5 bg-black/70 backdrop-blur-md text-white text-[11px] font-bold rounded-lg flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-emerald-400" />
-                            <span>{durationMinutes} دقيقة</span>
-                          </span>
-                        </div>
-
-                        {/* Play Overlay Icon */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-12 h-12 rounded-full bg-[#0d6e4f]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                            <Play className="w-5 h-5 fill-white ms-0.5" />
+                        {/* Status Badge */}
+                        {isCompleted && (
+                          <div className="absolute top-3 end-3">
+                            <span className="px-2.5 py-1 rounded-xl bg-emerald-600/90 text-white text-[11px] font-black flex items-center gap-1 shadow-sm">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>مكتملة</span>
+                            </span>
                           </div>
-                        </div>
+                        )}
                       </div>
 
-                      {/* Content */}
+                      {/* Content Info */}
                       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div className="space-y-1.5">
-                          {lec.course_title && (
-                            <span className="text-[11px] font-bold text-[#0d6e4f] dark:text-emerald-400 block truncate">
-                              كورس: {lec.course_title}
-                            </span>
-                          )}
-                          <h3 className="font-extrabold text-base text-gray-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#0d6e4f] dark:group-hover:text-emerald-400 transition-colors">
+                          <h3 className="font-extrabold text-base text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#0d6e4f] dark:group-hover:text-emerald-400 transition-colors">
                             {lecTitle}
                           </h3>
-                          {lecDescription && (
+                          {lecDesc && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
-                              {lecDescription}
+                              {lecDesc}
                             </p>
                           )}
                         </div>
 
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800/80">
+                          {lecDuration && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
+                              {lecDuration}
+                            </span>
+                          )}
+                          <span className="text-gray-400 text-[11px]">مستر عمر مكاوي</span>
+                        </div>
+
+                        {/* Watch CTA */}
                         <Link
-                          href={playUrl}
-                          className="w-full py-2.5 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-[#0d6e4f] hover:text-white text-[#0d6e4f] dark:text-emerald-300 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 border border-emerald-200/60 dark:border-emerald-900/50 shadow-xs"
+                          href={`/student/lectures/detail?id=${lec.id}`}
+                          className="w-full py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] text-white rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#0d6e4f]/20 hover:scale-[1.02]"
                         >
-                          <PlayCircle className="w-4 h-4" />
-                          <span>مشاهدة المحاضرة الآن</span>
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          <span>مشاهدة المحاضرة</span>
+                          <ArrowLeft className="w-3.5 h-3.5" />
                         </Link>
                       </div>
                     </div>
@@ -341,74 +365,33 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
                 })}
               </div>
             ) : (
-              <div className="p-8 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#0d6e4f] dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-100 dark:border-emerald-900/50">
-                  <Video className="w-7 h-7" />
-                </div>
-                <h3 className="text-lg font-black text-gray-900 dark:text-white">
-                  المحاضرات (0)
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto leading-relaxed">
-                  لا توجد محاضرات مضافة في هذه الباقة حالياً (0). سيتم رفع المحاضرات وتحديث المحتوى تباعاً.
-                </p>
-              </div>
+              <EmptyState
+                icon="Video"
+                title="المحاضرات (0)"
+                description="لم يتم إضافة أي محاضرات لهذه الباقة حتى الآن. سيتم نشر المحاضرات قريباً."
+                actionText="الرجوع للباقات"
+                actionUrl="/student/packages"
+              />
             )}
           </div>
         )}
 
-        {/* Tab 2: Included Courses */}
-        {activeTab === 'courses' && (
-          <div className="space-y-4">
-            {memberCourses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {memberCourses.map((c: any, idx: number) => {
-                  const courseId = c.course_id || c.id;
-                  const cTitle = c.title_ar || c.title || `كورس ${idx + 1}`;
-                  return (
-                    <div
-                      key={courseId || idx}
-                      className="p-5 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:shadow-lg transition-all space-y-4 flex flex-col justify-between"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-[#0d6e4f] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50">
-                          <BookOpen className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1 min-w-0 flex-1">
-                          <h4 className="font-extrabold text-base text-gray-900 dark:text-white truncate">
-                            {cTitle}
-                          </h4>
-                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            مضمن في اشتراك الباقة
-                          </span>
-                        </div>
-                      </div>
+        {/* Tab 2: الاختبارات */}
+        {activeTab === 'exams' && (
+          <EmptyState
+            icon="HelpCircle"
+            title="الاختبارات (0)"
+            description="لا توجد اختبارات تفاعلية مضافة لهذه الباقة حالياً."
+          />
+        )}
 
-                      <Link
-                        href={`/student/courses/detail?id=${courseId}`}
-                        className="w-full py-2.5 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-[#0d6e4f] hover:text-white text-[#0d6e4f] dark:text-emerald-300 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 border border-emerald-200/60 dark:border-emerald-900/50"
-                      >
-                        <span>الدخول إلى الكورس</span>
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="p-8 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-[#0d6e4f] dark:text-emerald-400 flex items-center justify-center mx-auto">
-                  <BookOpen className="w-7 h-7" />
-                </div>
-                <h3 className="text-lg font-black text-gray-900 dark:text-white">
-                  الكورسات المضمنة (0)
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                  هذه الباقة تمنح وصولاً شاملاً لكافة محاضرات الشهر مباشرة.
-                </p>
-              </div>
-            )}
-          </div>
+        {/* Tab 3: المذكرات والملفات */}
+        {activeTab === 'files' && (
+          <EmptyState
+            icon="FileText"
+            title="المذكرات والملفات (0)"
+            description="لا توجد مذكرات أو ملفات PDF مرفقة بهذه الباقة حالياً."
+          />
         )}
       </div>
     </StudentLayout>
