@@ -69,6 +69,7 @@ export default function StaffBooksPage() {
     sku: '',
     price: 150,
     discount_price: 0,
+    stock_quantity: 50,
     weight_kg: 0.5,
     cover_image_url: '',
     is_active: true,
@@ -223,6 +224,7 @@ export default function StaffBooksPage() {
         ...bookForm,
         price: Number(bookForm.price),
         discount_price: bookForm.discount_price ? Number(bookForm.discount_price) : undefined,
+        stock_quantity: Number(bookForm.stock_quantity),
         weight_kg: Number(bookForm.weight_kg),
         sku: bookForm.sku.trim() || undefined,
       };
@@ -455,6 +457,7 @@ export default function StaffBooksPage() {
                     sku: `BK-${Date.now().toString().slice(-6)}`,
                     price: 150,
                     discount_price: 0,
+                    stock_quantity: 50,
                     weight_kg: 0.5,
                     cover_image_url: '',
                     is_active: true,
@@ -572,6 +575,7 @@ export default function StaffBooksPage() {
                           sku: b.sku || '',
                           price: Number(b.price),
                           discount_price: b.discount_price ? Number(b.discount_price) : 0,
+                          stock_quantity: Number(b.stock_quantity || 0),
                           weight_kg: Number(b.weight_kg || 0.5),
                           cover_image_url: b.cover_image_url || '',
                           is_active: b.is_active,
@@ -947,14 +951,29 @@ export default function StaffBooksPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-neutral-400 mb-1">كود المذكرة (SKU):</label>
-                  <input
-                    type="text"
-                    value={bookForm.sku}
-                    onChange={(e) => setBookForm({ ...bookForm, sku: e.target.value })}
-                    className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-neutral-400 mb-1 font-bold">كمية المخزون (الاستوك): *</label>
+                    <input
+                      type="number"
+                      value={bookForm.stock_quantity}
+                      onChange={(e) => setBookForm({ ...bookForm, stock_quantity: Number(e.target.value) })}
+                      required
+                      min="0"
+                      placeholder="مثال: 50"
+                      className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-bold text-sm focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-neutral-400 mb-1">كود المذكرة (SKU):</label>
+                    <input
+                      type="text"
+                      value={bookForm.sku}
+                      onChange={(e) => setBookForm({ ...bookForm, sku: e.target.value })}
+                      className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono"
+                    />
+                  </div>
                 </div>
 
                 {/* Cover Upload */}
@@ -989,25 +1008,31 @@ export default function StaffBooksPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-4 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-emerald-500/40 transition-all">
                     <input
                       type="checkbox"
                       checked={bookForm.is_active}
                       onChange={(e) => setBookForm({ ...bookForm, is_active: e.target.checked })}
-                      className="rounded accent-emerald-600"
+                      className="w-4 h-4 rounded accent-emerald-600"
                     />
-                    <span>مفعّل ومتاح للطلب</span>
+                    <div>
+                      <span className="font-bold text-white block text-xs">مفعّل ومتاح للطلب</span>
+                      <span className="text-[10px] text-neutral-400 block">يظهر للطالب في معرض الكتب والمذكرات</span>
+                    </div>
                   </label>
 
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-emerald-500/40 transition-all">
                     <input
                       type="checkbox"
                       checked={bookForm.is_featured}
                       onChange={(e) => setBookForm({ ...bookForm, is_featured: e.target.checked })}
-                      className="rounded accent-emerald-600"
+                      className="w-4 h-4 rounded accent-emerald-600"
                     />
-                    <span>منتج مميز</span>
+                    <div>
+                      <span className="font-bold text-emerald-400 block text-xs">عرض في الصفحة الرئيسية ⭐</span>
+                      <span className="text-[10px] text-neutral-400 block">يظهر في قسم المذكرات بالصفحة الرئيسية</span>
+                    </div>
                   </label>
                 </div>
 

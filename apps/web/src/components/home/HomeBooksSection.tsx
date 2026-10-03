@@ -70,7 +70,10 @@ export default function HomeBooksSection({ selectedAcademicYearId = null }: Home
 
   const booksList = Array.isArray(availableBooks) ? availableBooks : [];
 
-  const activeBooks = booksList.filter((b) => {
+  const featuredBooksList = booksList.filter((b) => b && b.is_featured);
+  const displayList = featuredBooksList.length > 0 ? featuredBooksList : booksList;
+
+  const activeBooks = displayList.filter((b) => {
     if (!b) return false;
     const yearId = b.academic_year_id || b.academicYearId;
     if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
