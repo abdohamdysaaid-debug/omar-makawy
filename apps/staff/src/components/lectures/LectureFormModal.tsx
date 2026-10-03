@@ -22,6 +22,7 @@ import {
   Search,
   Crop,
   Layers,
+  RefreshCw,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
@@ -242,53 +243,84 @@ export function LectureFormModal({
     }
   }, [isOpen, initialLecture, activeAcademicYearId, availableYears]);
 
-  // Load available courses & packages for the selected academic year
-  useEffect(() => {
-    if (!isOpen || !academicYearId) {
-      setAvailableCourses([]);
-      setAvailablePackages([]);
-      return;
-    }
-
-    let isMounted = true;
+  // Load available courses & packages
+  const fetchRelations = useCallback(async (yearId?: string) => {
     setIsLoadingRelations(true);
+    try {
+      const [coursesResult, packagesResult] = await Promise.allSettled([
+        staffCoursesApi
+          .listCourses(
+            yearId ? { academic_year_id: yearId, limit: 100 } : { limit: 100 },
+            yearId || undefined
+          )
+          .catch(() => staffCoursesApi.listCourses({ limit: 100 }).catch(() => null)),
+        staffPackagesApi
+          .listPackages(
+            yearId ? { academic_year_id: yearId, limit: 100 } : { limit: 100 },
+            yearId || undefined
+          )
+          .catch(() => staffPackagesApi.listPackages({ limit: 100 }).catch(() => null)),
+      ]);
 
-    Promise.all([
-      staffCoursesApi.listCourses({ academic_year_id: academicYearId, limit: 100 }, academicYearId),
-      staffPackagesApi.listPackages({ academic_year_id: academicYearId, limit: 100 }, academicYearId),
-    ])
-      .then(([coursesRes, packagesRes]) => {
-        if (!isMounted) return;
-        const coursesList = Array.isArray(coursesRes)
-          ? coursesRes
-          : Array.isArray(coursesRes?.data)
-          ? coursesRes.data
-          : (coursesRes as any)?.items || (coursesRes as any)?.courses || [];
+      let coursesList: any[] = [];
+      if (coursesResult.status === 'fulfilled' && coursesResult.value) {
+        const val: any = coursesResult.value;
+        coursesList = Array.isArray(val)
+          ? val
+          : Array.isArray(val?.data)
+          ? val.data
+          : val?.items || val?.courses || [];
+      }
 
-        const packagesList = Array.isArray(packagesRes)
-          ? packagesRes
-          : Array.isArray(packagesRes?.data)
-          ? packagesRes.data
-          : (packagesRes as any)?.items || (packagesRes as any)?.packages || [];
+      let packagesList: any[] = [];
+      if (packagesResult.status === 'fulfilled' && packagesResult.value) {
+        const val: any = packagesResult.value;
+        packagesList = Array.isArray(val)
+          ? val
+          : Array.isArray(val?.data)
+          ? val.data
+          : val?.items || val?.packages || [];
+      }
 
-        setAvailableCourses(coursesList);
-        setAvailablePackages(packagesList);
-      })
-      .catch((err) => {
-        console.error('Failed to load courses/packages for year:', err);
-        if (isMounted) {
-          setAvailableCourses([]);
-          setAvailablePackages([]);
+      // If specific year had 0 items, fallback to fetching all courses/packages across all years
+      if (coursesList.length === 0 && yearId) {
+        const allCoursesRes: any = await staffCoursesApi.listCourses({ limit: 100 }).catch(() => null);
+        const allCourses = Array.isArray(allCoursesRes)
+          ? allCoursesRes
+          : Array.isArray(allCoursesRes?.data)
+          ? allCoursesRes.data
+          : allCoursesRes?.items || allCoursesRes?.courses || [];
+        if (allCourses.length > 0) {
+          coursesList = allCourses;
         }
-      })
-      .finally(() => {
-        if (isMounted) setIsLoadingRelations(false);
-      });
+      }
 
-    return () => {
-      isMounted = false;
-    };
-  }, [isOpen, academicYearId]);
+      if (packagesList.length === 0 && yearId) {
+        const allPkgsRes: any = await staffPackagesApi.listPackages({ limit: 100 }).catch(() => null);
+        const allPkgs = Array.isArray(allPkgsRes)
+          ? allPkgsRes
+          : Array.isArray(allPkgsRes?.data)
+          ? allPkgsRes.data
+          : allPkgsRes?.items || allPkgsRes?.packages || [];
+        if (allPkgs.length > 0) {
+          packagesList = allPkgs;
+        }
+      }
+
+      setAvailableCourses(coursesList);
+      setAvailablePackages(packagesList);
+    } catch (err) {
+      console.error('Failed to load relations:', err);
+    } finally {
+      setIsLoadingRelations(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchRelations(academicYearId);
+    }
+  }, [isOpen, academicYearId, fetchRelations]);
 
   // Filtered courses based on search
   const filteredCourses = useMemo(() => {
@@ -312,17 +344,31 @@ export function LectureFormModal({
     );
   }, [availablePackages, packageSearch]);
 
-  // Toggle Course Selection
-  const toggleCourse = (courseId: string) => {
+  // Toggle Course Selection with auto academicYearId sync
+  const toggleCourse = (course: any) => {
+    const courseId = typeof course === 'string' ? course : course.id;
+    const courseObj = typeof course === 'object' ? course : availableCourses.find((c) => c.id === courseId);
+
+    if (!academicYearId && courseObj?.academic_year_id) {
+      setAcademicYearId(courseObj.academic_year_id);
+    }
+
     setSelectedCourseIds((prev) =>
       prev.includes(courseId) ? prev.filter((id) => id !== courseId) : [...prev, courseId]
     );
   };
 
-  // Toggle Package Selection
-  const togglePackage = (packageId: string) => {
+  // Toggle Package Selection with auto academicYearId sync
+  const togglePackage = (pkg: any) => {
+    const pkgId = typeof pkg === 'string' ? pkg : pkg.id;
+    const pkgObj = typeof pkg === 'object' ? pkg : availablePackages.find((p) => p.id === pkgId);
+
+    if (!academicYearId && pkgObj?.academic_year_id) {
+      setAcademicYearId(pkgObj.academic_year_id);
+    }
+
     setSelectedPackageIds((prev) =>
-      prev.includes(packageId) ? prev.filter((id) => id !== packageId) : [...prev, packageId]
+      prev.includes(pkgId) ? prev.filter((id) => id !== pkgId) : [...prev, pkgId]
     );
   };
 
@@ -924,16 +970,37 @@ export function LectureFormModal({
           {/* TAB 2: COURSE & PACKAGE ACCESS (Sections 7, 8, 9) */}
           {activeTab === 'access' && (
             <div className="space-y-6">
-              <div className="bg-[#121814] p-4 rounded-xl border border-emerald-900/40 text-xs text-emerald-300/90 leading-relaxed">
-                <p className="font-bold flex items-center gap-1.5 mb-1 text-emerald-300">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  {isAr ? 'بنية المحاضرات المستقلة (Many-to-Many)' : 'Independent Lectures Architecture'}
-                </p>
-                <p>
-                  {isAr
-                    ? 'المحاضرة مورد تعليمي مستقل يمكن ربطه بكورس واحد أو عدة كورسات، وبباقة واحدة أو عدة باقات في آن واحد بدون تكرار في قاعدة البيانات.'
-                    : 'A single lecture can be assigned to multiple courses and packages simultaneously without duplicate database records.'}
-                </p>
+              {/* Academic Year Filter Bar inside Tab 2 */}
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-[#121814] rounded-2xl border border-neutral-800">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-neutral-300">
+                    {isAr ? 'المرحلة الدراسية:' : 'Academic Stage:'}
+                  </span>
+                  <select
+                    value={academicYearId}
+                    onChange={(e) => setAcademicYearId(e.target.value)}
+                    disabled={isSubmitting || (isEdit && Boolean(initialLecture?.academic_year_id))}
+                    className="bg-[#0b0f0c] border border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="">{isAr ? '-- جميع المراحل الدراسية --' : '-- All Academic Stages --'}</option>
+                    {availableYears.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {isAr ? year.name_ar : year.name_en}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => fetchRelations(academicYearId)}
+                  disabled={isLoadingRelations}
+                  className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isLoadingRelations ? 'animate-spin' : ''}`} />
+                  <span>{isAr ? 'تحديث الكورسات والباقات' : 'Refresh'}</span>
+                </button>
               </div>
 
               {/* Courses Multi-Select Section */}
@@ -983,7 +1050,7 @@ export function LectureFormModal({
                 </div>
 
                 {/* Courses List */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
                   {isLoadingRelations ? (
                     <div className="col-span-2 text-center py-6 text-xs text-neutral-500 flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
@@ -992,6 +1059,9 @@ export function LectureFormModal({
                   ) : filteredCourses.length > 0 ? (
                     filteredCourses.map((c) => {
                       const isChecked = selectedCourseIds.includes(c.id);
+                      const yearObj = availableYears.find((y) => y.id === c.academic_year_id);
+                      const yearName = c.academic_year_name_ar || yearObj?.name_ar;
+
                       return (
                         <label
                           key={c.id}
@@ -1001,30 +1071,44 @@ export function LectureFormModal({
                               : 'bg-[#101612] border-neutral-800 text-neutral-300 hover:border-neutral-700'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 truncate">
+                          <div className="flex items-center gap-2.5 truncate min-w-0">
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={() => toggleCourse(c.id)}
-                              className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-emerald-500 focus:ring-0 focus:ring-offset-0"
+                              onChange={() => toggleCourse(c)}
+                              className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-emerald-500 focus:ring-0 focus:ring-offset-0 shrink-0"
                             />
-                            <span className="font-semibold truncate">{c.title_ar}</span>
+                            <div className="truncate">
+                              <span className="font-semibold truncate block">{c.title_ar}</span>
+                              {yearName && (
+                                <span className="text-[10px] text-neutral-400 block truncate">{yearName}</span>
+                              )}
+                            </div>
                           </div>
-                          {c.is_published ? (
-                            <span className="text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.2 rounded font-mono">
-                              {isAr ? 'منشور' : 'Pub'}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-neutral-500 bg-neutral-900 px-1.5 py-0.2 rounded font-mono">
-                              {isAr ? 'مسودة' : 'Draft'}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {c.is_published ? (
+                              <span className="text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.2 rounded font-mono">
+                                {isAr ? 'منشور' : 'Pub'}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-neutral-500 bg-neutral-900 px-1.5 py-0.2 rounded font-mono">
+                                {isAr ? 'مسودة' : 'Draft'}
+                              </span>
+                            )}
+                          </div>
                         </label>
                       );
                     })
                   ) : (
-                    <div className="col-span-2 text-center py-4 text-xs text-neutral-500 italic bg-[#101612] rounded-xl border border-neutral-800">
-                      {isAr ? 'لا توجد كورسات متاحة في هذه السنة' : 'No courses found in this academic year'}
+                    <div className="col-span-2 text-center py-5 px-3 text-xs text-neutral-400 bg-[#101612] rounded-xl border border-neutral-800 space-y-2">
+                      <p>{isAr ? 'لا توجد كورسات مضافة في هذه المرحلة الدراسية' : 'No courses found in this stage'}</p>
+                      <button
+                        type="button"
+                        onClick={() => setAcademicYearId('')}
+                        className="text-emerald-400 hover:underline text-[11px] font-bold block mx-auto"
+                      >
+                        {isAr ? 'عرض كافة الكورسات من جميع المراحل' : 'Show courses from all stages'}
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1077,7 +1161,7 @@ export function LectureFormModal({
                 </div>
 
                 {/* Packages List */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
                   {isLoadingRelations ? (
                     <div className="col-span-2 text-center py-6 text-xs text-neutral-500 flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
@@ -1086,6 +1170,9 @@ export function LectureFormModal({
                   ) : filteredPackages.length > 0 ? (
                     filteredPackages.map((p) => {
                       const isChecked = selectedPackageIds.includes(p.id);
+                      const yearObj = availableYears.find((y) => y.id === p.academic_year_id);
+                      const yearName = p.academic_year_name_ar || yearObj?.name_ar;
+
                       return (
                         <label
                           key={p.id}
@@ -1095,24 +1182,36 @@ export function LectureFormModal({
                               : 'bg-[#101612] border-neutral-800 text-neutral-300 hover:border-neutral-700'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 truncate">
+                          <div className="flex items-center gap-2.5 truncate min-w-0">
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={() => togglePackage(p.id)}
-                              className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-amber-500 focus:ring-0 focus:ring-offset-0"
+                              onChange={() => togglePackage(p)}
+                              className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-amber-500 focus:ring-0 focus:ring-offset-0 shrink-0"
                             />
-                            <span className="font-semibold truncate">{p.title_ar}</span>
+                            <div className="truncate">
+                              <span className="font-semibold truncate block">{p.title_ar}</span>
+                              {yearName && (
+                                <span className="text-[10px] text-neutral-400 block truncate">{yearName}</span>
+                              )}
+                            </div>
                           </div>
-                          <span className="text-[10px] text-amber-400 font-mono">
+                          <span className="text-[10px] text-amber-400 font-mono shrink-0">
                             {p.price} EGP
                           </span>
                         </label>
                       );
                     })
                   ) : (
-                    <div className="col-span-2 text-center py-4 text-xs text-neutral-500 italic bg-[#101612] rounded-xl border border-neutral-800">
-                      {isAr ? 'لا توجد باقات متاحة في هذه المرحلة' : 'No packages found in this academic year'}
+                    <div className="col-span-2 text-center py-5 px-3 text-xs text-neutral-400 bg-[#101612] rounded-xl border border-neutral-800 space-y-2">
+                      <p>{isAr ? 'لا توجد باقات مضافة في هذه المرحلة الدراسية' : 'No packages found in this stage'}</p>
+                      <button
+                        type="button"
+                        onClick={() => setAcademicYearId('')}
+                        className="text-amber-400 hover:underline text-[11px] font-bold block mx-auto"
+                      >
+                        {isAr ? 'عرض كافة الباقات من جميع المراحل' : 'Show packages from all stages'}
+                      </button>
                     </div>
                   )}
                 </div>
