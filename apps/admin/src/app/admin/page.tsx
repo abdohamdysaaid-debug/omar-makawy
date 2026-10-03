@@ -274,22 +274,22 @@ export default function AdminDashboardOverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title={t('dashboard.kpi.total_students')}
-          value={kpis.total_students.toLocaleString()}
-          subtitle={`${kpis.active_students} طالب نشط على المنصة`}
+          value={(kpis?.total_students || 0).toLocaleString()}
+          subtitle={`${kpis?.active_students || 0} طالب نشط على المنصة`}
           icon={Users}
           trend={{ value: '+12%', isPositive: true, label: 'مقارنة بالشهر السابق' }}
         />
 
         <StatCard
           title={t('dashboard.kpi.courses')}
-          value={kpis.published_courses}
-          subtitle={`${kpis.total_lectures} محاضرة تعليمية منشورة`}
+          value={kpis?.published_courses || 0}
+          subtitle={`${kpis?.total_lectures || 0} محاضرة تعليمية منشورة`}
           icon={BookOpen}
         />
 
         <StatCard
           title={t('dashboard.kpi.revenue')}
-          value={`${kpis.total_revenue_egp.toLocaleString()} ${t('common.egp')}`}
+          value={`${(kpis?.total_revenue_egp || 0).toLocaleString()} ${t('common.egp')}`}
           subtitle="إجمالي العمليات المعتمدة عبر المنصة"
           icon={CreditCard}
           trend={{ value: '+18.4%', isPositive: true, label: 'نمو المبيعات' }}
@@ -297,7 +297,7 @@ export default function AdminDashboardOverviewPage() {
 
         <StatCard
           title={t('dashboard.kpi.wallet_balance')}
-          value={`${kpis.wallet_balance_egp.toLocaleString()} ${t('common.egp')}`}
+          value={`${(kpis?.wallet_balance_egp || 0).toLocaleString()} ${t('common.egp')}`}
           subtitle="إجمالي الرصيد القائم بمحافظ الطلاب"
           icon={Wallet}
         />

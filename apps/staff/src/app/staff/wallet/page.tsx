@@ -326,7 +326,7 @@ export default function StaffWalletPage() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-black text-white">
-              {summary.registered_platform_balance.toLocaleString()}
+              {(Number(summary?.registered_platform_balance) || 0).toLocaleString()}
             </span>
             <span className="text-xs font-bold text-emerald-400">ج.م</span>
           </div>
@@ -343,7 +343,7 @@ export default function StaffWalletPage() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-black text-white">
-              {summary.total_incoming_credited.toLocaleString()}
+              {(Number(summary?.total_incoming_credited) || 0).toLocaleString()}
             </span>
             <span className="text-xs font-bold text-blue-400">ج.م</span>
           </div>
@@ -493,7 +493,7 @@ export default function StaffWalletPage() {
                         </td>
                         <td className="p-4">
                           <span className="font-black text-sm text-emerald-400">
-                            {Number(req.amount).toLocaleString()} ج.م
+                            {(Number(req?.amount) || 0).toLocaleString()} ج.م
                           </span>
                         </td>
                         <td className="p-4">
@@ -708,7 +708,7 @@ export default function StaffWalletPage() {
                           </span>
                         </td>
                         <td className="p-4 font-black text-sm text-emerald-400">
-                          +{Number(entry.amount).toLocaleString()} ج.م
+                          +{(Number(entry?.amount) || 0).toLocaleString()} ج.م
                         </td>
                         <td className="p-4 text-white font-semibold">
                           {entry.student_name || entry.user_id || '—'}
@@ -777,7 +777,7 @@ export default function StaffWalletPage() {
               <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-1">
                 <span className="text-neutral-400">المبلغ المطلوب شحنه:</span>
                 <p className="font-black text-emerald-400 text-lg">
-                  {Number(selectedRequest.amount).toLocaleString()} ج.م
+                  {(Number(selectedRequest?.amount) || 0).toLocaleString()} ج.م
                 </p>
               </div>
 

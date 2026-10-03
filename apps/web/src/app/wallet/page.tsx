@@ -593,7 +593,7 @@ export default function WalletPage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-extrabold text-sm text-gray-900 dark:text-white">
-                        طلب شحن بمبلغ {Number(req.amount).toLocaleString()} ج.م
+                        طلب شحن بمبلغ {(Number(req?.amount) || 0).toLocaleString()} ج.م
                       </span>
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
