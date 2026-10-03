@@ -315,9 +315,9 @@ function CoursesContent() {
   const handleDirectPurchase = async () => {
     if (!isAuthenticated) {
       if (openAuthGate) {
-        openAuthGate(`/courses/${selectedCourse?.id || ''}`);
+        openAuthGate(`/student/courses/detail?id=${selectedCourse?.id || ''}`);
       } else {
-        window.location.href = `/login?returnUrl=${encodeURIComponent(`/courses/${selectedCourse?.id || ''}`)}`;
+        window.location.href = `/login?returnUrl=${encodeURIComponent(`/student/courses/detail?id=${selectedCourse?.id || ''}`)}`;
       }
       return;
     }
@@ -678,7 +678,7 @@ function CoursesContent() {
             <div className="p-4 sm:p-6 bg-stone-50 dark:bg-[#0c1017] border-t border-stone-200 dark:border-gray-800 flex flex-col sm:flex-row items-center gap-3 shrink-0">
               {isSubscribedToCourse(selectedCourse?.id) || purchaseSuccess ? (
                 <Link
-                  href={`/courses/${selectedCourse.id}`}
+                  href={`/student/courses/detail?id=${selectedCourse.id}`}
                   className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all text-center"
                 >
                   <CheckCircle2 className="w-5 h-5 text-white" />

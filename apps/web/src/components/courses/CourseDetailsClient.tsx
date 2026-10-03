@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { courses, lectures, academicYears } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -31,9 +31,13 @@ interface CourseDetailsClientProps {
   courseId?: string | number;
 }
 
-export default function CourseDetailsClient({ courseId }: CourseDetailsClientProps) {
+function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
   const params = useParams();
-  const effectiveCourseId = courseId || (params?.id as string);
+  const searchParams = useSearchParams();
+  const rawParamId = params?.id ? String(params.id) : '';
+  const paramId = rawParamId === 'detail' ? '' : rawParamId;
+  const searchId = searchParams?.get('id') || searchParams?.get('course_id') || '';
+  const effectiveCourseId = courseId || paramId || searchId;
 
   const { student, isAuthenticated, isSubscribedToCourse } = useAuth();
   const [activeTab, setActiveTab] = useState<'lectures' | 'exams' | 'files'>('lectures');
@@ -333,7 +337,7 @@ export default function CourseDetailsClient({ courseId }: CourseDetailsClientPro
 
                         {/* Watch CTA */}
                         <Link
-                          href={`/student/courses/${effectiveCourseId}/lectures/${lecture.id}`}
+                          href={`/student/lectures/detail?id=${lecture.id}`}
                           className="w-full py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] text-white rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#0d6e4f]/20 hover:scale-[1.02]"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
@@ -376,5 +380,19 @@ export default function CourseDetailsClient({ courseId }: CourseDetailsClientPro
         )}
       </div>
     </StudentLayout>
+  );
+}
+
+export default function CourseDetailsClient(props: CourseDetailsClientProps) {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
+          <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+        </div>
+      }
+    >
+      <CourseDetailsInner {...props} />
+    </React.Suspense>
   );
 }

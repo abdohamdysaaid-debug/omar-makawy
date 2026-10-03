@@ -134,15 +134,15 @@ describe('Student Home & Navigation Contract Tests', () => {
       return {
         ...sub,
         badgeText: isPackage ? 'باقة مفعلة' : 'كورس مفعل',
-        targetUrl: isPackage ? `/student/packages/${sub.package_id || sub.item_id}` : `/student/courses/${sub.course_id || sub.item_id}`,
+        targetUrl: isPackage ? `/student/packages/detail?id=${sub.package_id || sub.item_id}` : `/student/courses/detail?id=${sub.course_id || sub.item_id}`,
       };
     });
 
     assert.equal(mapped[0].badgeText, 'باقة مفعلة');
-    assert.equal(mapped[0].targetUrl, '/student/packages/pkg-1');
+    assert.equal(mapped[0].targetUrl, '/student/packages/detail?id=pkg-1');
 
     assert.equal(mapped[1].badgeText, 'كورس مفعل');
-    assert.equal(mapped[1].targetUrl, '/student/courses/crs-1');
+    assert.equal(mapped[1].targetUrl, '/student/courses/detail?id=crs-1');
   });
 
   it('6. Wallet balance syncs accurately from backend /wallet response and survives page refresh', () => {

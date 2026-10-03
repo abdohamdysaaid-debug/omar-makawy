@@ -41,9 +41,9 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
 
   const handleCourseClick = (courseId: string | number) => {
     if (!isAuthenticated && openAuthGate) {
-      openAuthGate(`/courses/${courseId}`);
+      openAuthGate(`/courses/detail?id=${courseId}`);
     } else {
-      window.location.href = `/courses/${courseId}`;
+      window.location.href = `/student/courses/detail?id=${courseId}`;
     }
   };
 

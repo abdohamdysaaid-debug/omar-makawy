@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient, resolveMediaUrl } from '@/lib/api';
 import StudentLayout from '@/components/layout/StudentLayout';
@@ -28,9 +28,13 @@ interface PackageDetailsClientProps {
   packageId?: string | number;
 }
 
-export default function PackageDetailsClient({ packageId }: PackageDetailsClientProps) {
+function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
   const params = useParams();
-  const effectivePackageId = packageId || (params?.id as string);
+  const searchParams = useSearchParams();
+  const rawParamId = params?.id ? String(params.id) : '';
+  const paramId = rawParamId === 'detail' ? '' : rawParamId;
+  const searchId = searchParams?.get('id') || searchParams?.get('package_id') || '';
+  const effectivePackageId = packageId || paramId || searchId;
 
   const { student, isAuthenticated, isSubscribedToPackage } = useAuth();
   const [activeTab, setActiveTab] = useState<'lectures' | 'courses'>('lectures');
@@ -262,9 +266,7 @@ export default function PackageDetailsClient({ packageId }: PackageDetailsClient
                   const lecDescription = lec.description_ar || lec.description;
                   const lecImage = resolveMediaUrl(lec.thumbnail_url || lec.imageUrl);
                   const courseId = lec.course_id || (memberCourses[0]?.course_id || memberCourses[0]?.id);
-                  const playUrl = courseId
-                    ? `/student/courses/${courseId}/lectures/${lec.id}`
-                    : `/student/lectures/${lec.id}`;
+                  const playUrl = `/student/lectures/detail?id=${lec.id}`;
 
                   const durationMinutes = lec.duration_seconds
                     ? Math.round(lec.duration_seconds / 60)
@@ -383,7 +385,7 @@ export default function PackageDetailsClient({ packageId }: PackageDetailsClient
                       </div>
 
                       <Link
-                        href={`/courses/${courseId}`}
+                        href={`/student/courses/detail?id=${courseId}`}
                         className="w-full py-2.5 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-[#0d6e4f] hover:text-white text-[#0d6e4f] dark:text-emerald-300 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 border border-emerald-200/60 dark:border-emerald-900/50"
                       >
                         <span>الدخول إلى الكورس</span>
@@ -410,5 +412,19 @@ export default function PackageDetailsClient({ packageId }: PackageDetailsClient
         )}
       </div>
     </StudentLayout>
+  );
+}
+
+export default function PackageDetailsClient(props: PackageDetailsClientProps) {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
+          <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+        </div>
+      }
+    >
+      <PackageDetailsInner {...props} />
+    </React.Suspense>
   );
 }

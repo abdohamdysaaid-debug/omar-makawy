@@ -34,9 +34,9 @@ export default function CourseCard({ course, onOpenDetails }: CourseCardProps) {
     if (onOpenDetails) {
       onOpenDetails(course);
     } else if (!isAuthenticated && openAuthGate) {
-      openAuthGate(`/courses/${course.id}`);
+      openAuthGate(`/courses/detail?id=${course.id}`);
     } else {
-      router.push(`/courses/${course.id}`);
+      router.push(`/student/courses/detail?id=${course.id}`);
     }
   };
 

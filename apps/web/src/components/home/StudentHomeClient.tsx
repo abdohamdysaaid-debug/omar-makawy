@@ -175,7 +175,7 @@ export default function StudentHomeClient() {
         academicYearId: pkg.academic_year_id,
         createdAt: pkg.published_at || pkg.created_at || pkg.createdAt || new Date().toISOString(),
         courseCount: Array.isArray(pkg.courses) ? pkg.courses.length : 0,
-        url: `/student/packages/${pkg.id}`,
+        url: `/student/packages/detail?id=${pkg.id}`,
       }));
 
       const mappedCourses: LatestProductItem[] = sortedCourses.map((course: any) => ({
@@ -191,7 +191,7 @@ export default function StudentHomeClient() {
         academicYearId: course.academic_year_id,
         createdAt: course.published_at || course.created_at || course.createdAt || new Date().toISOString(),
         lectureCount: course.lecture_count || course.lectureCount || course.lectures_count || 0,
-        url: `/student/courses/${course.id}`,
+        url: `/student/courses/detail?id=${course.id}`,
       }));
 
       // Combine top 3 packages and top 3 courses, sorted by publication / creation date descending
@@ -663,9 +663,7 @@ export default function StudentHomeClient() {
           ) : continueLearningList.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {continueLearningList.map((item) => {
-                const lectureUrl = item.courseId
-                  ? `/courses/${item.courseId}/lectures/${item.id}`
-                  : `/student/lectures/${item.id}`;
+                const lectureUrl = `/student/lectures/detail?id=${item.id}`;
 
                 return (
                   <div
