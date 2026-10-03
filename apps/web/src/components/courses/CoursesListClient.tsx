@@ -41,7 +41,7 @@ const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
 const DEFAULT_YEARS: AcademicYearItem[] = [
   { id: 'a0000000-0000-0000-0000-000000000001', title: 'الصف الثالث الإعدادي', code: 'THIRD_PREPARATORY', stage_order: 1 },
   { id: 'a0000000-0000-0000-0000-000000000002', title: 'الصف الأول الثانوي', code: 'FIRST_SECONDARY', stage_order: 2 },
-  { id: 'a0000000-0000-0000-0000-000000000003', title: 'الصف الثاني الثانوي', code: 'SECOND_SECONDARY', stage_order: 3 },
+  { id: 'a0000000-0000-0000-0000-000000000003', title: 'الصف الثاني بكالوريا', code: 'SECOND_SECONDARY', stage_order: 3 },
   { id: 'a0000000-0000-0000-0000-000000000004', title: 'الصف الثالث الثانوي', code: 'THIRD_SECONDARY', stage_order: 4 },
 ];
 

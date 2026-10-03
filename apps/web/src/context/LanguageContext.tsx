@@ -60,7 +60,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Academic Years
     'academicYear.3prep': 'الصف الثالث الإعدادي',
     'academicYear.1sec': 'الصف الأول الثانوي',
-    'academicYear.2sec': 'الصف الثاني الثانوي',
+    'academicYear.2sec': 'الصف الثاني بكالوريا',
     'academicYear.3sec': 'الصف الثالث الثانوي',
     'academicYear.student': 'طالب',
     'academicYear.current': 'مرحلتك الحالية',

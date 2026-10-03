@@ -20,7 +20,7 @@ export const CANONICAL_ACADEMIC_YEARS: AcademicYear[] = [
   {
     id: 'a0000000-0000-0000-0000-000000000003',
     code: 'SECOND_SECONDARY',
-    name_ar: 'الصف الثاني الثانوي',
+    name_ar: 'الصف الثاني بكالوريا',
     name_en: 'Second Secondary Stage (Senior 2)',
     order_index: 3,
     is_active: true,

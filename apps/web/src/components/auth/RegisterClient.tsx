@@ -76,7 +76,7 @@ const ACADEMIC_YEAR_OPTIONS = [
   {
     id: 'a0000000-0000-0000-0000-000000000003',
     code: 'SECOND_SECONDARY',
-    title: 'الصف الثاني الثانوي',
+    title: 'الصف الثاني بكالوريا',
     hasSections: true,
   },
   {

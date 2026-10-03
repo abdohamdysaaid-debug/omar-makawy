@@ -13,7 +13,7 @@ export interface GradeOption {
 export const GRADE_OPTIONS: GradeOption[] = [
   { id: null, title: 'جميع المراحل الدراسية', badge: 'الكل' },
   { id: 4, title: 'الصف الثالث الثانوي', badge: 'ثانوية عامة' },
-  { id: 3, title: 'الصف الثاني الثانوي', badge: 'ثانوي' },
+  { id: 3, title: 'الصف الثاني بكالوريا', badge: 'ثانوي' },
   { id: 2, title: 'الصف الأول الثانوي', badge: 'ثانوي' },
   { id: 1, title: 'الصف الثالث الإعدادي', badge: 'إعدادي' },
 ];
