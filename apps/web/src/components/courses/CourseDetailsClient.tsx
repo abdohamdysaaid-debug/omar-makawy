@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { courses, lectures, academicYears } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -12,55 +13,88 @@ import {
   BookOpen,
   FileText,
   HelpCircle,
-  ChevronRight
+  ChevronRight,
+  Sparkles,
+  Calendar,
+  Layers,
+  ArrowLeft,
+  AlertCircle,
+  RefreshCw,
+  Video,
 } from 'lucide-react';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { Course, Lecture } from '@/types';
-import { apiClient } from '@/lib/api';
+import { apiClient, resolveMediaUrl } from '@/lib/api';
 
-export default function CourseDetailsClient({ courseId }: { courseId: string | number }) {
-  const { student, isAuthenticated } = useAuth();
+interface CourseDetailsClientProps {
+  courseId?: string | number;
+}
+
+export default function CourseDetailsClient({ courseId }: CourseDetailsClientProps) {
+  const params = useParams();
+  const effectiveCourseId = courseId || (params?.id as string);
+
+  const { student, isAuthenticated, isSubscribedToCourse } = useAuth();
   const [activeTab, setActiveTab] = useState<'lectures' | 'exams' | 'files'>('lectures');
-  const [course, setCourse] = useState<Course | null>(null);
-  const [courseLectures, setCourseLectures] = useState<Lecture[]>([]);
+  const [course, setCourse] = useState<any | null>(null);
+  const [courseLectures, setCourseLectures] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Dynamic progress telemetry
-  const [completedCount, setCompletedCount] = useState(0);
+  const isPurchased = isSubscribedToCourse(effectiveCourseId);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadCourseData() {
+      if (!effectiveCourseId) return;
       setLoading(true);
+      setError(null);
+
       try {
-        // Try backend API first
-        const apiCourse = await apiClient.get<Course>(`/courses/${courseId}`).catch(() => null);
-        const apiLectures = await apiClient.get<Lecture[]>(`/courses/${courseId}/lectures`).catch(() => null);
+        // 1. Fetch Course details
+        let apiCourse: any = await apiClient.get<any>(`/courses/${effectiveCourseId}`).catch(() => null);
 
-        if (isMounted) {
-          if (apiCourse) {
-            setCourse(apiCourse);
-          } else {
-            // Fallback to local course object if found
-            const localCourse = courses.find((c) => String(c.id) === String(courseId));
-            setCourse(localCourse || null);
-          }
-
-          if (Array.isArray(apiLectures)) {
-            setCourseLectures(apiLectures);
-          } else {
-            const localLectures = lectures.filter((l) => String(l.courseId) === String(courseId));
-            setCourseLectures(localLectures);
-          }
+        if (!apiCourse || !apiCourse.id) {
+          const publicRes = await apiClient.get<any>(`/courses/public?limit=100`).catch(() => null);
+          const list = Array.isArray(publicRes?.data) ? publicRes.data : Array.isArray(publicRes) ? publicRes : [];
+          apiCourse = list.find((c: any) => String(c.id) === String(effectiveCourseId) || String(c.slug) === String(effectiveCourseId)) || null;
         }
-      } catch {
+
+        if (!apiCourse && !isAuthenticated) {
+          const localCourse = courses.find((c) => String(c.id) === String(effectiveCourseId));
+          if (localCourse) apiCourse = localCourse;
+        }
+
+        if (isMounted && apiCourse) {
+          setCourse(apiCourse);
+        }
+
+        // 2. Fetch Course Lectures
+        let apiLectures: any = await apiClient.get<any>(`/courses/${effectiveCourseId}/lectures`).catch(() => null);
+
+        if (!apiLectures || (!Array.isArray(apiLectures) && !Array.isArray(apiLectures?.data))) {
+          apiLectures = await apiClient.get<any>(`/lectures?course_id=${effectiveCourseId}&limit=100`).catch(() => null);
+        }
+
+        let rawLecturesList: any[] = [];
+        if (Array.isArray(apiLectures)) {
+          rawLecturesList = apiLectures;
+        } else if (apiLectures && Array.isArray(apiLectures.data)) {
+          rawLecturesList = apiLectures.data;
+        } else {
+          // Fallback to local data
+          const localLectures = lectures.filter((l) => String(l.courseId) === String(effectiveCourseId));
+          if (localLectures.length > 0) rawLecturesList = localLectures;
+        }
+
         if (isMounted) {
-          const localCourse = courses.find((c) => String(c.id) === String(courseId));
-          setCourse(localCourse || null);
-          const localLectures = lectures.filter((l) => String(l.courseId) === String(courseId));
-          setCourseLectures(localLectures);
+          setCourseLectures(rawLecturesList);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err?.message || 'تعذر تحميل بيانات الكورس');
         }
       } finally {
         if (isMounted) setLoading(false);
@@ -72,237 +106,272 @@ export default function CourseDetailsClient({ courseId }: { courseId: string | n
     return () => {
       isMounted = false;
     };
-  }, [courseId]);
-
-  useEffect(() => {
-    // Calculate completed count from lectures array
-    const completed = courseLectures.filter((l) => l.status === 'completed').length;
-    setCompletedCount(completed);
-  }, [courseLectures]);
+  }, [effectiveCourseId, isAuthenticated]);
 
   if (loading) {
     return (
       <StudentLayout>
-        <div className="space-y-6 animate-pulse">
-          <div className="h-40 rounded-3xl bg-gray-200 dark:bg-gray-800" />
-          <div className="h-64 rounded-3xl bg-gray-200 dark:bg-gray-800" />
+        <div className="space-y-6 animate-pulse font-cairo">
+          <div className="h-8 w-48 rounded-2xl bg-stone-200 dark:bg-stone-800" />
+          <div className="h-56 rounded-3xl bg-stone-200 dark:bg-stone-800" />
+          <div className="h-80 rounded-3xl bg-stone-200 dark:bg-stone-800" />
         </div>
       </StudentLayout>
     );
   }
 
-  if (!course) {
+  if (error || !course) {
     return (
       <StudentLayout>
-        <div className="py-12">
+        <div className="py-12 font-cairo">
           <EmptyState
             icon="BookOpen"
             title="الكورس غير موجود"
-            description="عذراً، لم يتم العثور على هذا الكورس أو تم نقله."
-            actionText="الرجوع للكورسات"
-            actionUrl="/courses"
+            description={error || 'عذراً، لم يتم العثور على هذا الكورس التعليمي أو قد تم نقله.'}
+            actionText="الرجوع إلى الكورسات"
+            actionUrl="/student/courses"
           />
         </div>
       </StudentLayout>
     );
   }
 
-  const academicYearObj = academicYears.find((y) => String(y.id) === String(course.academic_year_id || course.academicYearId));
-  const totalLectures = courseLectures.length || course.lectureCount || 0;
-  const progressPercentage = totalLectures > 0 ? Math.round((completedCount / totalLectures) * 100) : 0;
+  const title = course.title_ar || course.title || 'كورس تعليمي';
+  const description = course.description_ar || course.description || '';
+  const rawImage = course.thumbnail_url || course.imageUrl;
+  const image = resolveMediaUrl(rawImage);
+  const academicStageName = course.academic_year_name_ar || course.academicYearName || 'المرحلة الدراسية';
 
   return (
     <StudentLayout>
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-8 animate-fade-in font-cairo">
         {/* Breadcrumb Header */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <Link href="/courses" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1">
-            <ChevronRight className="w-4 h-4" />
-            المحاضرات
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          <Link href="/student" className="hover:text-[#0d6e4f] dark:hover:text-emerald-400 transition-colors">
+            الرئيسية
           </Link>
-          <span>/</span>
-          <span className="text-gray-900 dark:text-white font-bold">{course.title_ar || course.title}</span>
+          <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180 text-gray-400" />
+          <Link href="/subscriptions" className="hover:text-[#0d6e4f] dark:hover:text-emerald-400 transition-colors">
+            اشتراكاتي
+          </Link>
+          <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180 text-gray-400" />
+          <span className="text-gray-900 dark:text-white font-bold line-clamp-1">{title}</span>
         </div>
 
-        {/* Course Header Overview Card (Matching Reference Image) */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="w-20 h-20 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/50 shadow-xs">
-            <BookOpen className="w-10 h-10" />
-          </div>
-
-          <div className="flex-1 space-y-3 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
-                {course.academic_year_name_ar || academicYearObj?.title || 'عام'}
-              </span>
-              {progressPercentage === 100 && (
-                <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  مكتمل
+        {/* Course Hero Banner Card */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#064e3b] via-[#0d6e4f] to-[#042f24] text-white p-6 sm:p-8 shadow-xl shadow-emerald-950/20 border border-emerald-700/40">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="space-y-3 max-w-2xl text-start">
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-emerald-200 text-xs font-black backdrop-blur-md border border-white/20">
+                  <BookOpen className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>كورس تعليمي</span>
                 </span>
+
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/30 text-emerald-100 text-xs font-bold border border-white/10">
+                  <span>{academicStageName}</span>
+                </span>
+
+                {isPurchased && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-black shadow-sm border border-emerald-400/40">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>أنت مشترك بهذا الكورس</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Title & Description */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight">
+                {title}
+              </h1>
+
+              {description && (
+                <p className="text-emerald-100/90 text-xs sm:text-sm font-medium leading-relaxed">
+                  {description}
+                </p>
+              )}
+
+              {/* Key Metrics */}
+              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-emerald-100/80">
+                <span className="flex items-center gap-1.5">
+                  <Video className="w-4 h-4 text-emerald-300" />
+                  <span>{courseLectures.length} محاضرات متاحة</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Thumbnail Preview */}
+            <div className="relative shrink-0 w-full sm:w-64 h-40 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-emerald-950/60 flex items-center justify-center">
+              {image ? (
+                <img src={image} alt={title} className="w-full h-full object-cover" />
+              ) : (
+                <BookOpen className="w-16 h-16 text-emerald-300/70" />
               )}
             </div>
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
-              {course.title}
-            </h1>
-
-            {course.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
-                {course.description}
-              </p>
-            )}
-
-            {/* Dynamic Progress Telemetry */}
-            <div className="space-y-1.5 pt-2 max-w-md">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-gray-500 dark:text-gray-400">
-                  {completedCount} من {totalLectures} محاضرات مكتملة
-                </span>
-                <span className="text-emerald-600 dark:text-emerald-400">{progressPercentage}%</span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-                <div
-                  className="h-full bg-emerald-600 dark:bg-emerald-500 rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-            </div>
           </div>
-        </div>
 
-        {/* Tab Navigation (المحاضرات | الاختبارات | ملفات إضافية) */}
-        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-2">
+          {/* Subtle Ambient Background Light */}
+          <div className="absolute top-0 end-0 -mt-10 -me-10 w-48 h-48 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 start-0 -mb-10 -ms-10 w-48 h-48 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
+        </section>
+
+        {/* Tabs Bar: [المحاضرات (X)] [الاختبارات (0)] [الملفات (0)] */}
+        <div className="flex items-center gap-2 border-b border-gray-200/70 dark:border-gray-800 pb-3">
           <button
+            type="button"
             onClick={() => setActiveTab('lectures')}
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'lectures'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-[#0d6e4f] text-white shadow-md shadow-[#0d6e4f]/20'
+                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200'
             }`}
           >
-            المحاضرات ({courseLectures.length})
+            <Video className="w-4 h-4" />
+            <span>المحاضرات ({courseLectures.length})</span>
           </button>
+
           <button
+            type="button"
             onClick={() => setActiveTab('exams')}
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'exams'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-[#0d6e4f] text-white shadow-md shadow-[#0d6e4f]/20'
+                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200'
             }`}
           >
-            الاختبارات
+            <HelpCircle className="w-4 h-4" />
+            <span>الاختبارات (0)</span>
           </button>
+
           <button
+            type="button"
             onClick={() => setActiveTab('files')}
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'files'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                ? 'bg-[#0d6e4f] text-white shadow-md shadow-[#0d6e4f]/20'
+                : 'bg-stone-100 dark:bg-stone-800 text-gray-600 dark:text-gray-300 hover:bg-stone-200'
             }`}
           >
-            ملفات إضافية
+            <FileText className="w-4 h-4" />
+            <span>المذكرات والملفات (0)</span>
           </button>
         </div>
 
-        {/* Tab Contents */}
+        {/* Tab 1: المحاضرات */}
         {activeTab === 'lectures' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {courseLectures.length > 0 ? (
-              courseLectures.map((lecture, index) => {
-                const isCompleted = lecture.status === 'completed';
-                const isLocked = lecture.isLocked;
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {courseLectures.map((lecture, index) => {
+                  const lecTitle = lecture.title_ar || lecture.title || `المحاضرة ${index + 1}`;
+                  const lecDesc = lecture.description_ar || lecture.description || '';
+                  const lecDuration =
+                    lecture.duration ||
+                    (lecture.duration_seconds
+                      ? `${Math.floor(lecture.duration_seconds / 60)} دقيقة`
+                      : null);
+                  const lecImage = resolveMediaUrl(lecture.thumbnail_url || lecture.imageUrl);
+                  const isCompleted = Boolean(lecture.is_completed || lecture.status === 'completed');
 
-                return (
-                  <div
-                    key={lecture.id}
-                    className={`p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#131b2e] border transition-all flex items-center justify-between gap-4 ${
-                      isCompleted
-                        ? 'border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/10'
-                        : 'border-gray-100 dark:border-gray-800/80 hover:border-emerald-500/40'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      {/* Index Circle */}
-                      <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
-                          isCompleted
-                            ? 'bg-emerald-600 text-white'
-                            : isLocked
-                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-400'
-                            : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
-                        }`}
-                      >
-                        {index + 1}
+                  return (
+                    <div
+                      key={lecture.id}
+                      className="group flex flex-col bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-xs hover:shadow-xl hover:shadow-[#0d6e4f]/15 hover:border-[#0d6e4f] transition-all duration-300"
+                    >
+                      {/* Image Banner */}
+                      <div className="relative h-36 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-4 flex flex-col justify-between text-white overflow-hidden">
+                        {lecImage && (
+                          <img
+                            src={lecImage}
+                            alt={lecTitle}
+                            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
+                          />
+                        )}
+                        <div className="absolute -end-6 -bottom-6 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
+
+                        {/* Top Badge */}
+                        <div className="flex items-center justify-between relative z-10">
+                          <span className="bg-white/20 backdrop-blur-md text-white font-black text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
+                            <Video className="w-3.5 h-3.5 text-emerald-300" />
+                            <span>المحاضرة #{index + 1}</span>
+                          </span>
+
+                          {isCompleted && (
+                            <span className="bg-emerald-600 text-white font-black text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                              <CheckCircle2 className="w-3 h-3 text-white" />
+                              مكتمل
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Title */}
+                        <div className="relative z-10">
+                          <h3 className="text-sm font-black leading-snug line-clamp-1 text-white">
+                            {lecTitle}
+                          </h3>
+                        </div>
                       </div>
 
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-base text-gray-900 dark:text-white truncate">
-                          {lecture.title}
-                        </h3>
-                        {lecture.description && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
-                            {lecture.description}
+                      {/* Content Body */}
+                      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4 text-start">
+                        {lecDesc && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                            {lecDesc}
                           </p>
                         )}
+
+                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800/80">
+                          {lecDuration && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
+                              {lecDuration}
+                            </span>
+                          )}
+                          <span className="text-gray-400 text-[11px]">مستر عمر مكاوي</span>
+                        </div>
+
+                        {/* Watch CTA */}
+                        <Link
+                          href={`/student/courses/${effectiveCourseId}/lectures/${lecture.id}`}
+                          className="w-full py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] text-white rounded-2xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm shadow-[#0d6e4f]/20 hover:scale-[1.02]"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                          <span>مشاهدة المحاضرة</span>
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                        </Link>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-4 shrink-0">
-                      {lecture.duration && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 hidden sm:flex">
-                          <Clock className="w-3.5 h-3.5" />
-                          {lecture.duration}
-                        </span>
-                      )}
-
-                      {isLocked ? (
-                        <div className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400">
-                          <Lock className="w-5 h-5" />
-                        </div>
-                      ) : (
-                        <Link
-                          href={`/courses/${course.id}/lectures/${lecture.id}`}
-                          className={`p-2.5 rounded-xl font-bold transition-all flex items-center gap-2 ${
-                            isCompleted
-                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                              : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                          }`}
-                        >
-                          {isCompleted ? (
-                            <CheckCircle2 className="w-5 h-5" />
-                          ) : (
-                            <Play className="w-5 h-5 fill-current" />
-                          )}
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             ) : (
               <EmptyState
-                icon="PlaySquare"
-                title="لا توجد محاضرات متاحة حالياً"
-                description="لم تقم الإدارة بنشر محاضرات في هذا الكورس بعد."
+                icon="Video"
+                title="المحاضرات (0)"
+                description="لم يتم إضافة أي محاضرات لهذا الكورس حتى الآن. سيتم نشر المحاضرات قريباً."
+                actionText="الرجوع للكورسات"
+                actionUrl="/student/courses"
               />
             )}
           </div>
         )}
 
+        {/* Tab 2: الاختبارات */}
         {activeTab === 'exams' && (
           <EmptyState
             icon="HelpCircle"
-            title="لا توجد اختبارات متاحة حالياً"
-            description="سيتم إضافة الاختبارات التقييمية الخاصة بهذا الكورس فور اعتمادها من المعلم."
+            title="الاختبارات (0)"
+            description="لا توجد اختبارات تفاعلية مضافة لهذا الكورس حالياً."
           />
         )}
 
+        {/* Tab 3: المذكرات والملفات */}
         {activeTab === 'files' && (
           <EmptyState
             icon="FileText"
-            title="لا توجد ملفات إضافية حالياً"
-            description="عند إرفاق مذكرات ملخصة أو ملفات PDF جديدة ستظهر في هذه القائمة."
+            title="المذكرات والملفات (0)"
+            description="لا توجد مذكرات أو ملفات PDF مرفقة بهذا الكورس حالياً."
           />
         )}
       </div>

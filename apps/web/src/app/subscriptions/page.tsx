@@ -181,7 +181,7 @@ export default function SubscriptionsPage() {
 
                 const targetUrl = isPackage
                   ? `/student/packages/${sub.package_id || sub.item_id || sub.id}`
-                  : `/courses/${sub.course_id || sub.item_id || sub.id}`;
+                  : `/student/courses/${sub.course_id || sub.item_id || sub.id}`;
 
                 const createdDate = sub.created_at || sub.starts_at || sub.date;
                 const formattedDate = createdDate ? new Date(createdDate).toLocaleDateString('ar-EG') : 'اليوم';

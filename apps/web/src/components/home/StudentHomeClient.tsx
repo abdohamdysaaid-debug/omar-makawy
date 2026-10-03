@@ -191,7 +191,7 @@ export default function StudentHomeClient() {
         academicYearId: course.academic_year_id,
         createdAt: course.published_at || course.created_at || course.createdAt || new Date().toISOString(),
         lectureCount: course.lecture_count || course.lectureCount || course.lectures_count || 0,
-        url: `/courses/${course.id}`,
+        url: `/student/courses/${course.id}`,
       }));
 
       // Combine top 3 packages and top 3 courses, sorted by publication / creation date descending

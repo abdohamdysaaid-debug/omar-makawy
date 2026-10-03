@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient, resolveMediaUrl } from '@/lib/api';
 import StudentLayout from '@/components/layout/StudentLayout';
@@ -24,10 +25,13 @@ import {
 } from 'lucide-react';
 
 interface PackageDetailsClientProps {
-  packageId: string | number;
+  packageId?: string | number;
 }
 
 export default function PackageDetailsClient({ packageId }: PackageDetailsClientProps) {
+  const params = useParams();
+  const effectivePackageId = packageId || (params?.id as string);
+
   const { student, isAuthenticated, isSubscribedToPackage } = useAuth();
   const [activeTab, setActiveTab] = useState<'lectures' | 'courses'>('lectures');
   const [pkg, setPkg] = useState<any | null>(null);
@@ -35,21 +39,22 @@ export default function PackageDetailsClient({ packageId }: PackageDetailsClient
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const isPurchased = isSubscribedToPackage(packageId);
+  const isPurchased = isSubscribedToPackage(effectivePackageId);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadPackageData() {
+      if (!effectivePackageId) return;
       setLoading(true);
       setError(null);
       try {
         // 1. Fetch package details
-        let apiPkg: any = await apiClient.get<any>(`/packages/${packageId}`).catch(() => null);
+        let apiPkg: any = await apiClient.get<any>(`/packages/${effectivePackageId}`).catch(() => null);
         if (!apiPkg || !apiPkg.id) {
           apiPkg = await apiClient.get<any>(`/packages/public?limit=100`).then((res: any) => {
             const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-            return list.find((p: any) => String(p.id) === String(packageId)) || null;
+            return list.find((p: any) => String(p.id) === String(effectivePackageId)) || null;
           }).catch(() => null);
         }
 
@@ -59,7 +64,7 @@ export default function PackageDetailsClient({ packageId }: PackageDetailsClient
 
         // 2. Fetch lectures associated with this package
         const pkgLecturesRes: any = await apiClient
-          .get<any>(`/lectures?package_id=${packageId}&limit=100`)
+          .get<any>(`/lectures?package_id=${effectivePackageId}&limit=100`)
           .catch(() => null);
 
         let lecturesList: any[] = [];
@@ -113,7 +118,7 @@ export default function PackageDetailsClient({ packageId }: PackageDetailsClient
     return () => {
       isMounted = false;
     };
-  }, [packageId]);
+  }, [effectivePackageId]);
 
   if (loading) {
     return (
@@ -258,7 +263,7 @@ export default function PackageDetailsClient({ packageId }: PackageDetailsClient
                   const lecImage = resolveMediaUrl(lec.thumbnail_url || lec.imageUrl);
                   const courseId = lec.course_id || (memberCourses[0]?.course_id || memberCourses[0]?.id);
                   const playUrl = courseId
-                    ? `/courses/${courseId}/lectures/${lec.id}`
+                    ? `/student/courses/${courseId}/lectures/${lec.id}`
                     : `/student/lectures/${lec.id}`;
 
                   const durationMinutes = lec.duration_seconds
