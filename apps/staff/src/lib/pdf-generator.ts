@@ -78,78 +78,83 @@ export function generateBatchPDF(batch: PDFBatchInput, filename?: string) {
 
       const codeStr = item.raw || item.code || item.preview || item.code_preview || 'CODE';
 
-      // 1. Outer Card Box with dashed border
-      doc.setDrawColor(180, 190, 205);
-      doc.setLineWidth(0.35);
-      doc.setFillColor(253, 254, 255);
+      // 1. Outer Card Box (Minimalist White background with clean Dark/Black border)
+      doc.setDrawColor(30, 41, 59);
+      doc.setLineWidth(0.4);
+      doc.setFillColor(255, 255, 255);
       doc.roundedRect(x, y, cardWidth, cardHeight, 2.5, 2.5, 'FD');
 
-      // 2. Card Header (Brand + Serial)
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      if (batch.type === 'WALLET') {
-        doc.setTextColor(4, 120, 87); // Emerald
-      } else {
-        doc.setTextColor(67, 56, 202); // Indigo
-      }
-      doc.text('MR. OMAR MAKAWY', x + 4, y + 5.5);
+      // Top green accent bar inside card
+      doc.setFillColor(5, 150, 105); // Emerald Green
+      doc.roundedRect(x, y, cardWidth, 2.5, 2.5, 2.5, 'F');
+      doc.rect(x, y + 1.5, cardWidth, 1, 'F'); // square bottom of top bar
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(150, 160, 175);
-      doc.text(`#${String(codeIndex + 1).padStart(3, '0')}`, x + cardWidth - 4, y + 5.5, { align: 'right' });
+      // 2. Card Header (Brand in Green + Serial in Black)
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(4, 120, 87); // Emerald Green
+      doc.text('MR. OMAR MAKAWY', x + 4, y + 7.5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(15, 23, 42); // Black
+      doc.text(`#${String(codeIndex + 1).padStart(3, '0')}`, x + cardWidth - 4, y + 7.5, { align: 'right' });
 
       // Thin separator
       doc.setDrawColor(225, 232, 240);
       doc.setLineWidth(0.2);
-      doc.line(x + 3, y + 7.5, x + cardWidth - 3, y + 7.5);
+      doc.line(x + 3, y + 9.5, x + cardWidth - 3, y + 9.5);
 
-      // 3. Value Banner
+      // 3. Value Banner (Green, Black, White)
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9.5);
       if (batch.type === 'WALLET') {
-        doc.setTextColor(5, 150, 105);
+        doc.setTextColor(4, 120, 87); // Green
         const amountText = `CARD VALUE: ${batch.amount || item.amount || 100} EGP`;
-        doc.text(amountText, x + cardWidth / 2, y + 13.5, { align: 'center' });
+        doc.text(amountText, x + cardWidth / 2, y + 15, { align: 'center' });
       } else {
-        doc.setTextColor(79, 70, 229);
+        doc.setTextColor(4, 120, 87); // Green
         const discVal = batch.discountValue || item.discount_value || 10;
         const discType = batch.discountType || item.discount_type || 'PERCENTAGE';
-        const discText = `DISCOUNT: ${discVal}${discType === 'PERCENTAGE' ? '%' : ' EGP'} OFF`;
-        doc.text(discText, x + cardWidth / 2, y + 13.5, { align: 'center' });
+        const discText = `COUPON DISCOUNT: ${discVal}${discType === 'PERCENTAGE' ? '%' : ' EGP'} OFF`;
+        doc.text(discText, x + cardWidth / 2, y + 15, { align: 'center' });
       }
 
-      // 4. Code Box (High Contrast Monospace Container)
-      doc.setFillColor(243, 246, 250);
-      doc.setDrawColor(30, 41, 59);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(x + 6, y + 17, cardWidth - 12, 13.5, 1.5, 1.5, 'FD');
+      // 4. Code Box (White background with crisp Black border)
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(0, 0, 0); // Solid Black
+      doc.setLineWidth(0.45);
+      doc.roundedRect(x + 6, y + 18, cardWidth - 12, 14, 1.5, 1.5, 'FD');
 
+      // Monospace Code in Bold Black
       doc.setFont('courier', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(15, 23, 42);
-      doc.text(codeStr, x + cardWidth / 2, y + 25.5, { align: 'center' });
+      doc.setFontSize(11.5);
+      doc.setTextColor(0, 0, 0); // Pure Black
+      doc.text(codeStr, x + cardWidth / 2, y + 26.5, { align: 'center' });
 
-      // Security watermark subtext
-      doc.setFont('helvetica', 'normal');
+      // Subtext below code (Green / Dark)
+      doc.setFont('helvetica', 'bold');
       doc.setFontSize(5.5);
-      doc.setTextColor(140, 150, 165);
-      doc.text('SCRATCH OR ENTER CODE TO REDEEM', x + cardWidth / 2, y + 29.5, { align: 'center' });
+      doc.setTextColor(5, 150, 105); // Green
+      const subLabel = batch.type === 'DISCOUNT' ? 'ENTER COUPON CODE TO APPLY DISCOUNT' : 'SCRATCH OR ENTER CODE TO REDEEM';
+      doc.text(subLabel, x + cardWidth / 2, y + 30.5, { align: 'center' });
 
-      // 5. Card Footer (Platform Name + Expiry)
+      // 5. Card Footer (Black / Slate on White)
       doc.setDrawColor(225, 232, 240);
       doc.setLineWidth(0.2);
       doc.line(x + 3, y + 41.5, x + cardWidth - 3, y + 41.5);
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
-      doc.setTextColor(120, 130, 145);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(15, 23, 42); // Black
       doc.text('omarmeckawy.com', x + 4, y + 45.2);
 
       let expStr = 'No Expiry';
       if (item.expires_at) {
         expStr = `Exp: ${new Date(item.expires_at).toLocaleDateString('en-GB')}`;
       }
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
       doc.text(expStr, x + cardWidth - 4, y + 45.2, { align: 'right' });
     }
   }

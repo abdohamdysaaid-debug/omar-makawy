@@ -2145,39 +2145,48 @@ export default function StaffCodesManagementPage() {
                 return (
                   <div
                     key={idx}
-                    className="border-2 border-dashed border-slate-300 rounded-xl p-4 bg-slate-50/50 flex flex-col justify-between space-y-3 relative overflow-hidden print:border-slate-800"
+                    className="border-2 border-slate-900 rounded-xl p-4 bg-white flex flex-col justify-between space-y-3 relative overflow-hidden shadow-xs print:shadow-none"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <span className="font-bold text-xs text-primary-700 tracking-wide">MR. OMAR MAKAWY</span>
-                      <span className="text-[10px] text-slate-400 font-mono">#{idx + 1}</span>
+                    {/* Top Green Accent Bar */}
+                    <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-600"></div>
+
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 pt-1">
+                      <span className="font-bold text-xs text-emerald-700 tracking-wide">MR. OMAR MAKAWY</span>
+                      <span className="text-[11px] text-slate-900 font-bold font-mono">#{idx + 1}</span>
                     </div>
 
                     <div className="text-center py-2 space-y-1.5">
                       {printTargetBatch.type === 'WALLET' && (
-                        <div className="text-emerald-700 font-bold text-base">
-                          {isAr ? 'قيمة الكارت:' : 'Value:'} {printTargetBatch.amount} {isAr ? 'جنيه' : 'EGP'}
+                        <div className="text-emerald-700 font-bold text-sm sm:text-base">
+                          {isAr ? 'قيمة الكارت:' : 'Card Value:'} {printTargetBatch.amount} {isAr ? 'جنيه' : 'EGP'}
                         </div>
                       )}
                       {printTargetBatch.type === 'DISCOUNT' && (
-                        <div className="text-primary-700 font-bold text-xs">
-                          {isAr ? 'كوبون خصم:' : 'Discount Coupon:'} {printTargetBatch.discountValue}{' '}
-                          {printTargetBatch.discountType === 'PERCENTAGE' ? '%' : 'ج.م'}
+                        <div className="text-emerald-700 font-bold text-sm sm:text-base">
+                          {isAr ? 'كوبون خصم:' : 'Coupon Discount:'} {printTargetBatch.discountValue}{' '}
+                          {printTargetBatch.discountType === 'PERCENTAGE' ? '%' : 'ج.م'} {isAr ? 'خصم' : 'OFF'}
                         </div>
                       )}
 
                       {/* Code Box */}
-                      <div className="bg-white border-2 border-slate-900 rounded-lg py-2.5 px-3 mt-2 shadow-sm">
-                        <span className="font-mono font-bold text-base text-slate-900 tracking-widest select-all">
+                      <div className="bg-white border-2 border-black rounded-lg py-2 px-3 mt-1.5 shadow-xs">
+                        <span className="font-mono font-bold text-sm sm:text-base text-black tracking-widest select-all">
                           {codeStr}
                         </span>
                       </div>
+
+                      <p className="text-[10px] font-bold text-emerald-700 pt-0.5">
+                        {printTargetBatch.type === 'DISCOUNT'
+                          ? isAr ? 'استخدم الكوبون عند إتمام الشراء' : 'ENTER COUPON CODE AT CHECKOUT'
+                          : isAr ? 'اشحن الكود للاستفادة بالرصيد' : 'SCRATCH OR ENTER CODE TO REDEEM'}
+                      </p>
                     </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-200 pt-2">
-                      <span>{isAr ? 'منصة مستر عمر مكاوي' : 'Omar Makawy Platform'}</span>
+                    <div className="flex items-center justify-between text-[11px] text-slate-900 font-medium border-t border-slate-200 pt-2">
+                      <span className="font-bold">omarmeckawy.com</span>
                       {c.expires_at && (
-                        <span>
-                          {isAr ? 'صالح حتى:' : 'Valid until:'} {new Date(c.expires_at).toLocaleDateString('en-GB')}
+                        <span className="text-slate-600">
+                          {isAr ? 'صالح حتى:' : 'Exp:'} {new Date(c.expires_at).toLocaleDateString('en-GB')}
                         </span>
                       )}
                     </div>
