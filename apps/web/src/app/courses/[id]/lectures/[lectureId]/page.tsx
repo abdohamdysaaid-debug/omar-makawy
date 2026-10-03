@@ -1,11 +1,10 @@
-import { lectures } from '@/data/mock';
-import LectureDetailsClient from '@/components/courses/LectureDetailsClient';
+import React, { Suspense } from 'react';
+import { StudentLectureViewClient } from '@/components/lectures/StudentLectureViewClient';
 
 export function generateStaticParams() {
-  return lectures.map((lecture) => ({
-    id: String(lecture.courseId),
-    lectureId: String(lecture.id),
-  }));
+  return [
+    { id: '1', lectureId: 'detail' },
+  ];
 }
 
 export default function LectureDetailsPage({
@@ -14,9 +13,17 @@ export default function LectureDetailsPage({
   params: { id: string; lectureId: string };
 }) {
   return (
-    <LectureDetailsClient
-      courseId={Number(params.id)}
-      lectureId={Number(params.lectureId)}
-    />
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
+          <div className="animate-spin w-8 h-8 border-4 border-[#0d6e4f] border-t-transparent rounded-full" />
+        </div>
+      }
+    >
+      <StudentLectureViewClient
+        lectureId={params.lectureId}
+        courseId={params.id}
+      />
+    </Suspense>
   );
 }
