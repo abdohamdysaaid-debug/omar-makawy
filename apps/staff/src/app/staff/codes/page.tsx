@@ -25,26 +25,57 @@ import {
   ShieldAlert,
   AlertTriangle,
   Percent,
+  Layers,
+  List,
+  Eye,
+  FileText,
+  Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/FeedbackStates';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 type TabType = 'wallet' | 'discounts';
+type ViewMode = 'batches' | 'table';
 
-interface GeneratedCodeItem {
-  raw?: string;
-  code?: string;
-  preview?: string;
+interface CodeItem {
+  id: string;
   code_preview?: string;
-  type?: string;
-  target_id?: string;
-  academic_year_id?: string;
+  code?: string;
   amount?: string | number;
-  discount_value?: any;
   discount_type?: string;
+  discount_value?: any;
+  target_type?: string;
+  target_title?: string;
+  target_id?: string;
+  batch_id?: string;
+  status: string;
   max_uses?: number;
-  expires_at?: string | Date;
+  used_count?: number;
+  used_by_name?: string;
+  used_by_phone?: string;
+  used_at?: string;
+  created_at: string;
+  expires_at?: string;
+  raw?: string;
+}
+
+interface BatchGroup {
+  batchId: string;
+  type: 'WALLET' | 'DISCOUNT';
+  title: string;
+  amount?: number | string;
+  discountType?: string;
+  discountValue?: number | string;
+  targetTitle?: string;
+  totalCodes: number;
+  activeCount: number;
+  usedCount: number;
+  disabledCount: number;
+  createdAt: string;
+  expiresAt?: string;
+  codes: CodeItem[];
 }
 
 interface GeneratedBatchResult {
@@ -54,7 +85,16 @@ interface GeneratedBatchResult {
   amount?: number | string;
   discountType?: string;
   discountValue?: number | string;
-  codes: GeneratedCodeItem[];
+  codes: Array<{
+    raw?: string;
+    code?: string;
+    preview?: string;
+    code_preview?: string;
+    amount?: string | number;
+    discount_value?: any;
+    discount_type?: string;
+    expires_at?: string | Date;
+  }>;
 }
 
 export default function StaffCodesManagementPage() {
@@ -69,8 +109,9 @@ export default function StaffCodesManagementPage() {
     hasPermission(SystemPermissions.PACKAGES_MANAGE) ||
     hasPermission(SystemPermissions.COURSES_MANAGE);
 
-  // Active Tab: Wallet Cards or Discount Coupons
+  // Active Tab & View Mode
   const [activeTab, setActiveTab] = useState<TabType>('wallet');
+  const [viewMode, setViewMode] = useState<ViewMode>('batches');
 
   // Lookups Data
   const [academicYears, setAcademicYears] = useState<any[]>([]);
@@ -79,7 +120,7 @@ export default function StaffCodesManagementPage() {
   const [loadingLookups, setLoadingLookups] = useState<boolean>(true);
 
   // Active Tab Table Data
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<CodeItem[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -95,6 +136,10 @@ export default function StaffCodesManagementPage() {
 
   // Feedback Notification
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Active Selected Batch Modal (For inspecting a batch card)
+  const [selectedBatch, setSelectedBatch] = useState<BatchGroup | null>(null);
+  const [batchSearchQuery, setBatchSearchQuery] = useState<string>('');
 
   // Action / Confirmation Modal
   const [confirmModal, setConfirmModal] = useState<{
@@ -117,6 +162,15 @@ export default function StaffCodesManagementPage() {
   // Post-Generation Result & Print Modals
   const [batchResult, setBatchResult] = useState<GeneratedBatchResult | null>(null);
   const [isPrintModeOpen, setIsPrintModeOpen] = useState<boolean>(false);
+  const [printTargetBatch, setPrintTargetBatch] = useState<{
+    title: string;
+    type: 'WALLET' | 'DISCOUNT';
+    amount?: number | string;
+    discountType?: string;
+    discountValue?: number | string;
+    codes: Array<{ raw?: string; code?: string; preview?: string; code_preview?: string; expires_at?: any }>;
+  } | null>(null);
+
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
 
   // Forms State
@@ -173,7 +227,7 @@ export default function StaffCodesManagementPage() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Load Lookups (Academic Years, Packages, Courses)
+  // Load Lookups
   useEffect(() => {
     let isMounted = true;
     async function loadLookups() {
@@ -211,7 +265,7 @@ export default function StaffCodesManagementPage() {
         let endpoint = '';
         const params: Record<string, any> = {
           page: pageNumber,
-          limit: 20,
+          limit: 100, // Load comprehensive batch pool
         };
 
         if (statusFilter !== 'ALL') {
@@ -246,7 +300,7 @@ export default function StaffCodesManagementPage() {
           response?.totalPages ??
           response?.meta?.totalPages ??
           response?.meta?.pages ??
-          Math.max(1, Math.ceil(resTotal / 20));
+          Math.max(1, Math.ceil(resTotal / 100));
 
         setItems(resData);
         setTotal(resTotal);
@@ -267,6 +321,56 @@ export default function StaffCodesManagementPage() {
     loadData(1);
   }, [loadData]);
 
+  // Compute Batches (Group items into sleek rectangular cards)
+  const batches = useMemo<BatchGroup[]>(() => {
+    const map = new Map<string, BatchGroup>();
+
+    items.forEach((item) => {
+      const bKey =
+        item.batch_id ||
+        `BATCH-${item.created_at ? new Date(item.created_at).toISOString().slice(0, 10) : 'GENERAL'}-${
+          activeTab === 'wallet' ? item.amount : item.discount_value
+        }`;
+
+      if (!map.has(bKey)) {
+        const title =
+          activeTab === 'wallet'
+            ? `${isAr ? 'دفعة كروت شحن' : 'Recharge Batch'} (${item.amount} ${isAr ? 'ج.م' : 'EGP'})`
+            : `${isAr ? 'دفعة كوبونات' : 'Coupon Batch'} (${
+                item.discount_type === 'PERCENTAGE' ? `${item.discount_value}%` : `${item.discount_value} ج.م`
+              })`;
+
+        map.set(bKey, {
+          batchId: item.batch_id || bKey,
+          type: activeTab === 'wallet' ? 'WALLET' : 'DISCOUNT',
+          title,
+          amount: item.amount,
+          discountType: item.discount_type,
+          discountValue: item.discount_value,
+          targetTitle: item.target_title,
+          totalCodes: 0,
+          activeCount: 0,
+          usedCount: 0,
+          disabledCount: 0,
+          createdAt: item.created_at,
+          expiresAt: item.expires_at,
+          codes: [],
+        });
+      }
+
+      const grp = map.get(bKey)!;
+      grp.totalCodes += 1;
+      if (item.status === 'ACTIVE') grp.activeCount += 1;
+      else if (item.status === 'USED') grp.usedCount += 1;
+      else if (item.status === 'DISABLED') grp.disabledCount += 1;
+      grp.codes.push(item);
+    });
+
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }, [items, activeTab, isAr]);
+
   // Actions
   // 1. Generate Recharge Codes
   const handleGenerateRechargeCodes = async () => {
@@ -274,18 +378,21 @@ export default function StaffCodesManagementPage() {
     setIsGeneratingRecharge(true);
     setFeedback(null);
     try {
+      const generatedBatchId = `RCH-${rechargeAmount}EGP-${Date.now().toString().slice(-5)}`;
       const payload = {
         amount: Number(rechargeAmount),
         count: Number(rechargeCount),
         expires_at: new Date(rechargeExpiresAt).toISOString(),
-        batch_id: `RCH-${Date.now().toString().slice(-6)}`,
+        batch_id: generatedBatchId,
       };
 
       const res: any = await apiClient.post('/admin/recharge-codes/generate', payload);
       const generatedList = res?.codes || [];
 
       setBatchResult({
-        title: isAr ? 'كروت شحن رصيد تم توليدها بنجاح' : 'Generated Wallet Recharge Cards',
+        title: isAr
+          ? `تم توليد دفعة كروت شحن (${rechargeCount} كارت بقيمة ${rechargeAmount} ج.م)`
+          : `Generated ${rechargeCount} Recharge Cards (${rechargeAmount} EGP)`,
         type: 'WALLET',
         amount: rechargeAmount,
         codes: generatedList,
@@ -296,8 +403,8 @@ export default function StaffCodesManagementPage() {
       setFeedback({
         type: 'success',
         message: isAr
-          ? `تم توليد ${generatedList.length} كارت شحن بنجاح بإجمالي ${(rechargeAmount * generatedList.length).toLocaleString()} ج.م`
-          : `Successfully generated ${generatedList.length} recharge cards`,
+          ? `تم توليد مستطيل الدفعة بنجاح (${generatedList.length} كارت شحن)`
+          : `Successfully generated ${generatedList.length} recharge cards batch`,
       });
       loadData(1);
     } catch (err: any) {
@@ -358,6 +465,7 @@ export default function StaffCodesManagementPage() {
     setIsGeneratingBulkDisc(true);
     setFeedback(null);
     try {
+      const generatedBatchId = `DISC-${bulkDiscValue}${bulkDiscType === 'PERCENTAGE' ? 'PCT' : 'EGP'}-${Date.now().toString().slice(-5)}`;
       const payload: any = {
         count: Number(bulkDiscCount),
         discount_type: bulkDiscType,
@@ -368,14 +476,16 @@ export default function StaffCodesManagementPage() {
         expires_at: new Date(bulkDiscExpiresAt).toISOString(),
         target_type: bulkDiscScope,
         target_id: bulkDiscScope !== 'ALL' ? bulkDiscTargetId : undefined,
-        batch_id: `DISC-${Date.now().toString().slice(-6)}`,
+        batch_id: generatedBatchId,
       };
 
       const res: any = await apiClient.post('/admin/discounts/generate', payload);
       const generatedList = res?.codes || [];
 
       setBatchResult({
-        title: isAr ? 'كوبونات خصم تم توليدها بنجاح' : 'Generated Discount Coupons',
+        title: isAr
+          ? `تم توليد دفعة كوبونات خصم (${bulkDiscCount} كوبون)`
+          : `Generated ${bulkDiscCount} Discount Coupons`,
         type: 'DISCOUNT',
         discountType: bulkDiscType,
         discountValue: bulkDiscValue,
@@ -387,8 +497,8 @@ export default function StaffCodesManagementPage() {
       setFeedback({
         type: 'success',
         message: isAr
-          ? `تم توليد ${generatedList.length} كوبون خصم بنجاح`
-          : `Successfully generated ${generatedList.length} discount coupons`,
+          ? `تم توليد مستطيل الدفعة بنجاح (${generatedList.length} كوبون)`
+          : `Successfully generated ${generatedList.length} discount coupons batch`,
       });
       loadData(1);
     } catch (err: any) {
@@ -438,24 +548,30 @@ export default function StaffCodesManagementPage() {
     });
   };
 
-  // Copy Code to Clipboard
+  // Copy Code
   const handleCopyCode = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
     setCopiedCodeIndex(index);
     setTimeout(() => setCopiedCodeIndex(null), 2000);
   };
 
-  // Export CSV of generated codes
-  const exportGeneratedCodesCSV = () => {
-    if (!batchResult || !batchResult.codes.length) return;
-    const headers = ['Index', 'Type', 'Code', 'Target/Value', 'Max Uses', 'Created At', 'Expires At'];
-    const rows = batchResult.codes.map((c, i) => [
+  // Export Batch or Results to CSV
+  const exportCodesCSV = (
+    codes: Array<any>,
+    type: 'WALLET' | 'DISCOUNT',
+    amount?: number | string,
+    discVal?: number | string,
+    discType?: string,
+  ) => {
+    if (!codes.length) return;
+    const headers = ['Index', 'Type', 'Code Preview / Code', 'Value', 'Status', 'Created At', 'Expires At'];
+    const rows = codes.map((c, i) => [
       i + 1,
-      batchResult.type,
-      c.raw || c.code || c.preview,
-      batchResult.amount ? `${batchResult.amount} EGP` : batchResult.discountValue ? `${batchResult.discountValue} (${batchResult.discountType})` : '',
-      c.max_uses || 1,
-      new Date().toISOString(),
+      type,
+      c.raw || c.code || c.code_preview || c.preview,
+      amount ? `${amount} EGP` : discVal ? `${discVal} (${discType})` : '',
+      c.status || 'ACTIVE',
+      c.created_at || new Date().toISOString(),
       c.expires_at ? new Date(c.expires_at).toISOString() : '',
     ]);
 
@@ -466,14 +582,30 @@ export default function StaffCodesManagementPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `codes-${batchResult.type.toLowerCase()}-${Date.now()}.csv`);
+    link.setAttribute('download', `batch-${type.toLowerCase()}-${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  // Launch Print View for Batch
+  const openBatchPrint = (batch: BatchGroup) => {
+    setPrintTargetBatch({
+      title: batch.title,
+      type: batch.type,
+      amount: batch.amount,
+      discountType: batch.discountType,
+      discountValue: batch.discountValue,
+      codes: batch.codes.map((c) => ({
+        raw: c.code_preview || c.code || 'CODE',
+        expires_at: c.expires_at,
+      })),
+    });
+    setIsPrintModeOpen(true);
+  };
+
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-cairo">
       {/* Feedback Banner */}
       {feedback && (
         <div
@@ -499,13 +631,18 @@ export default function StaffCodesManagementPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            {isAr ? 'كروت الشحن وكوبونات الخصم' : 'Recharge Cards & Discount Coupons'}
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              {isAr ? 'كروت الشحن وكوبونات الخصم' : 'Recharge Cards & Discount Coupons'}
+            </h1>
+          </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {isAr
-              ? 'إدارة وتوليد كروت شحن رصيد المحفظة التعليمية وكوبونات الخصم'
-              : 'Manage and generate wallet top-up cards and discount coupons'}
+              ? 'توليد وإدارة دُفعات كروت شحن المحفظة وكوبونات الخصم في مستطيلات منظمة مع إمكانية التحميل والطباعة PDF'
+              : 'Manage and generate wallet top-up cards & coupons in structured batches with instant PDF cards export'}
           </p>
         </div>
 
@@ -521,7 +658,7 @@ export default function StaffCodesManagementPage() {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                <span>{isAr ? 'توليد كروت شحن محفظة' : 'Generate Top-Up Cards'}</span>
+                <span>{isAr ? 'توليد دفعة كروت شحن' : 'Generate Top-Up Batch'}</span>
               </button>
             )}
 
@@ -542,7 +679,7 @@ export default function StaffCodesManagementPage() {
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm transition-all shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>{isAr ? 'توليد كوبونات مجمعة' : 'Generate Bulk Coupons'}</span>
+                  <span>{isAr ? 'توليد دفعة كوبونات مجمعة' : 'Generate Bulk Coupons'}</span>
                 </button>
               </>
             )}
@@ -550,31 +687,61 @@ export default function StaffCodesManagementPage() {
         )}
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-1">
-        <button
-          onClick={() => setActiveTab('wallet')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
-            activeTab === 'wallet'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-          }`}
-        >
-          <Wallet className="w-4 h-4" />
-          <span>{isAr ? 'كروت شحن المحفظة' : 'Wallet Top-Up Cards'}</span>
-        </button>
+      {/* Tabs & View Mode Selector */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+        {/* Category Tabs */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('wallet')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              activeTab === 'wallet'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Wallet className="w-4 h-4" />
+            <span>{isAr ? 'كروت شحن المحفظة' : 'Wallet Top-Up Cards'}</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('discounts')}
-          className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
-            activeTab === 'discounts'
-              ? 'bg-primary-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-          }`}
-        >
-          <Tag className="w-4 h-4" />
-          <span>{isAr ? 'كوبونات الخصم' : 'Discount Coupons'}</span>
-        </button>
+          <button
+            onClick={() => setActiveTab('discounts')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              activeTab === 'discounts'
+                ? 'bg-primary-600 text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Tag className="w-4 h-4" />
+            <span>{isAr ? 'كوبونات الخصم' : 'Discount Coupons'}</span>
+          </button>
+        </div>
+
+        {/* View Mode Switcher (Batches vs Detailed Table) */}
+        <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+          <button
+            onClick={() => setViewMode('batches')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+              viewMode === 'batches'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
+            <span>{isAr ? 'دُفعات التوليد (مستطيلات)' : 'Batches (Cards)'}</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('table')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+              viewMode === 'table'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <List className="w-3.5 h-3.5 text-slate-500" />
+            <span>{isAr ? 'جدول الأكواد التفصيلي' : 'All Codes Table'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -584,7 +751,7 @@ export default function StaffCodesManagementPage() {
           <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder={isAr ? 'بحث في الأكواد...' : 'Search codes...'}
+            placeholder={isAr ? 'بحث في الأكواد أو الدُفعات...' : 'Search codes or batches...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full ps-9 pe-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
@@ -647,224 +814,516 @@ export default function StaffCodesManagementPage() {
         </div>
       </div>
 
-      {/* Main Table Content */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-        {isLoading ? (
-          <div className="p-12">
-            <LoadingState message={isAr ? 'جاري تحميل الأكواد...' : 'Loading codes...'} />
-          </div>
-        ) : error ? (
-          <div className="p-12">
-            <ErrorState message={error} onRetry={() => loadData(1)} />
-          </div>
-        ) : items.length === 0 ? (
-          <div className="p-12">
-            <EmptyState
-              title={isAr ? 'لا توجد أكواد حالياً' : 'No codes found'}
-              description={
-                isAr
-                  ? 'لم يتم العثور على أي أكواد تطابق معايير البحث الحالية.'
-                  : 'No codes found matching your current filter criteria.'
-              }
-            />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-start text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-800/50 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                  <th className="py-3.5 px-4 text-start">{isAr ? 'الكود (المعاينة)' : 'Code Preview'}</th>
-
-                  {activeTab === 'wallet' && (
-                    <th className="py-3.5 px-4 text-start">{isAr ? 'القيمة' : 'Value'}</th>
-                  )}
-
-                  {activeTab === 'discounts' && (
-                    <>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'نوع الخصم' : 'Type'}</th>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'قيمة الخصم' : 'Discount'}</th>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'النطاق / العنصر' : 'Scope'}</th>
-                    </>
-                  )}
-
-                  {/* Usage Quota */}
-                  {activeTab === 'discounts' && (
-                    <th className="py-3.5 px-4 text-start">{isAr ? 'مرات الاستخدام' : 'Usage'}</th>
-                  )}
-
-                  {/* Wallet Used Info */}
-                  {activeTab === 'wallet' && (
-                    <>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'المستخدم بواسطة' : 'Used By'}</th>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'تاريخ الاستخدام' : 'Used At'}</th>
-                    </>
-                  )}
-
-                  <th className="py-3.5 px-4 text-start">{isAr ? 'تاريخ الإنشاء' : 'Created At'}</th>
-                  <th className="py-3.5 px-4 text-start">{isAr ? 'تاريخ الانتهاء' : 'Expires At'}</th>
-                  <th className="py-3.5 px-4 text-start">{isAr ? 'الحالة' : 'Status'}</th>
-                  {canManage && <th className="py-3.5 px-4 text-center">{isAr ? 'الإجراءات' : 'Actions'}</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-normal">
-                {items.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                  >
-                    {/* Code Preview */}
-                    <td className="py-3.5 px-4">
+      {/* ========================================================================= */}
+      {/* 1. BATCHES VIEW (RECTANGULAR CARDS / مستطيلات أنيقة لكل دفعة)             */}
+      {/* ========================================================================= */}
+      {viewMode === 'batches' && (
+        <>
+          {isLoading ? (
+            <div className="p-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <LoadingState message={isAr ? 'جاري تحميل دُفعات الأكواد...' : 'Loading batches...'} />
+            </div>
+          ) : error ? (
+            <div className="p-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <ErrorState message={error} onRetry={() => loadData(1)} />
+            </div>
+          ) : batches.length === 0 ? (
+            <div className="p-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <EmptyState
+                title={isAr ? 'لا توجد دُفعات مسجلة حالياً' : 'No batches found'}
+                description={
+                  isAr
+                    ? 'قم بتوليد دفعة جديدة لتظهر هنا كمستطيل منظم يمكنك الدخول إليه وتحميله PDF.'
+                    : 'Generate a new batch to see it formatted as a rectangular card with PDF export.'
+                }
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {batches.map((batch, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedBatch(batch)}
+                  className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs hover:shadow-xl hover:border-primary-500/50 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4"
+                >
+                  {/* Card Top / Header */}
+                  <div>
+                    <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-2">
+                        <div
+                          className={`p-2 rounded-xl ${
+                            batch.type === 'WALLET'
+                              ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400'
+                              : 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                          }`}
+                        >
+                          {batch.type === 'WALLET' ? <Wallet className="w-5 h-5" /> : <Tag className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-primary-600 transition-colors">
+                            {batch.title}
+                          </h3>
+                          <span className="text-[11px] font-mono text-slate-400">
+                            ID: {batch.batchId.slice(0, 20)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Value Badge */}
+                      <span
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                          batch.type === 'WALLET'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                            : 'bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300'
+                        }`}
+                      >
+                        {batch.type === 'WALLET'
+                          ? `${batch.amount} ج.م`
+                          : batch.discountType === 'PERCENTAGE'
+                          ? `${batch.discountValue}%`
+                          : `${batch.discountValue} ج.م`}
+                      </span>
+                    </div>
+
+                    {/* Target Scope if Discount */}
+                    {batch.targetTitle && (
+                      <p className="text-xs text-slate-500 mt-2 font-medium">
+                        {isAr ? 'النطاق:' : 'Scope:'} {batch.targetTitle}
+                      </p>
+                    )}
+
+                    {/* Metrics Grid */}
+                    <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block">{isAr ? 'إجمالي الأكواد' : 'Total'}</span>
+                        <span className="font-bold text-sm text-slate-900 dark:text-white">{batch.totalCodes}</span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/30">
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block">
+                          {isAr ? 'المتاح' : 'Active'}
+                        </span>
+                        <span className="font-bold text-sm text-emerald-700 dark:text-emerald-300">
+                          {batch.activeCount}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span className="text-[11px] text-slate-400 block">{isAr ? 'المستخدم' : 'Used'}</span>
+                        <span className="font-bold text-sm text-slate-700 dark:text-slate-300">{batch.usedCount}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Bottom / Footer Actions */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-[11px]">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{batch.createdAt ? new Date(batch.createdAt).toLocaleDateString('en-GB') : '—'}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => openBatchPrint(batch)}
+                        title={isAr ? 'تحميل وطباعة PDF (كروت A4)' : 'Print/Download PDF Cards'}
+                        className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-primary-50 dark:hover:bg-primary-950/60 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          exportCodesCSV(
+                            batch.codes,
+                            batch.type,
+                            batch.amount,
+                            batch.discountValue,
+                            batch.discountType,
+                          )
+                        }
+                        title={isAr ? 'تصدير Excel/CSV' : 'Export CSV'}
+                        className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedBatch(batch)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>{isAr ? 'فتح الدفعة' : 'Open'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. DETAILED TABLE VIEW (جدول الأكواد التفصيلي)                             */}
+      {/* ========================================================================= */}
+      {viewMode === 'table' && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+          {isLoading ? (
+            <div className="p-12">
+              <LoadingState message={isAr ? 'جاري تحميل الأكواد...' : 'Loading codes...'} />
+            </div>
+          ) : error ? (
+            <div className="p-12">
+              <ErrorState message={error} onRetry={() => loadData(1)} />
+            </div>
+          ) : items.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                title={isAr ? 'لا توجد أكواد حالياً' : 'No codes found'}
+                description={
+                  isAr
+                    ? 'لم يتم العثور على أي أكواد تطابق معايير البحث الحالية.'
+                    : 'No codes found matching your current filter criteria.'
+                }
+              />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-start text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-800/50 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                    <th className="py-3.5 px-4 text-start">{isAr ? 'الكود (المعاينة)' : 'Code Preview'}</th>
+
+                    {activeTab === 'wallet' && (
+                      <th className="py-3.5 px-4 text-start">{isAr ? 'القيمة' : 'Value'}</th>
+                    )}
+
+                    {activeTab === 'discounts' && (
+                      <>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'نوع الخصم' : 'Type'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'قيمة الخصم' : 'Discount'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'النطاق / العنصر' : 'Scope'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'مرات الاستخدام' : 'Usage'}</th>
+                      </>
+                    )}
+
+                    {/* Wallet Used Info */}
+                    {activeTab === 'wallet' && (
+                      <>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'المستخدم بواسطة' : 'Used By'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'تاريخ الاستخدام' : 'Used At'}</th>
+                      </>
+                    )}
+
+                    <th className="py-3.5 px-4 text-start">{isAr ? 'تاريخ الإنشاء' : 'Created At'}</th>
+                    <th className="py-3.5 px-4 text-start">{isAr ? 'تاريخ الانتهاء' : 'Expires At'}</th>
+                    <th className="py-3.5 px-4 text-start">{isAr ? 'الحالة' : 'Status'}</th>
+                    {canManage && <th className="py-3.5 px-4 text-center">{isAr ? 'الإجراءات' : 'Actions'}</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-normal">
+                  {items.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                    >
+                      {/* Code Preview */}
+                      <td className="py-3.5 px-4">
                         <span className="font-mono font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md text-xs tracking-wider">
                           {row.code_preview || row.code || 'CODE'}
                         </span>
-                      </div>
-                    </td>
-
-                    {activeTab === 'wallet' && (
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                          {row.amount} {isAr ? 'ج.م' : 'EGP'}
-                        </span>
                       </td>
-                    )}
 
-                    {activeTab === 'discounts' && (
-                      <>
+                      {activeTab === 'wallet' && (
                         <td className="py-3.5 px-4">
-                          <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-medium">
-                            {row.discount_type === 'PERCENTAGE'
-                              ? isAr ? 'نسبة مئوية' : 'Percentage'
-                              : isAr ? 'مبلغ ثابت' : 'Fixed'}
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                            {row.amount} {isAr ? 'ج.م' : 'EGP'}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-bold text-primary-600 dark:text-primary-400">
-                          {row.discount_type === 'PERCENTAGE' ? `${row.discount_value}%` : `${row.discount_value} ${isAr ? 'ج.م' : 'EGP'}`}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
-                          {row.target_title || (row.target_type === 'ALL' ? (isAr ? 'المنصة كاملة' : 'All') : row.target_type)}
-                        </td>
-                      </>
-                    )}
+                      )}
 
-                    {/* Usage Limits */}
-                    {activeTab === 'discounts' && (
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                          <span className="text-slate-900 dark:text-white font-bold">{row.used_count ?? 0}</span>
-                          <span>/</span>
-                          <span>{row.max_uses ?? 1}</span>
-                          <span>{isAr ? 'استخدام' : 'uses'}</span>
-                        </div>
-                      </td>
-                    )}
-
-                    {/* Wallet Used By */}
-                    {activeTab === 'wallet' && (
-                      <>
-                        <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
-                          {row.used_by_name ? (
-                            <div>
-                              <p className="font-medium text-slate-900 dark:text-white">{row.used_by_name}</p>
-                              {row.used_by_phone && <p className="text-xs text-slate-400">{row.used_by_phone}</p>}
+                      {activeTab === 'discounts' && (
+                        <>
+                          <td className="py-3.5 px-4">
+                            <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-medium">
+                              {row.discount_type === 'PERCENTAGE'
+                                ? isAr ? 'نسبة مئوية' : 'Percentage'
+                                : isAr ? 'مبلغ ثابت' : 'Fixed'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-primary-600 dark:text-primary-400">
+                            {row.discount_type === 'PERCENTAGE' ? `${row.discount_value}%` : `${row.discount_value} ${isAr ? 'ج.م' : 'EGP'}`}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                            {row.target_title || (row.target_type === 'ALL' ? (isAr ? 'المنصة كاملة' : 'All') : row.target_type)}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                              <span className="text-slate-900 dark:text-white font-bold">{row.used_count ?? 0}</span>
+                              <span>/</span>
+                              <span>{row.max_uses ?? 1}</span>
+                              <span>{isAr ? 'استخدام' : 'uses'}</span>
                             </div>
+                          </td>
+                        </>
+                      )}
+
+                      {/* Wallet Used By */}
+                      {activeTab === 'wallet' && (
+                        <>
+                          <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                            {row.used_by_name ? (
+                              <div>
+                                <p className="font-medium text-slate-900 dark:text-white">{row.used_by_name}</p>
+                                {row.used_by_phone && <p className="text-xs text-slate-400">{row.used_by_phone}</p>}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-xs text-slate-500">
+                            {row.used_at ? new Date(row.used_at).toLocaleDateString('en-GB') : '—'}
+                          </td>
+                        </>
+                      )}
+
+                      {/* Created Date */}
+                      <td className="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
+                        {row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB') : '—'}
+                      </td>
+
+                      {/* Expires Date */}
+                      <td className="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
+                        {row.expires_at ? new Date(row.expires_at).toLocaleDateString('en-GB') : '—'}
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="py-3.5 px-4">
+                        <StatusBadge status={row.status} />
+                      </td>
+
+                      {/* Actions */}
+                      {canManage && (
+                        <td className="py-3.5 px-4 text-center">
+                          {row.status === 'ACTIVE' ? (
+                            <button
+                              onClick={() =>
+                                confirmDisableItem(
+                                  row.id,
+                                  row.code_preview || row.code || 'CODE',
+                                  activeTab === 'wallet' ? 'RECHARGE' : 'DISCOUNT',
+                                )
+                              }
+                              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors"
+                            >
+                              {isAr ? 'تعطيل' : 'Disable'}
+                            </button>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-xs text-slate-400">—</span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-xs text-slate-500">
-                          {row.used_at ? new Date(row.used_at).toLocaleDateString('en-GB') : '—'}
-                        </td>
-                      </>
-                    )}
-
-                    {/* Created Date */}
-                    <td className="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
-                      {row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB') : '—'}
-                    </td>
-
-                    {/* Expires Date */}
-                    <td className="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
-                      {row.expires_at ? new Date(row.expires_at).toLocaleDateString('en-GB') : '—'}
-                    </td>
-
-                    {/* Status Badge */}
-                    <td className="py-3.5 px-4">
-                      <StatusBadge status={row.status} />
-                    </td>
-
-                    {/* Actions */}
-                    {canManage && (
-                      <td className="py-3.5 px-4 text-center">
-                        {row.status === 'ACTIVE' ? (
-                          <button
-                            onClick={() =>
-                              confirmDisableItem(
-                                row.id,
-                                row.code_preview || row.code || 'CODE',
-                                activeTab === 'wallet' ? 'RECHARGE' : 'DISCOUNT',
-                              )
-                            }
-                            className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors"
-                          >
-                            {isAr ? 'تعطيل' : 'Disable'}
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-400">—</span>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination Bar */}
-        {!isLoading && total > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-sm text-slate-600 dark:text-slate-400">
-            <div>
-              {isAr ? (
-                <span>
-                  عرض <span className="font-bold text-slate-900 dark:text-white">{items.length}</span> من أصل{' '}
-                  <span className="font-bold text-slate-900 dark:text-white">{total}</span> كود
-                </span>
-              ) : (
-                <span>
-                  Showing <span className="font-bold text-slate-900 dark:text-white">{items.length}</span> of{' '}
-                  <span className="font-bold text-slate-900 dark:text-white">{total}</span> codes
-                </span>
-              )}
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          )}
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => loadData(page - 1)}
-                disabled={page <= 1}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-              >
-                <ChevronRight className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
-              </button>
+          {/* Pagination Bar */}
+          {!isLoading && total > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-sm text-slate-600 dark:text-slate-400">
+              <div>
+                {isAr ? (
+                  <span>
+                    عرض <span className="font-bold text-slate-900 dark:text-white">{items.length}</span> من أصل{' '}
+                    <span className="font-bold text-slate-900 dark:text-white">{total}</span> كود
+                  </span>
+                ) : (
+                  <span>
+                    Showing <span className="font-bold text-slate-900 dark:text-white">{items.length}</span> of{' '}
+                    <span className="font-bold text-slate-900 dark:text-white">{total}</span> codes
+                  </span>
+                )}
+              </div>
 
-              <span className="px-3 py-1 text-xs font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                {page} / {totalPages}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => loadData(page - 1)}
+                  disabled={page <= 1}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <ChevronRight className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
+                </button>
 
-              <button
-                onClick={() => loadData(page + 1)}
-                disabled={page >= totalPages}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-              >
-                <ChevronLeft className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
-              </button>
+                <span className="px-3 py-1 text-xs font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                  {page} / {totalPages}
+                </span>
+
+                <button
+                  onClick={() => loadData(page + 1)}
+                  disabled={page >= totalPages}
+                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <ChevronLeft className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* 1. RECHARGE CARDS GENERATION MODAL                                        */}
+      {/* 3. SELECTED BATCH MODAL (عرض تفاصيل مستطيل الدفعة)                         */}
+      {/* ========================================================================= */}
+      {selectedBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2.5 rounded-xl ${
+                    selectedBatch.type === 'WALLET'
+                      ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400'
+                      : 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
+                  }`}
+                >
+                  {selectedBatch.type === 'WALLET' ? <Wallet className="w-6 h-6" /> : <Tag className="w-6 h-6" />}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{selectedBatch.title}</h3>
+                  <p className="text-xs text-slate-500">
+                    {isAr
+                      ? `إجمالي الدفعة: ${selectedBatch.totalCodes} كود • تاريخ التوليد: ${
+                          selectedBatch.createdAt ? new Date(selectedBatch.createdAt).toLocaleDateString('en-GB') : '—'
+                        }`
+                      : `Batch size: ${selectedBatch.totalCodes} codes`}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedBatch(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Action Bar inside Batch Modal */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-50/30 dark:bg-slate-800/20">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={isAr ? 'بحث داخل هذه الدفعة...' : 'Search within this batch...'}
+                  value={batchSearchQuery}
+                  onChange={(e) => setBatchSearchQuery(e.target.value)}
+                  className="w-full ps-9 pe-3 py-1.5 text-xs rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() =>
+                    exportCodesCSV(
+                      selectedBatch.codes,
+                      selectedBatch.type,
+                      selectedBatch.amount,
+                      selectedBatch.discountValue,
+                      selectedBatch.discountType,
+                    )
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'تصدير Excel/CSV' : 'Export CSV'}</span>
+                </button>
+
+                <button
+                  onClick={() => openBatchPrint(selectedBatch)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary-600 text-white font-semibold text-xs hover:bg-primary-700 transition-colors shadow-xs"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'تحميل وطباعة PDF (كروت A4)' : 'Download & Print PDF'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Batch Codes Table */}
+            <div className="p-4 overflow-y-auto flex-1 divide-y divide-slate-100 dark:divide-slate-800">
+              {selectedBatch.codes
+                .filter((c) =>
+                  batchSearchQuery.trim()
+                    ? (c.code_preview || c.code || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+                      (c.used_by_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
+                    : true,
+                )
+                .map((codeItem, cIdx) => (
+                  <div
+                    key={cIdx}
+                    className="py-3 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/40 px-2 rounded-lg transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-slate-400 font-mono w-7">#{cIdx + 1}</span>
+                      <div>
+                        <span className="font-mono font-bold text-sm text-slate-900 dark:text-white">
+                          {codeItem.code_preview || codeItem.code || 'CODE'}
+                        </span>
+                        {codeItem.used_by_name && (
+                          <p className="text-[11px] text-slate-400">
+                            {isAr ? 'مستخدم بواسطة:' : 'Used by:'} {codeItem.used_by_name} ({codeItem.used_by_phone})
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <StatusBadge status={codeItem.status} />
+
+                      <button
+                        onClick={() => handleCopyCode(codeItem.code_preview || codeItem.code || '', cIdx)}
+                        className="p-1.5 text-xs rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                      >
+                        {copiedCodeIndex === cIdx ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+
+                      {canManage && codeItem.status === 'ACTIVE' && (
+                        <button
+                          onClick={() =>
+                            confirmDisableItem(
+                              codeItem.id,
+                              codeItem.code_preview || codeItem.code || 'CODE',
+                              selectedBatch.type === 'WALLET' ? 'RECHARGE' : 'DISCOUNT',
+                            )
+                          }
+                          className="px-2 py-0.5 text-xs font-semibold rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100"
+                        >
+                          {isAr ? 'تعطيل' : 'Disable'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex justify-end">
+              <button
+                onClick={() => setSelectedBatch(null)}
+                className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 text-white text-sm font-semibold transition-colors"
+              >
+                {isAr ? 'إغلاق' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. RECHARGE CARDS GENERATION MODAL                                        */}
       {/* ========================================================================= */}
       {isRechargeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -889,7 +1348,6 @@ export default function StaffCodesManagementPage() {
             <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               {!rechargeConfirmStep ? (
                 <>
-                  {/* Amount & Count */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -919,7 +1377,6 @@ export default function StaffCodesManagementPage() {
                     </div>
                   </div>
 
-                  {/* Expiration Date */}
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                       {isAr ? 'تاريخ انتهاء الصلاحية' : 'Expiration Date'} *
@@ -932,15 +1389,14 @@ export default function StaffCodesManagementPage() {
                     />
                   </div>
 
-                  {/* Financial Summary Box */}
                   <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 text-xs space-y-2 text-slate-700 dark:text-slate-300">
-                    <p className="font-bold text-emerald-900 dark:text-emerald-300">{isAr ? 'المطابقة المالية:' : 'Financial Summary:'}</p>
+                    <p className="font-bold text-emerald-900 dark:text-emerald-300">{isAr ? 'المطابقة المالية للدفعة:' : 'Financial Summary:'}</p>
                     <div className="flex justify-between">
                       <span>{isAr ? 'قيمة كل كارت:' : 'Value Per Card:'}</span>
                       <span className="font-bold text-slate-900 dark:text-white">{rechargeAmount} ج.م</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>{isAr ? 'عدد الكروت:' : 'Cards Count:'}</span>
+                      <span>{isAr ? 'عدد الكروت في المستطيل:' : 'Cards Count:'}</span>
                       <span className="font-bold text-slate-900 dark:text-white">{rechargeCount} كارت</span>
                     </div>
                     <div className="flex justify-between border-t border-emerald-200 dark:border-emerald-800 pt-1.5 text-emerald-700 dark:text-emerald-400 font-bold text-sm">
@@ -950,7 +1406,6 @@ export default function StaffCodesManagementPage() {
                   </div>
                 </>
               ) : (
-                /* Confirmation Step */
                 <div className="text-center py-4 space-y-4">
                   <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 mx-auto flex items-center justify-center">
                     <Wallet className="w-6 h-6" />
@@ -1020,7 +1475,7 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 2. CREATE SINGLE DISCOUNT MODAL                                           */}
+      {/* 5. CREATE SINGLE DISCOUNT MODAL                                           */}
       {/* ========================================================================= */}
       {isSingleDiscModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1049,7 +1504,6 @@ export default function StaffCodesManagementPage() {
               }}
               className="p-6 space-y-4 max-h-[80vh] overflow-y-auto"
             >
-              {/* Code String */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {isAr ? 'كود الكوبون (نص الكود)' : 'Coupon Code'} *
@@ -1064,7 +1518,6 @@ export default function StaffCodesManagementPage() {
                 />
               </div>
 
-              {/* Type & Value */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -1099,7 +1552,6 @@ export default function StaffCodesManagementPage() {
                 </div>
               </div>
 
-              {/* Scope */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {isAr ? 'نطاق الخصم' : 'Discount Scope'} *
@@ -1118,7 +1570,6 @@ export default function StaffCodesManagementPage() {
                 </select>
               </div>
 
-              {/* Target Selector if not ALL */}
               {singleDiscScope === 'COURSE' && (
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -1161,7 +1612,6 @@ export default function StaffCodesManagementPage() {
                 </div>
               )}
 
-              {/* Min Order & Max Uses */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -1191,7 +1641,6 @@ export default function StaffCodesManagementPage() {
                 </div>
               </div>
 
-              {/* Dates */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -1249,7 +1698,7 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. BULK DISCOUNT COUPONS GENERATION MODAL                                 */}
+      {/* 6. BULK DISCOUNT COUPONS GENERATION MODAL                                 */}
       {/* ========================================================================= */}
       {isBulkDiscModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1320,7 +1769,6 @@ export default function StaffCodesManagementPage() {
                     />
                   </div>
 
-                  {/* Scope */}
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                       {isAr ? 'نطاق الكوبونات' : 'Discount Scope'} *
@@ -1339,7 +1787,6 @@ export default function StaffCodesManagementPage() {
                     </select>
                   </div>
 
-                  {/* Target Selector if not ALL */}
                   {bulkDiscScope === 'COURSE' && (
                     <div className="space-y-1.5">
                       <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -1380,7 +1827,6 @@ export default function StaffCodesManagementPage() {
                     </div>
                   )}
 
-                  {/* Expiration */}
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                       {isAr ? 'تاريخ الانتهاء' : 'Expires At'} *
@@ -1394,7 +1840,6 @@ export default function StaffCodesManagementPage() {
                   </div>
                 </>
               ) : (
-                /* Confirmation Step */
                 <div className="text-center py-4 space-y-4">
                   <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 mx-auto flex items-center justify-center">
                     <Tag className="w-6 h-6" />
@@ -1464,7 +1909,7 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 4. POST-GENERATION RESULT SCREEN (SECURE IN-MEMORY DISPLAY)                */}
+      {/* 7. POST-GENERATION RESULT SCREEN (SECURE IN-MEMORY DISPLAY)                */}
       {/* ========================================================================= */}
       {batchResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1478,7 +1923,7 @@ export default function StaffCodesManagementPage() {
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{batchResult.title}</h3>
                   <p className="text-xs text-slate-500">
                     {isAr
-                      ? `تم توليد عدد (${batchResult.codes.length}) كود بنجاح`
+                      ? `تم توليد عدد (${batchResult.codes.length}) كود بنجاح داخل هذا المستطيل`
                       : `Successfully generated ${batchResult.codes.length} codes`}
                   </p>
                 </div>
@@ -1503,18 +1948,36 @@ export default function StaffCodesManagementPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={exportGeneratedCodesCSV}
+                    onClick={() =>
+                      exportCodesCSV(
+                        batchResult.codes,
+                        batchResult.type,
+                        batchResult.amount,
+                        batchResult.discountValue,
+                        batchResult.discountType,
+                      )
+                    }
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-semibold hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>{isAr ? 'تحميل الأكواد (CSV)' : 'Export CSV'}</span>
                   </button>
                   <button
-                    onClick={() => setIsPrintModeOpen(true)}
+                    onClick={() => {
+                      setPrintTargetBatch({
+                        title: batchResult.title,
+                        type: batchResult.type,
+                        amount: batchResult.amount,
+                        discountType: batchResult.discountType,
+                        discountValue: batchResult.discountValue,
+                        codes: batchResult.codes,
+                      });
+                      setIsPrintModeOpen(true);
+                    }}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
                   >
                     <Printer className="w-3.5 h-3.5" />
-                    <span>{isAr ? 'معاينة وطباعة الكروت' : 'Print Cards'}</span>
+                    <span>{isAr ? 'معاينة وطباعة كروت PDF' : 'Print PDF Cards'}</span>
                   </button>
                 </div>
               </div>
@@ -1556,7 +2019,7 @@ export default function StaffCodesManagementPage() {
             <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex justify-end">
               <button
                 onClick={() => setBatchResult(null)}
-                className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-sm font-semibold transition-colors"
+                className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 text-white text-sm font-semibold transition-colors"
               >
                 {isAr ? 'تم وإغلاق' : 'Done & Close'}
               </button>
@@ -1566,21 +2029,24 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 5. PRINT VIEW MODAL (A4 READY)                                            */}
+      {/* 8. PRINT VIEW MODAL (A4 READY VOUCHERS / كروت مستطيلة شيك للطباعة والـ PDF)  */}
       {/* ========================================================================= */}
-      {isPrintModeOpen && batchResult && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/90 backdrop-blur-md p-4 sm:p-8 flex flex-col items-center">
-          {/* Print Toolbar (Hidden on actual print) */}
+      {isPrintModeOpen && printTargetBatch && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/90 backdrop-blur-md p-4 sm:p-8 flex flex-col items-center font-cairo">
+          {/* Print Toolbar */}
           <div className="w-full max-w-4xl flex items-center justify-between mb-6 p-4 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 print:hidden">
             <div className="flex items-center gap-2">
               <Printer className="w-5 h-5 text-primary-600" />
               <span className="font-bold text-slate-900 dark:text-white">
-                {isAr ? 'معاينة الطباعة (A4 Cards Layout)' : 'A4 Cards Print Layout'}
+                {isAr ? 'معاينة كروت الطباعة والـ PDF (A4 Sheet Layout)' : 'A4 Cards Sheet Layout'}
               </span>
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setIsPrintModeOpen(false)}
+                onClick={() => {
+                  setIsPrintModeOpen(false);
+                  setPrintTargetBatch(null);
+                }}
                 className="px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
               >
                 {isAr ? 'إغلاق' : 'Close'}
@@ -1590,7 +2056,7 @@ export default function StaffCodesManagementPage() {
                 className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 text-white shadow-md"
               >
                 <Printer className="w-4 h-4" />
-                <span>{isAr ? 'طباعة الآن' : 'Print Now'}</span>
+                <span>{isAr ? 'طباعة / حفظ كـ PDF' : 'Print / Save as PDF'}</span>
               </button>
             </div>
           </div>
@@ -1600,40 +2066,41 @@ export default function StaffCodesManagementPage() {
             <div className="text-center pb-6 border-b border-slate-200 mb-6">
               <h2 className="text-2xl font-bold text-slate-900">Mr. Omar Makawy</h2>
               <p className="text-xs text-slate-500 mt-1">
-                {batchResult.type === 'WALLET'
+                {printTargetBatch.type === 'WALLET'
                   ? isAr ? 'كروت شحن رصيد المحفظة التعليمية' : 'Educational Wallet Recharge Vouchers'
                   : isAr ? 'كوبونات خصم' : 'Discount Vouchers'}
               </p>
             </div>
 
-            {/* Grid of Printable Cards (2 Columns for A4 balance) */}
+            {/* Grid of Printable Rectangular Cards (2 Columns for A4 balance) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 print:grid-cols-2 print:gap-4">
-              {batchResult.codes.map((c, idx) => {
-                const codeStr = c.raw || c.code || c.preview || '';
+              {printTargetBatch.codes.map((c, idx) => {
+                const codeStr = c.raw || c.code || c.preview || c.code_preview || '';
                 return (
                   <div
                     key={idx}
-                    className="border-2 border-dashed border-slate-300 rounded-xl p-4 bg-slate-50/50 flex flex-col justify-between space-y-3 relative overflow-hidden"
+                    className="border-2 border-dashed border-slate-300 rounded-xl p-4 bg-slate-50/50 flex flex-col justify-between space-y-3 relative overflow-hidden print:border-slate-800"
                   >
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                       <span className="font-bold text-xs text-primary-700 tracking-wide">MR. OMAR MAKAWY</span>
                       <span className="text-[10px] text-slate-400 font-mono">#{idx + 1}</span>
                     </div>
 
-                    <div className="text-center py-2 space-y-1">
-                      {batchResult.type === 'WALLET' && (
+                    <div className="text-center py-2 space-y-1.5">
+                      {printTargetBatch.type === 'WALLET' && (
                         <div className="text-emerald-700 font-bold text-base">
-                          {isAr ? 'قيمة الكارت:' : 'Value:'} {batchResult.amount} {isAr ? 'جنيه' : 'EGP'}
+                          {isAr ? 'قيمة الكارت:' : 'Value:'} {printTargetBatch.amount} {isAr ? 'جنيه' : 'EGP'}
                         </div>
                       )}
-                      {batchResult.type === 'DISCOUNT' && (
+                      {printTargetBatch.type === 'DISCOUNT' && (
                         <div className="text-primary-700 font-bold text-xs">
-                          {isAr ? 'كوبون خصم:' : 'Discount Coupon:'} {batchResult.discountValue} {batchResult.discountType === 'PERCENTAGE' ? '%' : 'ج.م'}
+                          {isAr ? 'كوبون خصم:' : 'Discount Coupon:'} {printTargetBatch.discountValue}{' '}
+                          {printTargetBatch.discountType === 'PERCENTAGE' ? '%' : 'ج.م'}
                         </div>
                       )}
 
                       {/* Code Box */}
-                      <div className="bg-white border-2 border-slate-900 rounded-lg py-2 px-3 mt-2 shadow-sm">
+                      <div className="bg-white border-2 border-slate-900 rounded-lg py-2.5 px-3 mt-2 shadow-sm">
                         <span className="font-mono font-bold text-base text-slate-900 tracking-widest select-all">
                           {codeStr}
                         </span>
