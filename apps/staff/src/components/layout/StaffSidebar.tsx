@@ -30,7 +30,7 @@ export function StaffSidebar({
   const { hasPermission, isTeacher } = usePermissions();
   const isAr = language === 'ar';
 
-  const filterItem = (item: NavItemConfig): boolean => {
+  const filterItem = React.useCallback((item: NavItemConfig): boolean => {
     if (isTeacher) return true;
     if (item.isTeacherOnly) return false;
     if (item.permission) {
@@ -43,7 +43,7 @@ export function StaffSidebar({
       return hasPermission(item.permission);
     }
     return true;
-  };
+  }, [isTeacher, hasPermission]);
 
   // Filter sections: keep only sections that have at least one visible item
   const authorizedSections = useMemo<{ sectionKey?: string; items: NavItemConfig[] }[]>(() => {
@@ -53,7 +53,7 @@ export function StaffSidebar({
         items: section.items.filter(filterItem),
       }))
       .filter((section) => section.items.length > 0);
-  }, [isTeacher, hasPermission]);
+  }, [filterItem]);
 
   const CollapseIcon = dir === 'rtl' ? ChevronRight : ChevronLeft;
 

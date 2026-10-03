@@ -9,6 +9,8 @@ import {
   AttachVideoPayload,
   VideoAuthorizationResponse,
   LectureProgressResponse,
+  TelemetryHeartbeatPayload,
+  TelemetryHeartbeatResponse,
 } from '../types/video';
 
 export function createVideosApi(client = defaultApiClient) {
@@ -65,6 +67,21 @@ export function createVideosApi(client = defaultApiClient) {
         ? `/lectures/${lectureId}/progress?student_id=${studentId}`
         : `/lectures/${lectureId}/progress`;
       return client.get<LectureProgressResponse>(endpoint, options);
+    },
+
+    async sendHeartbeat(
+      payload: TelemetryHeartbeatPayload,
+      academicYearId?: string
+    ): Promise<TelemetryHeartbeatResponse> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.post<TelemetryHeartbeatResponse>(
+        `/videos/telemetry/heartbeat`,
+        payload,
+        options
+      );
     },
   };
 }

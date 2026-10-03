@@ -74,3 +74,23 @@ export interface LectureProgressResponse {
     percentage: number;
   };
 }
+
+export interface TelemetryHeartbeatPayload {
+  heartbeat_id: string;
+  watch_session_id: string;
+  current_position: number;
+  client_timestamp?: number;
+}
+
+export interface TelemetryHeartbeatResponse {
+  watch_session_id: string;
+  video_id: string;
+  video_type: VideoType;
+  current_position: number;
+  max_position: number;
+  validated_unique_seconds: number;
+  video_duration: number;
+  completion_percentage: number;
+  is_completed: boolean;
+  is_idempotent_duplicate?: boolean;
+}

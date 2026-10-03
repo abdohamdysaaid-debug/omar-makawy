@@ -8,6 +8,8 @@ import {
   LectureDetail,
   CreateLecturePayload,
   UpdateLecturePayload,
+  LecturesListQuery,
+  PaginatedLecturesResponse,
   DeleteLectureResponse,
 } from '../types/lecture';
 import {
@@ -18,6 +20,31 @@ import {
 
 export function createLecturesApi(client = defaultApiClient) {
   return {
+    async listLectures(
+      query?: LecturesListQuery,
+      academicYearId?: string
+    ): Promise<PaginatedLecturesResponse> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+
+      const params = new URLSearchParams();
+      if (query?.page) params.append('page', String(query.page));
+      if (query?.limit) params.append('limit', String(query.limit));
+      if (query?.search) params.append('search', query.search);
+      if (query?.academic_year_id) params.append('academic_year_id', query.academic_year_id);
+      if (query?.status) params.append('status', query.status);
+      if (query?.visibility) params.append('visibility', query.visibility);
+      if (query?.course_id) params.append('course_id', query.course_id);
+      if (query?.package_id) params.append('package_id', query.package_id);
+      if (query?.is_published !== undefined) params.append('is_published', String(query.is_published));
+
+      const queryString = params.toString();
+      const endpoint = queryString ? `/lectures?${queryString}` : `/lectures`;
+      return client.get<PaginatedLecturesResponse>(endpoint, options);
+    },
+
     async listCourseLectures(
       courseId: string,
       academicYearId?: string
@@ -27,6 +54,14 @@ export function createLecturesApi(client = defaultApiClient) {
         options.academicYearId = academicYearId;
       }
       return client.get<LectureItem[]>(`/courses/${courseId}/lectures`, options);
+    },
+
+    async getMyLectures(academicYearId?: string): Promise<LectureItem[]> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.get<LectureItem[]>(`/lectures/my-lectures`, options);
     },
 
     async getLectureById(
@@ -40,8 +75,23 @@ export function createLecturesApi(client = defaultApiClient) {
       return client.get<LectureDetail>(`/lectures/${id}`, options);
     },
 
+    async uploadThumbnail(
+      file: File,
+      academicYearId?: string
+    ): Promise<{ url: string }> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      const formData = new FormData();
+      formData.append('file', file);
+      if (academicYearId) {
+        formData.append('academic_year_id', academicYearId);
+      }
+      return client.post<{ url: string }>(`/lectures/upload-thumbnail`, formData, options);
+    },
+
     async createLecture(
-      courseId: string,
       payload: CreateLecturePayload,
       academicYearId?: string
     ): Promise<LectureItem> {
@@ -49,7 +99,7 @@ export function createLecturesApi(client = defaultApiClient) {
       if (academicYearId) {
         options.academicYearId = academicYearId;
       }
-      return client.post<LectureItem>(`/courses/${courseId}/lectures`, payload, options);
+      return client.post<LectureItem>(`/lectures`, payload, options);
     },
 
     async updateLecture(
@@ -106,4 +156,3 @@ export function createLecturesApi(client = defaultApiClient) {
 }
 
 export const defaultLecturesApi = createLecturesApi(defaultApiClient);
-

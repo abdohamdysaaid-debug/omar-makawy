@@ -3,15 +3,11 @@ import { StudentLectureViewClient } from '@/components/lectures/StudentLectureVi
 
 export function generateStaticParams() {
   return [
-    { id: '1', lectureId: 'detail' },
+    { id: 'detail' },
   ];
 }
 
-export default function StudentCourseLectureDetailPage({
-  params,
-}: {
-  params: { id: string; lectureId: string };
-}) {
+export default function StudentLectureDetailPage({ params }: { params: { id: string } }) {
   return (
     <Suspense
       fallback={
@@ -20,10 +16,7 @@ export default function StudentCourseLectureDetailPage({
         </div>
       }
     >
-      <StudentLectureViewClient
-        lectureId={params.lectureId}
-        courseId={params.id}
-      />
+      <StudentLectureViewClient lectureId={params.id} />
     </Suspense>
   );
 }

@@ -36,6 +36,7 @@ export const navSections = [
     items: [
       { labelKey: 'nav.home', label: 'الرئيسية', href: '/student', aliases: ['/', '/student'], icon: Home },
       { labelKey: 'nav.subscriptions', label: 'اشتراكاتي', href: '/student/subscriptions', aliases: ['/subscriptions', '/student/subscriptions'], icon: CheckCircle2 },
+      { labelKey: 'lectures.myLectures', label: 'محاضراتي', href: '/student/lectures', aliases: ['/lectures', '/student/lectures'], icon: PlaySquare },
       { labelKey: 'nav.myLectures', label: 'الكورسات', href: '/student/courses', aliases: ['/courses', '/student/courses'], icon: Video },
       { labelKey: 'nav.monthlyPackages', label: 'الباقات الشهرية', href: '/student/packages', aliases: ['/packages', '/student/packages', '/#packages'], icon: Package },
       { labelKey: 'nav.exams', label: 'امتحاناتي', href: '/student/exams', aliases: ['/exams', '/student/exams'], icon: GraduationCap },

@@ -10,7 +10,7 @@ export interface LectureChapterItem {
 
 export interface CreateChapterPayload {
   title_ar: string;
-  title_en: string;
+  title_en?: string;
   timestamp_seconds: number;
   sequence_order?: number;
 }
