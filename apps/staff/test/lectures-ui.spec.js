@@ -172,4 +172,56 @@ describe('Lectures System — Phase 3: Staff UI & Navigation Tests', () => {
     assert.strictEqual(qs.includes('status=PUBLISHED'), true);
     assert.strictEqual(qs.includes('visibility=SUBSCRIBER_ONLY'), true);
   });
+
+  // 8. Relations Response Extraction Resilience
+  test('8. Relation array unpacking handles envelope object, items field, and direct arrays', () => {
+    const unpackList = (res) => {
+      return Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+        ? res.data
+        : res?.items || res?.courses || res?.packages || [];
+    };
+
+    const envelopeRes = { data: [{ id: 'c1', title_ar: 'كورس 1' }], total: 1 };
+    const directArrayRes = [{ id: 'c1', title_ar: 'كورس 1' }];
+    const itemsRes = { items: [{ id: 'c1', title_ar: 'كورس 1' }] };
+    const nullRes = null;
+    const undefinedRes = undefined;
+
+    assert.strictEqual(unpackList(envelopeRes).length, 1);
+    assert.strictEqual(unpackList(envelopeRes)[0].id, 'c1');
+
+    assert.strictEqual(unpackList(directArrayRes).length, 1);
+    assert.strictEqual(unpackList(directArrayRes)[0].id, 'c1');
+
+    assert.strictEqual(unpackList(itemsRes).length, 1);
+    assert.strictEqual(unpackList(itemsRes)[0].id, 'c1');
+
+    assert.strictEqual(unpackList(nullRes).length, 0);
+    assert.strictEqual(unpackList(undefinedRes).length, 0);
+  });
+
+  // 9. Course and Package Search & Filter Logic
+  test('9. Course and package search filters correctly match Arabic and English titles', () => {
+    const courses = [
+      { id: '1', title_ar: 'كورس النحو الشامل', title_en: 'Comprehensive Grammar' },
+      { id: '2', title_ar: 'كورس البلاغة', title_en: 'Rhetoric Course' },
+    ];
+
+    const filterCourses = (list, query) => {
+      if (!query.trim()) return list;
+      const q = query.toLowerCase().trim();
+      return list.filter(
+        (c) =>
+          c.title_ar?.toLowerCase().includes(q) ||
+          c.title_en?.toLowerCase().includes(q)
+      );
+    };
+
+    assert.strictEqual(filterCourses(courses, 'نحو').length, 1);
+    assert.strictEqual(filterCourses(courses, 'Grammar').length, 1);
+    assert.strictEqual(filterCourses(courses, 'كورس').length, 2);
+    assert.strictEqual(filterCourses(courses, 'فرنسي').length, 0);
+  });
 });

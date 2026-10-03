@@ -259,11 +259,27 @@ export function LectureFormModal({
     ])
       .then(([coursesRes, packagesRes]) => {
         if (!isMounted) return;
-        setAvailableCourses(coursesRes.data || (coursesRes as any).items || []);
-        setAvailablePackages(packagesRes.data || (packagesRes as any).items || []);
+        const coursesList = Array.isArray(coursesRes)
+          ? coursesRes
+          : Array.isArray(coursesRes?.data)
+          ? coursesRes.data
+          : (coursesRes as any)?.items || (coursesRes as any)?.courses || [];
+
+        const packagesList = Array.isArray(packagesRes)
+          ? packagesRes
+          : Array.isArray(packagesRes?.data)
+          ? packagesRes.data
+          : (packagesRes as any)?.items || (packagesRes as any)?.packages || [];
+
+        setAvailableCourses(coursesList);
+        setAvailablePackages(packagesList);
       })
       .catch((err) => {
         console.error('Failed to load courses/packages for year:', err);
+        if (isMounted) {
+          setAvailableCourses([]);
+          setAvailablePackages([]);
+        }
       })
       .finally(() => {
         if (isMounted) setIsLoadingRelations(false);

@@ -7,7 +7,6 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import HeroBanner from '@/components/home/HeroBanner';
-import TeacherIntroSection from '@/components/home/TeacherIntroSection';
 import HomeGradeFilter from '@/components/home/HomeGradeFilter';
 import PackagesSection from '@/components/home/PackagesSection';
 import HomeCoursesSection from '@/components/home/HomeCoursesSection';
@@ -32,10 +31,7 @@ export default function HomePage() {
         {/* 1. Hero Visual Banner with Crawlable Headings */}
         <HeroBanner />
 
-        {/* 2. Teacher Profile & Platform Identity Section */}
-        <TeacherIntroSection />
-
-        {/* 3. Centered Grade Dropdown Filter Bar */}
+        {/* 2. Centered Grade Dropdown Filter Bar */}
         <HomeGradeFilter
           selectedAcademicYearId={selectedAcademicYearId}
           onSelectGrade={(gradeId) => setSelectedAcademicYearId(gradeId)}

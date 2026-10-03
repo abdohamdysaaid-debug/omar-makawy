@@ -140,7 +140,12 @@ export function PackageFormModal({
         { academic_year_id: yearId, limit: 100 },
         yearId
       );
-      setAvailableCourses(res.data || []);
+      const coursesList = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+        ? res.data
+        : (res as any)?.items || (res as any)?.courses || [];
+      setAvailableCourses(coursesList);
     } catch {
       setAvailableCourses([]);
     } finally {
