@@ -349,8 +349,23 @@ export function createApiClient(
         method: 'PATCH',
         body: body instanceof FormData ? body : JSON.stringify(body),
       }),
-    delete: <T>(endpoint: string, options?: RequestOptions) =>
-      request<T>(endpoint, { ...options, method: 'DELETE' }),
+    delete: <T>(endpoint: string, bodyOrOptions?: any, options?: RequestOptions) => {
+      const isOptionsOnly =
+        bodyOrOptions &&
+        (bodyOrOptions.headers || bodyOrOptions.skipAuth || bodyOrOptions.academicYearId || bodyOrOptions.method);
+      if (isOptionsOnly && !options) {
+        return request<T>(endpoint, { ...bodyOrOptions, method: 'DELETE' });
+      }
+      return request<T>(endpoint, {
+        ...options,
+        method: 'DELETE',
+        body: bodyOrOptions
+          ? bodyOrOptions instanceof FormData
+            ? bodyOrOptions
+            : JSON.stringify(bodyOrOptions)
+          : undefined,
+      });
+    },
   };
 }
 

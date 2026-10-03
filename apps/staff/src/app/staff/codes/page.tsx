@@ -31,6 +31,7 @@ import {
   FileText,
   Sparkles,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/FeedbackStates';
@@ -590,6 +591,104 @@ export default function StaffCodesManagementPage() {
     });
   };
 
+  // Delete Batch Action with Confirmation
+  const confirmDeleteBatch = (batch: BatchGroup) => {
+    const isDiscount = batch.type === 'DISCOUNT';
+    const title = isDiscount
+      ? (isAr ? 'حذف دفعة الكوبونات' : 'Delete Coupon Batch')
+      : (isAr ? 'حذف دفعة كروت الشحن' : 'Delete Recharge Batch');
+
+    const message = isAr
+      ? `هل أنت متأكد من حذف (${batch.title}) بالكامل؟ سيتم إزالة جميع الأكواد المرتبطة بهذه الدفعة نهائياً.`
+      : `Are you sure you want to delete (${batch.title})? All associated codes will be permanently removed.`;
+
+    const action = async () => {
+      try {
+        const codeIds = batch.codes.map((c) => c.id).filter(Boolean);
+        if (isDiscount) {
+          if (batch.batchId && !batch.batchId.startsWith('BATCH-')) {
+            await apiClient.delete(`/admin/discounts/batch/${encodeURIComponent(batch.batchId)}`);
+          } else {
+            await apiClient.delete('/admin/discounts/batch', { ids: codeIds, batch_id: batch.batchId });
+          }
+        } else {
+          if (batch.batchId && !batch.batchId.startsWith('BATCH-')) {
+            await apiClient.delete(`/admin/recharge-codes/batch/${encodeURIComponent(batch.batchId)}`);
+          } else {
+            await apiClient.delete('/admin/recharge-codes/batch', { ids: codeIds, batch_id: batch.batchId });
+          }
+        }
+
+        // Remove from local memory cache
+        setRawBatchesMap((prev) => {
+          const next = { ...prev };
+          delete next[batch.batchId];
+          return next;
+        });
+
+        if (selectedBatch?.batchId === batch.batchId) {
+          setSelectedBatch(null);
+        }
+
+        setFeedback({
+          type: 'success',
+          message: isAr ? 'تم حذف الدفعة بنجاح' : 'Batch deleted successfully',
+        });
+        loadData(1);
+      } catch (err: any) {
+        console.error('Delete batch error', err);
+        setFeedback({
+          type: 'error',
+          message: err?.message || (isAr ? 'فشل حذف الدفعة' : 'Failed to delete batch'),
+        });
+      }
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      action,
+    });
+  };
+
+  // Delete Single Code Action with Confirmation
+  const confirmDeleteItem = (id: string, codePreview: string, type: 'RECHARGE' | 'DISCOUNT') => {
+    let title = isAr ? 'حذف الكود' : 'Delete Code';
+    let message = isAr
+      ? `هل أنت متأكد من حذف الكود (${codePreview}) نهائياً؟`
+      : `Are you sure you want to permanently delete code (${codePreview})?`;
+
+    const action = async () => {
+      try {
+        if (type === 'RECHARGE') {
+          await apiClient.delete(`/admin/recharge-codes/${id}`);
+        } else if (type === 'DISCOUNT') {
+          await apiClient.delete(`/admin/discounts/${id}`);
+        }
+
+        setFeedback({
+          type: 'success',
+          message: isAr ? 'تم حذف الكود بنجاح' : 'Code deleted successfully',
+        });
+        loadData(page);
+      } catch (err: any) {
+        console.error('Delete code error', err);
+        setFeedback({
+          type: 'error',
+          message: err?.message || (isAr ? 'فشل حذف الكود' : 'Failed to delete code'),
+        });
+      }
+    };
+
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      action,
+    });
+  };
+
   // Copy Code
   const handleCopyCode = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -997,6 +1096,15 @@ export default function StaffCodesManagementPage() {
                         <Eye className="w-3 h-3" />
                         <span>{isAr ? 'فتح الدفعة' : 'Open'}</span>
                       </button>
+                      {canManage && (
+                        <button
+                          onClick={() => confirmDeleteBatch(batch)}
+                          title={isAr ? 'حذف الدفعة بالكامل' : 'Delete Batch'}
+                          className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 transition-colors border border-rose-200/60 dark:border-rose-800/60"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1148,22 +1256,37 @@ export default function StaffCodesManagementPage() {
                       {/* Actions */}
                       {canManage && (
                         <td className="py-3.5 px-4 text-center">
-                          {row.status === 'ACTIVE' ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            {row.status === 'ACTIVE' && (
+                              <button
+                                onClick={() =>
+                                  confirmDisableItem(
+                                    row.id,
+                                    row.code_preview || row.code || 'CODE',
+                                    activeTab === 'wallet' ? 'RECHARGE' : 'DISCOUNT',
+                                  )
+                                }
+                                title={isAr ? 'تعطيل الكود' : 'Disable Code'}
+                                className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors"
+                              >
+                                {isAr ? 'تعطيل' : 'Disable'}
+                              </button>
+                            )}
+
                             <button
                               onClick={() =>
-                                confirmDisableItem(
+                                confirmDeleteItem(
                                   row.id,
                                   row.code_preview || row.code || 'CODE',
                                   activeTab === 'wallet' ? 'RECHARGE' : 'DISCOUNT',
                                 )
                               }
-                              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors"
+                              title={isAr ? 'حذف الكود' : 'Delete Code'}
+                              className="p-1.5 text-xs font-semibold rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors"
                             >
-                              {isAr ? 'تعطيل' : 'Disable'}
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                          ) : (
-                            <span className="text-xs text-slate-400">—</span>
-                          )}
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -1307,6 +1430,16 @@ export default function StaffCodesManagementPage() {
                   <Printer className="w-3.5 h-3.5" />
                   <span>{isAr ? 'معاينة الطباعة' : 'Print'}</span>
                 </button>
+
+                {canManage && (
+                  <button
+                    onClick={() => confirmDeleteBatch(selectedBatch)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-semibold text-xs transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'حذف الدفعة' : 'Delete Batch'}</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1340,7 +1473,7 @@ export default function StaffCodesManagementPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <StatusBadge status={codeItem.status} />
 
                         <button
@@ -1368,6 +1501,22 @@ export default function StaffCodesManagementPage() {
                             {isAr ? 'تعطيل' : 'Disable'}
                           </button>
                         )}
+
+                        {canManage && (
+                          <button
+                            onClick={() =>
+                              confirmDeleteItem(
+                                codeItem.id,
+                                codeStr,
+                                selectedBatch.type === 'WALLET' ? 'RECHARGE' : 'DISCOUNT',
+                              )
+                            }
+                            title={isAr ? 'حذف الكود' : 'Delete Code'}
+                            className="p-1 text-xs rounded bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -1375,7 +1524,17 @@ export default function StaffCodesManagementPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex justify-end">
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
+              {canManage ? (
+                <button
+                  onClick={() => confirmDeleteBatch(selectedBatch)}
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{isAr ? 'حذف هذه الدفعة بالكامل' : 'Delete Entire Batch'}</span>
+                </button>
+              ) : <div />}
+
               <button
                 onClick={() => setSelectedBatch(null)}
                 className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 text-white text-sm font-semibold transition-colors"
