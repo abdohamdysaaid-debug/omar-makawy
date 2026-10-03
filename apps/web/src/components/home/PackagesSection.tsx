@@ -60,7 +60,7 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
     async function fetchPackages() {
       setLoading(true);
       try {
-        const endpoint = '/packages/public?limit=50';
+        const endpoint = '/packages/public?is_public=true&limit=50';
         const res = await apiClient.get<any>(endpoint);
         if (isMounted) {
           if (res && Array.isArray(res.data)) {

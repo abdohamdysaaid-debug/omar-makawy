@@ -488,25 +488,40 @@ export function PackageFormModal({
                 {/* Toggles */}
                 <div className="space-y-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
                   <label className="flex items-center justify-between gap-3 cursor-pointer">
-                    <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                      {isAr ? 'منشورة (مرئية للطلاب)' : 'Published (visible to students)'}
-                    </span>
+                    <div>
+                      <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">
+                        {isAr ? 'حالة النشر (مرئية للطلاب في صفحة الباقات)' : 'Published (visible to students in packages catalog)'}
+                      </span>
+                      <span className="text-[10px] text-neutral-400 block">
+                        {isAr ? 'عند التفعيل، تظهر الباقة في صفحة باقات الطلاب تلقائياً' : 'When enabled, package appears in Student Packages page'}
+                      </span>
+                    </div>
                     <button type="button" onClick={() => setIsPublished(!isPublished)} disabled={isSubmitting} className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isPublished ? 'bg-emerald-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}>
                       <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isPublished ? 'translate-x-4' : 'translate-x-0'}`} />
                     </button>
                   </label>
                   <label className="flex items-center justify-between gap-3 cursor-pointer">
-                    <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                      {isAr ? 'ظاهرة في الرئيسية' : 'Visible on homepage'}
-                    </span>
+                    <div>
+                      <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">
+                        {isAr ? 'إظهار الباقة في الصفحة الرئيسية' : 'Show on homepage'}
+                      </span>
+                      <span className="text-[10px] text-neutral-400 block">
+                        {isAr ? 'إلغاء هذا الخيار يخفي الباقة من الصفحة الرئيسية فقط، وتبقى متاحة في صفحة الباقات' : 'Hiding from homepage does not affect student packages catalog'}
+                      </span>
+                    </div>
                     <button type="button" onClick={() => setIsPublic(!isPublic)} disabled={isSubmitting} className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isPublic ? 'bg-emerald-600' : 'bg-neutral-300 dark:bg-neutral-700'}`}>
                       <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isPublic ? 'translate-x-4' : 'translate-x-0'}`} />
                     </button>
                   </label>
                   <label className="flex items-center justify-between gap-3 cursor-pointer">
-                    <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
-                      {isAr ? 'باقة مميزة' : 'Featured'}
-                    </span>
+                    <div>
+                      <span className="text-xs font-bold text-neutral-700 dark:text-neutral-300 block">
+                        {isAr ? 'باقة مميزة' : 'Featured Package'}
+                      </span>
+                      <span className="text-[10px] text-neutral-400 block">
+                        {isAr ? 'عرض شارة "الأكثر طلباً" على كارت الباقة' : 'Displays "Most Popular" badge on package card'}
+                      </span>
+                    </div>
                     <button type="button" onClick={() => setIsFeatured(!isFeatured)} disabled={isSubmitting} className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isFeatured ? 'bg-amber-500' : 'bg-neutral-300 dark:bg-neutral-700'}`}>
                       <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isFeatured ? 'translate-x-4' : 'translate-x-0'}`} />
                     </button>

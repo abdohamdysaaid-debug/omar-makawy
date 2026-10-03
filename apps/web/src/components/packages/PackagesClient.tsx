@@ -113,10 +113,15 @@ export default function PackagesClient() {
     async function loadPackages() {
       setLoading(true);
       try {
-        let res: any = await apiClient.get<any>('/packages/public?limit=100').catch(() => null);
-
-        if (!res || (!res.data && !Array.isArray(res))) {
+        let res: any = null;
+        if (isAuthenticated) {
           res = await apiClient.get<any>('/packages?limit=100').catch(() => null);
+        }
+        if (!res || (!res.data && !Array.isArray(res)) || (Array.isArray(res.data) && res.data.length === 0)) {
+          const publicRes = await apiClient.get<any>('/packages/public?limit=100').catch(() => null);
+          if (publicRes && (Array.isArray(publicRes.data) || Array.isArray(publicRes))) {
+            res = publicRes;
+          }
         }
 
         if (isMounted) {
@@ -140,7 +145,7 @@ export default function PackagesClient() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isAuthenticated]);
 
   const handleYearChange = (newVal: string | number | 'all') => {
     setSelectedYearId(newVal);
