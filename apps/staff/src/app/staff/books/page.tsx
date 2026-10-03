@@ -220,13 +220,22 @@ export default function StaffBooksPage() {
     setActionError(null);
 
     try {
-      const payload = {
-        ...bookForm,
+      const payload: any = {
+        academic_year_id: bookForm.academic_year_id,
+        type: bookForm.type || 'NOTE',
+        title_ar: bookForm.title_ar,
+        title_en: bookForm.title_en || undefined,
+        description_ar: bookForm.description_ar || undefined,
+        description_en: bookForm.description_en || undefined,
+        sku: bookForm.sku ? bookForm.sku.trim() : `BK-${Date.now().toString().slice(-6)}`,
         price: Number(bookForm.price),
-        discount_price: bookForm.discount_price ? Number(bookForm.discount_price) : undefined,
+        discount_price: bookForm.discount_price ? Number(bookForm.discount_price) : 0,
         stock_quantity: Number(bookForm.stock_quantity),
-        weight_kg: Number(bookForm.weight_kg),
-        sku: bookForm.sku.trim() || undefined,
+        weight_kg: Number(bookForm.weight_kg || 0.5),
+        cover_image_url: bookForm.cover_image_url || undefined,
+        is_active: Boolean(bookForm.is_active),
+        is_featured: Boolean(bookForm.is_featured),
+        is_public: Boolean(bookForm.is_public),
       };
 
       if (editingBook) {
