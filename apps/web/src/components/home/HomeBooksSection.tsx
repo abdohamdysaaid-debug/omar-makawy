@@ -44,11 +44,11 @@ export default function HomeBooksSection({ selectedAcademicYearId = null }: Home
     }
   };
 
-  const handleBookClick = (bookId: number) => {
+  const handleBookClick = (bookId: string | number) => {
     if (!isAuthenticated) {
-      window.location.href = `/login?returnUrl=${encodeURIComponent(`/bookstore/${bookId}`)}`;
+      window.location.href = `/login?returnUrl=${encodeURIComponent(`/bookstore/detail?id=${bookId}`)}`;
     } else {
-      window.location.href = `/bookstore/${bookId}`;
+      window.location.href = `/bookstore/detail?id=${bookId}`;
     }
   };
 

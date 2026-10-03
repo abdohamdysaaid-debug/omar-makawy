@@ -36,7 +36,7 @@ export default function BookCard({ book }: BookCardProps) {
   return (
     <div className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden font-cairo">
       <Link
-        href={`/bookstore/${book.id}`}
+        href={`/bookstore/detail?id=${book.id}`}
         className="block relative aspect-[4/3] bg-gradient-to-br from-emerald-800 to-gray-900 overflow-hidden flex items-center justify-center p-4"
       >
         {coverUrl ? (
@@ -57,7 +57,7 @@ export default function BookCard({ book }: BookCardProps) {
       </Link>
 
       <div className="p-4 flex flex-col flex-1 space-y-3">
-        <Link href={`/bookstore/${book.id}`}>
+        <Link href={`/bookstore/detail?id=${book.id}`}>
           <h3 className="font-bold text-base text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
             {title}
           </h3>

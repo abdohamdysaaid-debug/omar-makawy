@@ -20,17 +20,17 @@ export function generateMetadata({ params }: { params: { id: string } }): Metada
     },
     description,
     alternates: {
-      canonical: `/bookstore/${params.id}/`,
+      canonical: `/bookstore/detail?id=${params.id}`,
     },
     openGraph: {
       title,
       description,
-      url: `https://omarmeckawy.com/bookstore/${params.id}/`,
+      url: `https://omarmeckawy.com/bookstore/detail?id=${params.id}`,
       siteName: 'منصة مستر عمر مكاوي',
     },
   };
 }
 
 export default function BookDetailsPage({ params }: { params: { id: string } }) {
-  return <BookDetailsClient bookId={Number(params.id)} />;
+  return <BookDetailsClient bookId={params.id} />;
 }
