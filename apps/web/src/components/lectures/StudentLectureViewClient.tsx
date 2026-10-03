@@ -30,6 +30,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import StudentLayout from '@/components/layout/StudentLayout';
+import { SecureCustomPlayer } from './SecureCustomPlayer';
 import {
   defaultLecturesApi,
   defaultVideosApi,
@@ -550,96 +551,33 @@ export function StudentLectureViewClient({
           </div>
         )}
 
-        {/* Main Secured 16:9 Video Player Frame */}
-        <div
-          ref={videoPlayerContainerRef}
-          className="relative w-full rounded-3xl p-2.5 sm:p-3.5 bg-stone-950 border-2 border-[#0d6e4f]/40 dark:border-emerald-500/30 shadow-2xl space-y-2.5 overflow-hidden group/frame"
-        >
-          {/* Frame Top Header */}
-          <div className="flex items-center justify-between px-3 py-2 bg-[#121a15] rounded-2xl border border-emerald-900/40 text-xs text-white">
-            <div className="flex items-center gap-2 font-black text-[#0d6e4f] dark:text-emerald-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="hidden sm:inline">مشغل المحاضرات المحمي — منصة مستر عمر مكاوي</span>
-              <span className="sm:hidden">مشغل المحاضرات المحمي</span>
-            </div>
-            <div className="flex items-center gap-3 text-[11px] font-bold text-gray-400">
-              <span className="flex items-center gap-1.5 bg-emerald-950/80 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-800/60">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                مشاهدة آمنة
+        {/* Main Secured 16:9 Video Player Frame with Custom Controls & Anti-YouTube Protection */}
+        <div ref={videoPlayerContainerRef} className="w-full">
+          {cleanVideoId ? (
+            <SecureCustomPlayer
+              key={cleanVideoId}
+              videoId={cleanVideoId}
+              resumePosition={resumePosition}
+              title={lecture.title_ar}
+              studentName={student?.fullName}
+              onStateChange={(playing) => setIsPlaying(playing)}
+              onTimeUpdate={(pos) => {
+                currentPositionRef.current = pos;
+              }}
+            />
+          ) : (
+            <div className="aspect-video w-full rounded-3xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-gray-500 gap-3 p-6 text-center shadow-2xl">
+              <Video className="w-16 h-16 stroke-[1.5] text-gray-600" />
+              <span className="text-base font-bold text-gray-300">
+                {isAr ? 'فيديو المحاضرة غير متوفر حالياً' : 'Lecture video is currently unavailable'}
               </span>
-              {student?.fullName && (
-                <span className="hidden md:inline text-gray-400 font-mono">
-                  طالب: {student.fullName}
-                </span>
-              )}
+              <p className="text-xs text-gray-500 max-w-sm">
+                {isAr
+                  ? 'يرجى مراجعة المدرس أو التأكد من إرفاق رابط الفيديو لهذه المحاضرة.'
+                  : 'Please contact support if you believe this is an error.'}
+              </p>
             </div>
-          </div>
-
-          {/* Inner 16:9 Player Viewport with Shields */}
-          <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-inner">
-            {embedUrl ? (
-              <>
-                <iframe
-                  ref={iframeRef}
-                  src={embedUrl}
-                  title={lecture.title_ar || lecture.title_en || 'Lecture Video'}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full border-0 relative z-10"
-                  onLoad={() => setIsPlaying(true)}
-                />
-
-                {/* --- ANTI-YOUTUBE REDIRECT SHIELDS --- */}
-                {/* 1. Top Shield: Blocks YouTube title link and share options */}
-                <div
-                  className="absolute top-0 inset-x-0 h-16 z-20 pointer-events-auto bg-gradient-to-b from-black/85 via-black/40 to-transparent flex items-start justify-between px-4 py-2.5 text-white select-none cursor-default"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                >
-                  <span className="font-extrabold text-xs sm:text-sm text-gray-100 truncate max-w-[75%] drop-shadow-sm">
-                    {lecture.title_ar}
-                  </span>
-                  <span className="text-[10px] font-black bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-emerald-400 border border-emerald-500/30 shadow-xs">
-                    منصة مستر عمر مكاوي
-                  </span>
-                </div>
-
-                {/* 2. Bottom-Left Shield: Blocks "Watch on YouTube" button */}
-                <div
-                  className="absolute bottom-0 left-0 w-44 h-14 z-20 pointer-events-auto bg-transparent select-none cursor-default"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  title="المشاهدة مقتصرة داخل منصة مستر عمر مكاوي"
-                />
-
-                {/* 3. Bottom-Right Shield: Blocks YouTube logo link */}
-                <div
-                  className="absolute bottom-0 right-0 w-32 h-14 z-20 pointer-events-auto bg-transparent select-none cursor-default"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  title="المشاهدة مقتصرة داخل منصة مستر عمر مكاوي"
-                />
-              </>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 gap-3 p-6 text-center">
-                <Video className="w-16 h-16 stroke-[1.5] text-gray-600" />
-                <span className="text-base font-bold text-gray-300">
-                  {isAr ? 'فيديو المحاضرة غير متوفر حالياً' : 'Lecture video is currently unavailable'}
-                </span>
-                <p className="text-xs text-gray-500 max-w-sm">
-                  {isAr
-                    ? 'يرجى مراجعة المدرس أو التأكد من إرفاق رابط الفيديو لهذه المحاضرة.'
-                    : 'Please contact support if you believe this is an error.'}
-                </p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Watch Progress Indicator */}
