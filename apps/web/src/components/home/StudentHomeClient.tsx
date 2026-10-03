@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Play,
@@ -81,33 +81,56 @@ export default function StudentHomeClient() {
   const studentFullName = student?.fullName || 'طالبنا العزيز';
 
   // 1. Fetch Latest Content (Packages + Courses)
-  const fetchLatestContent = async () => {
+  const fetchLatestContent = useCallback(async (isMounted = true) => {
     setLatestLoading(true);
     setLatestError(null);
 
     try {
       const yearParam = academicYearId ? `academic_year_id=${academicYearId}&` : '';
 
-      // Fetch packages (student-scoped or public)
-      let pkgRes: any = null;
-      if (isAuthenticated) {
-        pkgRes = await apiClient.get<any>(`/packages?${yearParam}limit=6`).catch(() => null);
-      }
-      if (!pkgRes || (!pkgRes.data && !Array.isArray(pkgRes))) {
-        pkgRes = await apiClient.get<any>(`/packages/public?${yearParam}limit=6`).catch(() => null);
+      // 1. Fetch Packages (authenticated scoped first, fallback to public if empty)
+      let rawPackages: any[] = [];
+      try {
+        let pkgRes: any = null;
+        if (isAuthenticated) {
+          pkgRes = await apiClient.get<any>(`/packages?${yearParam}limit=20`).catch(() => null);
+        }
+        let pkgData = Array.isArray(pkgRes?.data) ? pkgRes.data : Array.isArray(pkgRes) ? pkgRes : [];
+        if (pkgData.length === 0) {
+          const publicPkgRes = await apiClient.get<any>(`/packages/public?${yearParam}limit=20`).catch(() => null);
+          pkgData = Array.isArray(publicPkgRes?.data) ? publicPkgRes.data : Array.isArray(publicPkgRes) ? publicPkgRes : [];
+          if (pkgData.length === 0 && academicYearId) {
+            // Also try global public if year-specific returned empty
+            const globalPublicPkg = await apiClient.get<any>(`/packages/public?limit=20`).catch(() => null);
+            pkgData = Array.isArray(globalPublicPkg?.data) ? globalPublicPkg.data : Array.isArray(globalPublicPkg) ? globalPublicPkg : [];
+          }
+        }
+        rawPackages = pkgData;
+      } catch {
+        rawPackages = [];
       }
 
-      // Fetch courses (student-scoped or public)
-      let courseRes: any = null;
-      if (isAuthenticated) {
-        courseRes = await apiClient.get<any>(`/courses?${yearParam}limit=6`).catch(() => null);
+      // 2. Fetch Courses (authenticated scoped first, fallback to public if empty)
+      let rawCourses: any[] = [];
+      try {
+        let courseRes: any = null;
+        if (isAuthenticated) {
+          courseRes = await apiClient.get<any>(`/courses?${yearParam}limit=20`).catch(() => null);
+        }
+        let courseData = Array.isArray(courseRes?.data) ? courseRes.data : Array.isArray(courseRes) ? courseRes : [];
+        if (courseData.length === 0) {
+          const publicCourseRes = await apiClient.get<any>(`/courses/public?${yearParam}limit=20`).catch(() => null);
+          courseData = Array.isArray(publicCourseRes?.data) ? publicCourseRes.data : Array.isArray(publicCourseRes) ? publicCourseRes : [];
+          if (courseData.length === 0 && academicYearId) {
+            // Also try global public if year-specific returned empty
+            const globalPublicCourse = await apiClient.get<any>(`/courses/public?limit=20`).catch(() => null);
+            courseData = Array.isArray(globalPublicCourse?.data) ? globalPublicCourse.data : Array.isArray(globalPublicCourse) ? globalPublicCourse : [];
+          }
+        }
+        rawCourses = courseData;
+      } catch {
+        rawCourses = [];
       }
-      if (!courseRes || (!courseRes.data && !Array.isArray(courseRes))) {
-        courseRes = await apiClient.get<any>(`/courses/public?${yearParam}limit=6`).catch(() => null);
-      }
-
-      const rawPackages = Array.isArray(pkgRes?.data) ? pkgRes.data : Array.isArray(pkgRes) ? pkgRes : [];
-      const rawCourses = Array.isArray(courseRes?.data) ? courseRes.data : Array.isArray(courseRes) ? courseRes : [];
 
       // Sort rawPackages descending by publication/creation timestamp and take the top 3 latest
       const sortedPackages = [...rawPackages]
@@ -164,17 +187,22 @@ export default function StudentHomeClient() {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      setLatestItems(combined);
+      if (isMounted) {
+        setLatestItems(combined);
+      }
     } catch (err: any) {
-      setLatestError(err?.message || 'تعذر تحميل أحدث المحتويات التعليمية');
-      setLatestItems([]);
+      if (isMounted) {
+        setLatestError(err?.message || 'تعذر تحميل أحدث المحتويات التعليمية');
+      }
     } finally {
-      setLatestLoading(false);
+      if (isMounted) {
+        setLatestLoading(false);
+      }
     }
-  };
+  }, [academicYearId, academicYearName, isAuthenticated]);
 
   // 2. Fetch Continue Learning (Real Watch Progress: 0% < Progress < 90%)
-  const fetchContinueLearning = async () => {
+  const fetchContinueLearning = useCallback(async (isMounted = true) => {
     setContinueLoading(true);
     setContinueError(null);
 
@@ -186,25 +214,37 @@ export default function StudentHomeClient() {
         res = await apiClient.get<any>('/students/continue-learning?limit=6').catch(() => null);
       }
 
-      if (Array.isArray(res)) {
-        setContinueLearningList(res);
-      } else if (res && Array.isArray(res.data)) {
-        setContinueLearningList(res.data);
-      } else {
-        setContinueLearningList([]);
+      if (isMounted) {
+        if (Array.isArray(res)) {
+          setContinueLearningList(res);
+        } else if (res && Array.isArray(res.data)) {
+          setContinueLearningList(res.data);
+        } else {
+          setContinueLearningList([]);
+        }
       }
     } catch (err: any) {
-      setContinueError(err?.message || 'تعذر تحميل محاضرات استكمال الدراسة');
-      setContinueLearningList([]);
+      if (isMounted) {
+        setContinueError(err?.message || 'تعذر تحميل محاضرات استكمال الدراسة');
+        setContinueLearningList([]);
+      }
     } finally {
-      setContinueLoading(false);
+      if (isMounted) {
+        setContinueLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchLatestContent();
-    fetchContinueLearning();
-  }, [academicYearId, isAuthenticated]);
+    let isMounted = true;
+
+    fetchLatestContent(isMounted);
+    fetchContinueLearning(isMounted);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchLatestContent, fetchContinueLearning]);
 
   // Handle student profile photo upload
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -389,7 +429,7 @@ export default function StudentHomeClient() {
               </div>
               <button
                 type="button"
-                onClick={fetchLatestContent}
+                onClick={() => fetchLatestContent()}
                 className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all shrink-0"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -597,7 +637,7 @@ export default function StudentHomeClient() {
               </div>
               <button
                 type="button"
-                onClick={fetchContinueLearning}
+                onClick={() => fetchContinueLearning()}
                 className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all shrink-0"
               >
                 <RefreshCw className="w-3.5 h-3.5" />

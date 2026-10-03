@@ -16,7 +16,7 @@ export default function WalletPage() {
   const [charging, setCharging] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fetchWallet = async () => {
+  const fetchWallet = React.useCallback(async () => {
     setLoading(true);
     try {
       // 1. Fetch real current balance from backend
@@ -76,11 +76,11 @@ export default function WalletPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [student?.walletBalance]);
 
   useEffect(() => {
     fetchWallet();
-  }, [student?.id]);
+  }, [fetchWallet]);
 
   const handleChargeWallet = async (e: React.FormEvent) => {
     e.preventDefault();
