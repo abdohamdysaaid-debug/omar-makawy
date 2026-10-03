@@ -57,6 +57,10 @@ export interface ContinueLearningItem {
   lastActivityAt?: string;
 }
 
+// Module-level in-memory cache for instant zero-latency client-side navigation
+let cachedLatestItems: LatestProductItem[] = [];
+let cachedContinueList: ContinueLearningItem[] = [];
+
 export default function StudentHomeClient() {
   const { student, updateStudentAvatar, isAuthenticated, isSubscribedToCourse, isSubscribedToPackage } = useAuth();
   const { t, language } = useLanguage();
@@ -66,71 +70,79 @@ export default function StudentHomeClient() {
   // Content Type Filter: 'all' | 'packages' | 'courses'
   const [contentTypeFilter, setContentTypeFilter] = useState<'all' | 'packages' | 'courses'>('all');
 
-  // Latest Content State
-  const [latestItems, setLatestItems] = useState<LatestProductItem[]>([]);
-  const [latestLoading, setLatestLoading] = useState(true);
+  // Latest Content State (initialized from cache for instant 0ms rendering)
+  const [latestItems, setLatestItems] = useState<LatestProductItem[]>(() => cachedLatestItems);
+  const [latestLoading, setLatestLoading] = useState<boolean>(() => cachedLatestItems.length === 0);
   const [latestError, setLatestError] = useState<string | null>(null);
 
-  // Continue Learning State
-  const [continueLearningList, setContinueLearningList] = useState<ContinueLearningItem[]>([]);
-  const [continueLoading, setContinueLoading] = useState(true);
+  // Continue Learning State (initialized from cache for instant 0ms rendering)
+  const [continueLearningList, setContinueLearningList] = useState<ContinueLearningItem[]>(() => cachedContinueList);
+  const [continueLoading, setContinueLoading] = useState<boolean>(() => cachedContinueList.length === 0);
   const [continueError, setContinueError] = useState<string | null>(null);
 
   const academicYearId = student?.academicYearId;
   const academicYearName = student?.academicYearName || 'المرحلة الدراسية';
   const studentFullName = student?.fullName || 'طالبنا العزيز';
 
-  // 1. Fetch Latest Content (Packages + Courses)
+  // 1. Fetch Latest Content (Packages + Courses in parallel)
   const fetchLatestContent = useCallback(async (isMounted = true) => {
-    setLatestLoading(true);
+    if (cachedLatestItems.length === 0) {
+      setLatestLoading(true);
+    }
     setLatestError(null);
 
     try {
       const yearParam = academicYearId ? `academic_year_id=${academicYearId}&` : '';
 
-      // 1. Fetch Packages (authenticated scoped first, fallback to public if empty)
-      let rawPackages: any[] = [];
-      try {
-        let pkgRes: any = null;
-        if (isAuthenticated) {
-          pkgRes = await apiClient.get<any>(`/packages?${yearParam}limit=20`).catch(() => null);
-        }
-        let pkgData = Array.isArray(pkgRes?.data) ? pkgRes.data : Array.isArray(pkgRes) ? pkgRes : [];
-        if (pkgData.length === 0) {
-          const publicPkgRes = await apiClient.get<any>(`/packages/public?${yearParam}limit=20`).catch(() => null);
-          pkgData = Array.isArray(publicPkgRes?.data) ? publicPkgRes.data : Array.isArray(publicPkgRes) ? publicPkgRes : [];
-          if (pkgData.length === 0 && academicYearId) {
-            // Also try global public if year-specific returned empty
-            const globalPublicPkg = await apiClient.get<any>(`/packages/public?limit=20`).catch(() => null);
-            pkgData = Array.isArray(globalPublicPkg?.data) ? globalPublicPkg.data : Array.isArray(globalPublicPkg) ? globalPublicPkg : [];
+      // Parallel helper for packages
+      const fetchPackagesPromise = (async () => {
+        try {
+          let pkgRes: any = null;
+          if (isAuthenticated) {
+            pkgRes = await apiClient.get<any>(`/packages?${yearParam}limit=20`).catch(() => null);
           }
+          let pkgData = Array.isArray(pkgRes?.data) ? pkgRes.data : Array.isArray(pkgRes) ? pkgRes : [];
+          if (pkgData.length === 0) {
+            const publicPkgRes = await apiClient.get<any>(`/packages/public?${yearParam}limit=20`).catch(() => null);
+            pkgData = Array.isArray(publicPkgRes?.data) ? publicPkgRes.data : Array.isArray(publicPkgRes) ? publicPkgRes : [];
+            if (pkgData.length === 0 && academicYearId) {
+              const globalPublicPkg = await apiClient.get<any>(`/packages/public?limit=20`).catch(() => null);
+              pkgData = Array.isArray(globalPublicPkg?.data) ? globalPublicPkg.data : Array.isArray(globalPublicPkg) ? globalPublicPkg : [];
+            }
+          }
+          return pkgData;
+        } catch {
+          return [];
         }
-        rawPackages = pkgData;
-      } catch {
-        rawPackages = [];
-      }
+      })();
 
-      // 2. Fetch Courses (authenticated scoped first, fallback to public if empty)
-      let rawCourses: any[] = [];
-      try {
-        let courseRes: any = null;
-        if (isAuthenticated) {
-          courseRes = await apiClient.get<any>(`/courses?${yearParam}limit=20`).catch(() => null);
-        }
-        let courseData = Array.isArray(courseRes?.data) ? courseRes.data : Array.isArray(courseRes) ? courseRes : [];
-        if (courseData.length === 0) {
-          const publicCourseRes = await apiClient.get<any>(`/courses/public?${yearParam}limit=20`).catch(() => null);
-          courseData = Array.isArray(publicCourseRes?.data) ? publicCourseRes.data : Array.isArray(publicCourseRes) ? publicCourseRes : [];
-          if (courseData.length === 0 && academicYearId) {
-            // Also try global public if year-specific returned empty
-            const globalPublicCourse = await apiClient.get<any>(`/courses/public?limit=20`).catch(() => null);
-            courseData = Array.isArray(globalPublicCourse?.data) ? globalPublicCourse.data : Array.isArray(globalPublicCourse) ? globalPublicCourse : [];
+      // Parallel helper for courses
+      const fetchCoursesPromise = (async () => {
+        try {
+          let courseRes: any = null;
+          if (isAuthenticated) {
+            courseRes = await apiClient.get<any>(`/courses?${yearParam}limit=20`).catch(() => null);
           }
+          let courseData = Array.isArray(courseRes?.data) ? courseRes.data : Array.isArray(courseRes) ? courseRes : [];
+          if (courseData.length === 0) {
+            const publicCourseRes = await apiClient.get<any>(`/courses/public?${yearParam}limit=20`).catch(() => null);
+            courseData = Array.isArray(publicCourseRes?.data) ? publicCourseRes.data : Array.isArray(publicCourseRes) ? publicCourseRes : [];
+            if (courseData.length === 0 && academicYearId) {
+              const globalPublicCourse = await apiClient.get<any>(`/courses/public?limit=20`).catch(() => null);
+              courseData = Array.isArray(globalPublicCourse?.data) ? globalPublicCourse.data : Array.isArray(globalPublicCourse) ? globalPublicCourse : [];
+            }
+          }
+          return courseData;
+        } catch {
+          return [];
         }
-        rawCourses = courseData;
-      } catch {
-        rawCourses = [];
-      }
+      })();
+
+      // Fetch both simultaneously
+      const [rawPackages, rawCourses] = await Promise.all([
+        fetchPackagesPromise,
+        fetchCoursesPromise,
+      ]);
 
       // Sort rawPackages descending by publication/creation timestamp and take the top 3 latest
       const sortedPackages = [...rawPackages]
@@ -187,11 +199,14 @@ export default function StudentHomeClient() {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
+      // Save to memory cache for zero-delay navigation
+      cachedLatestItems = combined;
+
       if (isMounted) {
         setLatestItems(combined);
       }
     } catch (err: any) {
-      if (isMounted) {
+      if (isMounted && cachedLatestItems.length === 0) {
         setLatestError(err?.message || 'تعذر تحميل أحدث المحتويات التعليمية');
       }
     } finally {
@@ -203,28 +218,26 @@ export default function StudentHomeClient() {
 
   // 2. Fetch Continue Learning (Real Watch Progress: 0% < Progress < 90%)
   const fetchContinueLearning = useCallback(async (isMounted = true) => {
-    setContinueLoading(true);
+    if (cachedContinueList.length === 0) {
+      setContinueLoading(true);
+    }
     setContinueError(null);
 
     try {
       let res: any = await apiClient.get<any>('/lectures/continue-learning?limit=6').catch(() => null);
 
       if (!res || !Array.isArray(res)) {
-        // Fallback check on students alias endpoint
         res = await apiClient.get<any>('/students/continue-learning?limit=6').catch(() => null);
       }
 
+      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+      cachedContinueList = list;
+
       if (isMounted) {
-        if (Array.isArray(res)) {
-          setContinueLearningList(res);
-        } else if (res && Array.isArray(res.data)) {
-          setContinueLearningList(res.data);
-        } else {
-          setContinueLearningList([]);
-        }
+        setContinueLearningList(list);
       }
     } catch (err: any) {
-      if (isMounted) {
+      if (isMounted && cachedContinueList.length === 0) {
         setContinueError(err?.message || 'تعذر تحميل محاضرات استكمال الدراسة');
         setContinueLearningList([]);
       }
@@ -238,8 +251,11 @@ export default function StudentHomeClient() {
   useEffect(() => {
     let isMounted = true;
 
-    fetchLatestContent(isMounted);
-    fetchContinueLearning(isMounted);
+    // Run both in parallel
+    Promise.all([
+      fetchLatestContent(isMounted),
+      fetchContinueLearning(isMounted),
+    ]);
 
     return () => {
       isMounted = false;
