@@ -317,33 +317,42 @@ export default function PackagesClient() {
         item_type: 'PACKAGE',
         item_id: selectedPackage.id,
         discount_code: appliedDiscount?.code,
-      }).catch((err) => {
-        throw err;
       });
 
       setPurchaseSuccess(true);
       setCodeFeedback({
         type: 'success',
-        message: '🎉 تم شراء الباقة والاشتراك فيها بنجاح من رصيد محفظتك!',
+        message: effectivePrice === 0
+          ? '🎉 تم الاشتراك في الباقة المجانية بنجاح!'
+          : '🎉 تم شراء الباقة والاشتراك فيها بنجاح من رصيد محفظتك!',
         isActivation: true,
       });
       await refreshSubscriptions();
     } catch (err: any) {
       const errMsg = err?.message || '';
-      if (errMsg.includes('balance') || errMsg.includes('رصيد') || errMsg.includes('Insufficient')) {
+      if (errMsg.includes('balance') || errMsg.includes('رصيد') || errMsg.includes('INSUFFICIENT_WALLET_BALANCE') || errMsg.includes('Insufficient')) {
         setCodeFeedback({
           type: 'error',
           message: `رصيد محفظتك الحالي غير كافٍ لإتمام عملية الشراء (${effectivePrice} ج.م). يرجى شحن المحفظة أولاً.`,
         });
-      } else {
-        // If simulation or successful fallback
-        setPurchaseSuccess(true);
+      } else if (errMsg.includes('ALREADY_HAS_ACCESS') || errMsg.includes('already own active access') || errMsg.includes('مشترك بالفعل')) {
         setCodeFeedback({
           type: 'success',
-          message: '🎉 تم الاشتراك في الباقة بنجاح!',
+          message: 'أنت مشترك بالفعل في هذه الباقة!',
           isActivation: true,
         });
+        setPurchaseSuccess(true);
         await refreshSubscriptions();
+      } else if (errMsg.includes('ACADEMIC_YEAR_MISMATCH') || errMsg.includes('different academic year')) {
+        setCodeFeedback({
+          type: 'error',
+          message: 'هذه الباقة مخصصة لصف دراسي آخر وغير متاحة لحسابك.',
+        });
+      } else {
+        setCodeFeedback({
+          type: 'error',
+          message: errMsg || 'حدث خطأ أثناء إتمام عملية الشراء. يرجى المحاولة مرة أخرى.',
+        });
       }
     } finally {
       setPurchasing(false);

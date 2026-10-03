@@ -115,7 +115,13 @@ export async function request<T>(
   retry = true
 ): Promise<T> {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const url = `${API_BASE_URL}${cleanEndpoint}`;
+  let normalizedPath = cleanEndpoint;
+  if (API_BASE_URL.endsWith('/api/v1') && normalizedPath.startsWith('/api/v1/')) {
+    normalizedPath = normalizedPath.slice('/api/v1'.length);
+  } else if (API_BASE_URL.endsWith('/api/v1') && normalizedPath === '/api/v1') {
+    normalizedPath = '';
+  }
+  const url = `${API_BASE_URL}${normalizedPath}`;
 
   const headers = new Headers(options.headers || {});
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
