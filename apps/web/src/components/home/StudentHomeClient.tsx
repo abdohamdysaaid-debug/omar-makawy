@@ -109,7 +109,25 @@ export default function StudentHomeClient() {
       const rawPackages = Array.isArray(pkgRes?.data) ? pkgRes.data : Array.isArray(pkgRes) ? pkgRes : [];
       const rawCourses = Array.isArray(courseRes?.data) ? courseRes.data : Array.isArray(courseRes) ? courseRes : [];
 
-      const mappedPackages: LatestProductItem[] = rawPackages.map((pkg: any) => ({
+      // Sort rawPackages descending by publication/creation timestamp and take the top 3 latest
+      const sortedPackages = [...rawPackages]
+        .sort((a: any, b: any) => {
+          const dateA = new Date(a.published_at || a.created_at || a.createdAt || 0).getTime();
+          const dateB = new Date(b.published_at || b.created_at || b.createdAt || 0).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 3);
+
+      // Sort rawCourses descending by publication/creation timestamp and take the top 3 latest
+      const sortedCourses = [...rawCourses]
+        .sort((a: any, b: any) => {
+          const dateA = new Date(a.published_at || a.created_at || a.createdAt || 0).getTime();
+          const dateB = new Date(b.published_at || b.created_at || b.createdAt || 0).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 3);
+
+      const mappedPackages: LatestProductItem[] = sortedPackages.map((pkg: any) => ({
         id: pkg.id,
         type: 'PACKAGE' as const,
         title: pkg.title_ar || pkg.title || 'باقة تعليمية',
@@ -120,12 +138,12 @@ export default function StudentHomeClient() {
         isFeatured: Boolean(pkg.is_featured || pkg.isPopular),
         academicYearName: pkg.academic_year_name_ar || academicYearName,
         academicYearId: pkg.academic_year_id,
-        createdAt: pkg.created_at || pkg.createdAt || new Date().toISOString(),
+        createdAt: pkg.published_at || pkg.created_at || pkg.createdAt || new Date().toISOString(),
         courseCount: Array.isArray(pkg.courses) ? pkg.courses.length : 0,
-        url: `/student/packages`,
+        url: `/student/packages/${pkg.id}`,
       }));
 
-      const mappedCourses: LatestProductItem[] = rawCourses.map((course: any) => ({
+      const mappedCourses: LatestProductItem[] = sortedCourses.map((course: any) => ({
         id: course.id,
         type: 'COURSE' as const,
         title: course.title_ar || course.title || 'كورس تعليمي',
@@ -136,12 +154,12 @@ export default function StudentHomeClient() {
         isFeatured: Boolean(course.is_featured || course.isPopular),
         academicYearName: course.academic_year_name_ar || academicYearName,
         academicYearId: course.academic_year_id,
-        createdAt: course.created_at || course.createdAt || new Date().toISOString(),
+        createdAt: course.published_at || course.created_at || course.createdAt || new Date().toISOString(),
         lectureCount: course.lecture_count || course.lectureCount || course.lectures_count || 0,
         url: `/courses/${course.id}`,
       }));
 
-      // Combine and sort by publication / creation date descending
+      // Combine top 3 packages and top 3 courses, sorted by publication / creation date descending
       const combined = [...mappedPackages, ...mappedCourses].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );

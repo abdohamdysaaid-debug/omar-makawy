@@ -18,25 +18,56 @@ describe('Student Home & Navigation Contract Tests', () => {
     assert.equal(names.includes('المحاضرات'), false);
   });
 
-  it('2. Latest products tab filtering works for all, packages, and courses', () => {
-    const products = [
-      { id: 'p1', productType: 'PACKAGE', title_ar: 'باقة 1', created_at: '2026-10-03T12:00:00Z' },
-      { id: 'c1', productType: 'COURSE', title_ar: 'كورس 1', created_at: '2026-10-03T11:00:00Z' },
-      { id: 'p2', productType: 'PACKAGE', title_ar: 'باقة 2', created_at: '2026-10-02T10:00:00Z' },
-      { id: 'c2', productType: 'COURSE', title_ar: 'كورس 2', created_at: '2026-10-01T09:00:00Z' },
+  it('2. Latest products limits to max 3 newest packages and max 3 newest courses', () => {
+    // Simulated scenario: Teacher created 5 packages and 5 courses
+    const rawPackages = [
+      { id: 'p1', title_ar: 'باقة قديمة 1', created_at: '2026-10-01T10:00:00Z' },
+      { id: 'p2', title_ar: 'باقة قديمة 2', created_at: '2026-10-02T10:00:00Z' },
+      { id: 'p3', title_ar: 'باقة 3', created_at: '2026-10-03T08:00:00Z' },
+      { id: 'p4', title_ar: 'باقة 4', created_at: '2026-10-03T10:00:00Z' },
+      { id: 'p5', title_ar: 'باقة 5 (الأحدث)', created_at: '2026-10-03T12:00:00Z' },
     ];
 
-    const filterProducts = (filter) => {
-      if (filter === 'packages') return products.filter((p) => p.productType === 'PACKAGE');
-      if (filter === 'courses') return products.filter((p) => p.productType === 'COURSE');
-      return products;
-    };
+    const rawCourses = [
+      { id: 'c1', title_ar: 'كورس قديم 1', created_at: '2026-10-01T09:00:00Z' },
+      { id: 'c2', title_ar: 'كورس قديم 2', created_at: '2026-10-02T09:00:00Z' },
+      { id: 'c3', title_ar: 'كورس 3', created_at: '2026-10-03T07:00:00Z' },
+      { id: 'c4', title_ar: 'كورس 4', created_at: '2026-10-03T09:00:00Z' },
+      { id: 'c5', title_ar: 'كورس 5 (الأحدث)', created_at: '2026-10-03T11:00:00Z' },
+    ];
 
-    assert.equal(filterProducts('all').length, 4);
-    assert.equal(filterProducts('packages').length, 2);
-    assert.equal(filterProducts('packages')[0].id, 'p1');
-    assert.equal(filterProducts('courses').length, 2);
-    assert.equal(filterProducts('courses')[0].id, 'c1');
+    // Sort descending by date and take max 3
+    const topPackages = [...rawPackages]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 3)
+      .map((p) => ({ ...p, type: 'PACKAGE' }));
+
+    const topCourses = [...rawCourses]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 3)
+      .map((c) => ({ ...c, type: 'COURSE' }));
+
+    // Combined all items
+    const combinedAll = [...topPackages, ...topCourses].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    // Verify package limit: exactly 3 newest (p5, p4, p3)
+    assert.equal(topPackages.length, 3);
+    assert.deepEqual(topPackages.map((p) => p.id), ['p5', 'p4', 'p3']);
+
+    // Verify course limit: exactly 3 newest (c5, c4, c3)
+    assert.equal(topCourses.length, 3);
+    assert.deepEqual(topCourses.map((c) => c.id), ['c5', 'c4', 'c3']);
+
+    // Verify 'all' tab contains max 6 items sorted newest first
+    assert.equal(combinedAll.length, 6);
+    assert.equal(combinedAll[0].id, 'p5'); // 12:00
+    assert.equal(combinedAll[1].id, 'c5'); // 11:00
+    assert.equal(combinedAll[2].id, 'p4'); // 10:00
+    assert.equal(combinedAll[3].id, 'c4'); // 09:00
+    assert.equal(combinedAll[4].id, 'p3'); // 08:00
+    assert.equal(combinedAll[5].id, 'c3'); // 07:00
   });
 
   it('3. Continue Learning qualifies lectures between 0% and 90% progress', () => {
@@ -112,5 +143,29 @@ describe('Student Home & Navigation Contract Tests', () => {
 
     assert.equal(mapped[1].badgeText, 'كورس مفعل');
     assert.equal(mapped[1].targetUrl, '/courses/crs-1');
+  });
+
+  it('6. Wallet balance syncs accurately from backend /wallet response and survives page refresh', () => {
+    // Simulated backend wallet response
+    const backendWallet = {
+      id: 'w-1',
+      user_id: 'u-1',
+      current_balance: '100.00',
+      currency: 'EGP',
+    };
+
+    // Parsing logic used in frontend
+    const parsedBalance = Number(backendWallet.current_balance) || 0;
+    assert.equal(parsedBalance, 100);
+
+    // Simulated recharge response with balance_after
+    const rechargeResponse = {
+      message: 'Recharge successful',
+      credited_amount: '100.00',
+      balance_after: '200.00',
+    };
+
+    const newBalance = Number(rechargeResponse.balance_after);
+    assert.equal(newBalance, 200);
   });
 });

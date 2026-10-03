@@ -30,6 +30,8 @@ interface AuthContextType {
   refreshSubscriptions: () => Promise<void>;
   isSubscribedToCourse: (courseId: string | number | undefined | null) => boolean;
   isSubscribedToPackage: (packageId: string | number | undefined | null) => boolean;
+  walletBalance: number;
+  refreshWallet: () => Promise<void>;
 }
 
 export interface RegisterData {
@@ -207,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
 
   const refreshSubscriptions = useCallback(async () => {
     const token = getStoredAccessToken();
@@ -226,14 +229,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Fetch subscriptions whenever authenticated
+  const refreshWallet = useCallback(async () => {
+    const token = getStoredAccessToken();
+    if (!token) {
+      setWalletBalance(0);
+      return;
+    }
+    try {
+      let res: any = await apiClient.get<any>('/wallet').catch(() => null);
+      if (!res || typeof res.current_balance === 'undefined') {
+        res = await apiClient.get<any>('/api/v1/wallet').catch(() => null);
+      }
+      if (!res || typeof res.current_balance === 'undefined') {
+        res = await apiClient.get<any>('/financial/wallet/my-wallet').catch(() => null);
+      }
+      if (res && (typeof res.current_balance === 'string' || typeof res.current_balance === 'number')) {
+        const bal = Number(res.current_balance) || 0;
+        setWalletBalance(bal);
+        setStudent((prev) => (prev ? { ...prev, walletBalance: bal } : prev));
+      } else if (res && typeof res.balance === 'number') {
+        setWalletBalance(res.balance);
+        setStudent((prev) => (prev ? { ...prev, walletBalance: res.balance } : prev));
+      }
+    } catch {
+      // Keep existing
+    }
+  }, []);
+
+  // Fetch subscriptions and wallet whenever authenticated
   useEffect(() => {
     if (isAuthenticated) {
       refreshSubscriptions();
+      refreshWallet();
     } else {
       setSubscriptions([]);
+      setWalletBalance(0);
     }
-  }, [isAuthenticated, refreshSubscriptions]);
+  }, [isAuthenticated, refreshSubscriptions, refreshWallet]);
 
   const isSubscribedToCourse = useCallback(
     (courseId: string | number | undefined | null): boolean => {
@@ -277,6 +309,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStudent(null);
       setIsAuthenticated(false);
       setSubscriptions([]);
+      setWalletBalance(0);
       setReturnUrl(null);
       if (typeof window !== 'undefined') {
         window.location.href = '/';
@@ -324,6 +357,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         refreshSubscriptions,
         isSubscribedToCourse,
         isSubscribedToPackage,
+        walletBalance,
+        refreshWallet,
       }}
     >
       {children}

@@ -8,47 +8,79 @@ import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, ShieldCheck } from 'lucide-r
 import { apiClient } from '@/lib/api';
 
 export default function WalletPage() {
-  const { student } = useAuth();
-  const [balance, setBalance] = useState<number>(0);
+  const { student, refreshWallet } = useAuth();
+  const [balance, setBalance] = useState<number>(student?.walletBalance ?? 0);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [rechargeCode, setRechargeCode] = useState('');
   const [charging, setCharging] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function fetchWallet() {
-      setLoading(true);
-      try {
-        const res = await apiClient.get<any>('/financial/wallet/my-wallet').catch(() => null);
-        if (isMounted) {
-          if (res && typeof res.balance === 'number') {
-            setBalance(res.balance);
-            setTransactions(res.transactions || []);
-          } else {
-            // Real default balance from student auth context if returned
-            setBalance(student?.walletBalance ?? 0);
-            setTransactions([]);
-          }
-        }
-      } catch {
-        if (isMounted) {
-          setBalance(student?.walletBalance ?? 0);
-          setTransactions([]);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+  const fetchWallet = async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch real current balance from backend
+      let walletRes: any = await apiClient.get<any>('/wallet').catch(() => null);
+      if (!walletRes || (typeof walletRes.current_balance === 'undefined' && typeof walletRes.balance === 'undefined')) {
+        walletRes = await apiClient.get<any>('/api/v1/wallet').catch(() => null);
       }
+      if (!walletRes || (typeof walletRes.current_balance === 'undefined' && typeof walletRes.balance === 'undefined')) {
+        walletRes = await apiClient.get<any>('/financial/wallet/my-wallet').catch(() => null);
+      }
+
+      if (walletRes && (typeof walletRes.current_balance === 'string' || typeof walletRes.current_balance === 'number')) {
+        setBalance(Number(walletRes.current_balance) || 0);
+      } else if (walletRes && typeof walletRes.balance === 'number') {
+        setBalance(walletRes.balance);
+      } else if (typeof student?.walletBalance === 'number') {
+        setBalance(student.walletBalance);
+      }
+
+      // 2. Fetch real immutable transaction history
+      let txRes: any = await apiClient.get<any>('/wallet/transactions?limit=50').catch(() => null);
+      if (!txRes || !Array.isArray(txRes.data)) {
+        txRes = await apiClient.get<any>('/api/v1/wallet/transactions?limit=50').catch(() => null);
+      }
+
+      const rawTxList = Array.isArray(txRes?.data) ? txRes.data : Array.isArray(txRes) ? txRes : [];
+      if (rawTxList.length > 0) {
+        const mapped = rawTxList.map((tx: any) => {
+          const isDeposit = tx.type === 'RECHARGE' || tx.type === 'ADJUSTMENT_CREDIT' || Number(tx.amount) > 0;
+          return {
+            id: tx.id || String(Math.random()),
+            type: isDeposit ? 'DEPOSIT' : 'WITHDRAWAL',
+            description:
+              tx.description ||
+              (tx.type === 'RECHARGE'
+                ? 'شحن رصيد كارت'
+                : tx.type === 'ORDER_PAYMENT'
+                ? 'شراء محتوى تعليمي'
+                : 'حركة مالية'),
+            amount: `${Math.abs(Number(tx.amount) || 0)}`,
+            date: tx.created_at
+              ? new Date(tx.created_at).toLocaleDateString('ar-EG', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : new Date().toLocaleDateString('ar-EG'),
+          };
+        });
+        setTransactions(mapped);
+      } else {
+        setTransactions([]);
+      }
+    } catch {
+      setBalance(student?.walletBalance ?? 0);
+      setTransactions([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchWallet();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [student]);
+  }, [student?.id]);
 
   const handleChargeWallet = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,17 +92,21 @@ export default function WalletPage() {
     try {
       let res: any = null;
       try {
-        res = await apiClient.post('/api/v1/wallet/recharge/redeem', {
+        res = await apiClient.post('/wallet/recharge/redeem', {
           code: rechargeCode.trim(),
         });
       } catch {
-        res = await apiClient.post('/financial/activation/redeem-code', {
+        res = await apiClient.post('/api/v1/wallet/recharge/redeem', {
           code: rechargeCode.trim(),
         });
       }
 
       const creditedAmount = res?.credited_amount || res?.amount || '';
-      const newBal = typeof res?.new_balance === 'number' ? res.new_balance : typeof res?.newBalance === 'number' ? res.newBalance : balance + (Number(creditedAmount) || 0);
+      const balanceAfter = res?.balance_after ?? res?.new_balance ?? res?.newBalance;
+      const newBal =
+        typeof balanceAfter === 'string' || typeof balanceAfter === 'number'
+          ? Number(balanceAfter)
+          : balance + (Number(creditedAmount) || 0);
 
       setMessage({
         type: 'success',
@@ -78,21 +114,18 @@ export default function WalletPage() {
       });
 
       setBalance(newBal);
-      setTransactions((prev) => [
-        {
-          id: Date.now().toString(),
-          type: 'DEPOSIT',
-          description: `شحن رصيد بكارت شحن (${rechargeCode.trim().slice(0, 4)}****)`,
-          amount: creditedAmount || 'شحن رصيد',
-          date: new Date().toLocaleDateString('ar-EG'),
-        },
-        ...prev,
-      ]);
       setRechargeCode('');
+
+      // Refresh global and local wallet state
+      await refreshWallet();
+      await fetchWallet();
     } catch (err: any) {
       setMessage({
         type: 'error',
-        text: err?.message || 'كود الشحن غير صحيح أو تم استخدامه من قبل أو منتهي الصلاحية',
+        text:
+          err?.response?.data?.message ||
+          err?.message ||
+          'كود الشحن غير صحيح أو تم استخدامه من قبل أو منتهي الصلاحية',
       });
     } finally {
       setCharging(false);
