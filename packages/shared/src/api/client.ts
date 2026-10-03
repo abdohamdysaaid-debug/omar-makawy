@@ -208,7 +208,10 @@ export function createApiClient(
     options: RequestOptions = {},
     retry = true
   ): Promise<T> {
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    if (baseUrl.endsWith('/api/v1') && (cleanEndpoint === '/api/v1' || cleanEndpoint.startsWith('/api/v1/'))) {
+      cleanEndpoint = cleanEndpoint.replace(/^\/api\/v1/, '') || '/';
+    }
     const url = `${baseUrl}${cleanEndpoint}`;
 
     const headers = new Headers(options.headers || {});
