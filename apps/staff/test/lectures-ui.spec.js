@@ -9,7 +9,7 @@ const {
   resolveLectureThumbnailUrl,
 } = require('@omar-makawy/shared');
 
-describe('Lectures System — Phase 3: Staff UI & Navigation Tests', () => {
+describe('Lectures System — Phase 3 & 4: Staff UI & Rebuilt Vertical Form Tests', () => {
   const mockLecture = {
     id: '86650dd2-e317-4e75-966c-17ce54b622cd',
     academic_year_id: 'a0000000-0000-0000-0000-000000000001',
@@ -227,5 +227,58 @@ describe('Lectures System — Phase 3: Staff UI & Navigation Tests', () => {
     assert.strictEqual(filterCourses(courses, 'Grammar').length, 1);
     assert.strictEqual(filterCourses(courses, 'كورس').length, 2);
     assert.strictEqual(filterCourses(courses, 'فرنسي').length, 0);
+  });
+
+  // 10. Vertical Form Structure & Elements Verification
+  test('10. LectureFormModal source code implements unified vertical layout without horizontal tabs', () => {
+    const formFilePath = path.join(__dirname, '../src/components/lectures/LectureFormModal.tsx');
+    const formContent = fs.readFileSync(formFilePath, 'utf-8');
+
+    // Verify sections 01 to 06 are present in code
+    assert.strictEqual(formContent.includes('01'), true);
+    assert.strictEqual(formContent.includes('SECTION 01 — بيانات المحاضرة') || formContent.includes('بيانات المحاضرة'), true);
+    assert.strictEqual(formContent.includes('02'), true);
+    assert.strictEqual(formContent.includes('SECTION 02 — الكورسات والباقات') || formContent.includes('الكورسات والباقات'), true);
+    assert.strictEqual(formContent.includes('03'), true);
+    assert.strictEqual(formContent.includes('SECTION 03 — فيديو المحاضرة') || formContent.includes('فيديو المحاضرة'), true);
+    assert.strictEqual(formContent.includes('04'), true);
+    assert.strictEqual(formContent.includes('SECTION 04 — النشر والجدولة') || formContent.includes('النشر والجدولة'), true);
+    assert.strictEqual(formContent.includes('05'), true);
+    assert.strictEqual(formContent.includes('SECTION 05 — المذكرات والمرفقات') || formContent.includes('المذكرات والمرفقات'), true);
+    assert.strictEqual(formContent.includes('06'), true);
+    assert.strictEqual(formContent.includes('SECTION 06 — المعاينة الحية') || formContent.includes('معاينة المحاضرة'), true);
+
+    // Verify horizontal TabKey type has been removed from component state
+    assert.strictEqual(formContent.includes("type TabKey = 'basic' | 'access'"), false);
+
+    // Verify Arabic-first inputs and omission of title_en / description_en inputs in UI
+    assert.strictEqual(formContent.includes('Lecture Title (Arabic)'), true);
+    assert.strictEqual(formContent.includes('Lecture Title (English)'), false);
+
+    // Verify YouTube Normalization & Embed
+    assert.strictEqual(formContent.includes('extractYouTubeVideoId'), true);
+    assert.strictEqual(formContent.includes('buildYouTubeEmbedUrl'), true);
+
+    // Verify Sticky bottom action bar
+    assert.strictEqual(formContent.includes('sticky bottom-0'), true);
+  });
+
+  // 11. Multi-Select Toggle & Batch Helpers
+  test('11. Multi-select toggle adds, removes, and batches IDs without duplicates', () => {
+    let selected = ['id1', 'id2'];
+
+    const toggle = (list, id) => {
+      return list.includes(id) ? list.filter((item) => item !== id) : [...list, id];
+    };
+
+    selected = toggle(selected, 'id3');
+    assert.deepStrictEqual(selected, ['id1', 'id2', 'id3']);
+
+    selected = toggle(selected, 'id2');
+    assert.deepStrictEqual(selected, ['id1', 'id3']);
+
+    const batchAdd = (list, newIds) => Array.from(new Set([...list, ...newIds]));
+    selected = batchAdd(selected, ['id1', 'id4', 'id5']);
+    assert.deepStrictEqual(selected, ['id1', 'id3', 'id4', 'id5']);
   });
 });

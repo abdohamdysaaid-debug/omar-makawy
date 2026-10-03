@@ -10,7 +10,6 @@ import {
   Package as PackageIcon,
   Video,
   FileText,
-  ListOrdered,
   Eye,
   Calendar,
   Clock,
@@ -23,6 +22,8 @@ import {
   Crop,
   Layers,
   RefreshCw,
+  ExternalLink,
+  Plus,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
@@ -42,7 +43,6 @@ import {
 import { staffApiClient } from '@/context/StaffAuthContext';
 import { ImageCropperModal } from '../courses/ImageCropperModal';
 import { LectureCardPreview } from './LectureCardPreview';
-import { LectureChaptersManager, ChapterDraft } from './LectureChaptersManager';
 import {
   LectureAttachmentsManager,
   PendingAttachmentDraft,
@@ -60,8 +60,6 @@ interface LectureFormModalProps {
   initialLecture?: LectureItem | null;
 }
 
-type TabKey = 'basic' | 'access' | 'videos' | 'visibility' | 'chapters' | 'attachments' | 'preview';
-
 export function LectureFormModal({
   isOpen,
   onClose,
@@ -74,15 +72,10 @@ export function LectureFormModal({
 
   const isEdit = Boolean(initialLecture);
 
-  // Active Tab State
-  const [activeTab, setActiveTab] = useState<TabKey>('basic');
-
-  // Form Fields State
+  // Form Fields State (Arabic-first UX)
   const [academicYearId, setAcademicYearId] = useState<string>('');
   const [titleAr, setTitleAr] = useState<string>('');
-  const [titleEn, setTitleEn] = useState<string>('');
   const [descriptionAr, setDescriptionAr] = useState<string>('');
-  const [descriptionEn, setDescriptionEn] = useState<string>('');
   const [sequenceOrder, setSequenceOrder] = useState<number>(1);
   const [sortOrder, setSortOrder] = useState<number>(0);
   const [status, setStatus] = useState<string>('PUBLISHED');
@@ -92,7 +85,7 @@ export function LectureFormModal({
   const [isFree, setIsFree] = useState<boolean>(false);
   const [durationSeconds, setDurationSeconds] = useState<number>(0);
 
-  // Thumbnail State
+  // Thumbnail State (16:9 Cover)
   const [currentServerThumbnail, setCurrentServerThumbnail] = useState<string | null>(null);
   const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
@@ -113,15 +106,15 @@ export function LectureFormModal({
   const [mainVideoError, setMainVideoError] = useState<string | null>(null);
   const [solutionVideoError, setSolutionVideoError] = useState<string | null>(null);
 
-  // Chapters & Attachments State
-  const [chapters, setChapters] = useState<ChapterDraft[]>([]);
+  // Attachments State
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachmentDraft[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<any[]>([]);
 
-  // Submission State
+  // Submission & Preview State
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [uploadProgressStatus, setUploadProgressStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);
 
   // Initialize or reset form data
   useEffect(() => {
@@ -131,14 +124,12 @@ export function LectureFormModal({
       setPendingCropFile(null);
       setMainVideoError(null);
       setSolutionVideoError(null);
-      setActiveTab('basic');
+      setIsPreviewModalOpen(false);
 
       if (initialLecture) {
         setAcademicYearId(initialLecture.academic_year_id);
         setTitleAr(initialLecture.title_ar || '');
-        setTitleEn(initialLecture.title_en || '');
         setDescriptionAr(initialLecture.description_ar || '');
-        setDescriptionEn(initialLecture.description_en || '');
         setSequenceOrder(initialLecture.sequence_order || 1);
         setSortOrder(initialLecture.sort_order || 0);
         setStatus(initialLecture.status || 'PUBLISHED');
@@ -193,20 +184,6 @@ export function LectureFormModal({
           setSolutionVideoUrl('');
         }
 
-        // Chapters
-        if (initialLecture.chapters && Array.isArray(initialLecture.chapters)) {
-          setChapters(
-            initialLecture.chapters.map((ch) => ({
-              id: ch.id,
-              timestamp_seconds: ch.timestamp_seconds,
-              title_ar: ch.title_ar,
-              title_en: ch.title_en,
-            }))
-          );
-        } else {
-          setChapters([]);
-        }
-
         // Attachments
         if (initialLecture.attachments && Array.isArray(initialLecture.attachments)) {
           setExistingAttachments(initialLecture.attachments);
@@ -219,9 +196,7 @@ export function LectureFormModal({
         const defaultYear = activeAcademicYearId || (availableYears[0]?.id ?? '');
         setAcademicYearId(defaultYear);
         setTitleAr('');
-        setTitleEn('');
         setDescriptionAr('');
-        setDescriptionEn('');
         setSequenceOrder(1);
         setSortOrder(0);
         setStatus('PUBLISHED');
@@ -236,14 +211,13 @@ export function LectureFormModal({
         setSelectedPackageIds([]);
         setMainVideoUrl('');
         setSolutionVideoUrl('');
-        setChapters([]);
         setPendingAttachments([]);
         setExistingAttachments([]);
       }
     }
   }, [isOpen, initialLecture, activeAcademicYearId, availableYears]);
 
-  // Load available courses & packages
+  // Load available courses & packages dynamically for chosen academic year
   const fetchRelations = useCallback(async (yearId?: string) => {
     setIsLoadingRelations(true);
     try {
@@ -282,7 +256,7 @@ export function LectureFormModal({
           : val?.items || val?.packages || [];
       }
 
-      // If specific year had 0 items, fallback to fetching all courses/packages across all years
+      // If specific year had 0 items, fallback to all
       if (coursesList.length === 0 && yearId) {
         const allCoursesRes: any = await staffCoursesApi.listCourses({ limit: 100 }).catch(() => null);
         const allCourses = Array.isArray(allCoursesRes)
@@ -344,29 +318,15 @@ export function LectureFormModal({
     );
   }, [availablePackages, packageSearch]);
 
-  // Toggle Course Selection with auto academicYearId sync
-  const toggleCourse = (course: any) => {
-    const courseId = typeof course === 'string' ? course : course.id;
-    const courseObj = typeof course === 'object' ? course : availableCourses.find((c) => c.id === courseId);
-
-    if (!academicYearId && courseObj?.academic_year_id) {
-      setAcademicYearId(courseObj.academic_year_id);
-    }
-
+  // Toggle Course Selection
+  const toggleCourse = (courseId: string) => {
     setSelectedCourseIds((prev) =>
       prev.includes(courseId) ? prev.filter((id) => id !== courseId) : [...prev, courseId]
     );
   };
 
-  // Toggle Package Selection with auto academicYearId sync
-  const togglePackage = (pkg: any) => {
-    const pkgId = typeof pkg === 'string' ? pkg : pkg.id;
-    const pkgObj = typeof pkg === 'object' ? pkg : availablePackages.find((p) => p.id === pkgId);
-
-    if (!academicYearId && pkgObj?.academic_year_id) {
-      setAcademicYearId(pkgObj.academic_year_id);
-    }
-
+  // Toggle Package Selection
+  const togglePackage = (pkgId: string) => {
     setSelectedPackageIds((prev) =>
       prev.includes(pkgId) ? prev.filter((id) => id !== pkgId) : [...prev, pkgId]
     );
@@ -407,8 +367,8 @@ export function LectureFormModal({
     setCurrentServerThumbnail(null);
   };
 
-  // Video Validation on blur/change
-  const validateMainVideo = (val: string) => {
+  // Video Validation
+  const handleMainVideoChange = (val: string) => {
     setMainVideoUrl(val);
     if (!val.trim()) {
       setMainVideoError(null);
@@ -416,13 +376,13 @@ export function LectureFormModal({
     }
     const extractedId = extractYouTubeVideoId(val);
     if (!extractedId) {
-      setMainVideoError(isAr ? 'رابط يوتيوب غير صالح' : 'Invalid YouTube URL or ID');
+      setMainVideoError(isAr ? 'رابط YouTube غير صالح' : 'Invalid YouTube URL or ID');
     } else {
       setMainVideoError(null);
     }
   };
 
-  const validateSolutionVideo = (val: string) => {
+  const handleSolutionVideoChange = (val: string) => {
     setSolutionVideoUrl(val);
     if (!val.trim()) {
       setSolutionVideoError(null);
@@ -430,11 +390,19 @@ export function LectureFormModal({
     }
     const extractedId = extractYouTubeVideoId(val);
     if (!extractedId) {
-      setSolutionVideoError(isAr ? 'رابط يوتيوب غير صالح' : 'Invalid YouTube URL or ID');
+      setSolutionVideoError(isAr ? 'رابط YouTube غير صالح' : 'Invalid YouTube URL or ID');
     } else {
       setSolutionVideoError(null);
     }
   };
+
+  const mainExtractedId = useMemo(() => {
+    return mainVideoUrl.trim() ? extractYouTubeVideoId(mainVideoUrl) : null;
+  }, [mainVideoUrl]);
+
+  const solutionExtractedId = useMemo(() => {
+    return solutionVideoUrl.trim() ? extractYouTubeVideoId(solutionVideoUrl) : null;
+  }, [solutionVideoUrl]);
 
   // Handle Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -445,13 +413,11 @@ export function LectureFormModal({
     const cleanTitleAr = titleAr.trim();
     if (!cleanTitleAr) {
       setErrorMessage(isAr ? 'يرجى إدخال اسم المحاضرة بالعربية' : 'Arabic title is required');
-      setActiveTab('basic');
       return;
     }
 
     if (!academicYearId) {
-      setErrorMessage(isAr ? 'يرجى اختيار المرحلة الدراسية' : 'Academic year is required');
-      setActiveTab('basic');
+      setErrorMessage(isAr ? 'يرجى اختيار السنة الدراسية' : 'Academic year is required');
       return;
     }
 
@@ -459,7 +425,6 @@ export function LectureFormModal({
       const extractedMain = extractYouTubeVideoId(mainVideoUrl);
       if (!extractedMain) {
         setErrorMessage(isAr ? 'رابط فيديو المحاضرة الأساسي غير صالح' : 'Invalid main YouTube URL');
-        setActiveTab('videos');
         return;
       }
     }
@@ -468,7 +433,6 @@ export function LectureFormModal({
       const extractedSol = extractYouTubeVideoId(solutionVideoUrl);
       if (!extractedSol) {
         setErrorMessage(isAr ? 'رابط فيديو الحل غير صالح' : 'Invalid solution YouTube URL');
-        setActiveTab('videos');
         return;
       }
     }
@@ -482,7 +446,6 @@ export function LectureFormModal({
             ? 'يرجى تحديد تاريخ نزول المحاضرة المجدولة'
             : 'Scheduled date is required for scheduled lectures'
         );
-        setActiveTab('visibility');
         return;
       }
       finalScheduledAt = `${scheduledDate}T${scheduledTime || '20:00'}:00.000Z`;
@@ -496,7 +459,7 @@ export function LectureFormModal({
 
       if (pendingCropFile) {
         setUploadProgressStatus(
-          isAr ? 'جاري رفع صورة الغلاف إلى Google Drive...' : 'Uploading image to Google Drive...'
+          isAr ? 'جاري رفع صورة الغلاف إلى التخزين السحابي...' : 'Uploading image to Cloud Storage...'
         );
 
         const uploadRes = await staffLecturesApi.uploadThumbnail(
@@ -525,9 +488,7 @@ export function LectureFormModal({
         const payload: UpdateLecturePayload = {
           academic_year_id: academicYearId,
           title_ar: cleanTitleAr,
-          title_en: titleEn.trim() || undefined,
           description_ar: descriptionAr.trim() || undefined,
-          description_en: descriptionEn.trim() || undefined,
           sequence_order: sequenceOrder,
           sort_order: sortOrder,
           status,
@@ -551,9 +512,7 @@ export function LectureFormModal({
         const payload: CreateLecturePayload = {
           academic_year_id: academicYearId,
           title_ar: cleanTitleAr,
-          title_en: titleEn.trim() || undefined,
           description_ar: descriptionAr.trim() || undefined,
-          description_en: descriptionEn.trim() || undefined,
           sequence_order: sequenceOrder,
           sort_order: sortOrder,
           status,
@@ -592,27 +551,6 @@ export function LectureFormModal({
             }
           }
         }
-
-        // Add chapters if any for newly created lecture
-        if (chapters.length > 0 && savedLecture.id) {
-          for (let i = 0; i < chapters.length; i++) {
-            const ch = chapters[i];
-            try {
-              await staffLecturesApi.addChapter(
-                savedLecture.id,
-                {
-                  timestamp_seconds: ch.timestamp_seconds,
-                  title_ar: ch.title_ar,
-                  title_en: ch.title_en || ch.title_ar || '',
-                  sequence_order: i + 1,
-                },
-                academicYearId
-              );
-            } catch (err) {
-              console.error('Failed to save chapter:', err);
-            }
-          }
-        }
       }
 
       onSuccess(savedLecture);
@@ -627,7 +565,7 @@ export function LectureFormModal({
     }
   };
 
-  // Preview Data calculation
+  // Preview Data calculation for Student Live Modal
   const previewData = useMemo(() => {
     const activeYearObj = availableYears.find((y) => y.id === academicYearId);
     const selectedCourseNames = availableCourses
@@ -644,9 +582,7 @@ export function LectureFormModal({
 
     return {
       titleAr: titleAr || (isAr ? 'عنوان المحاضرة' : 'Lecture Title'),
-      titleEn,
       descriptionAr,
-      descriptionEn,
       academicYearName: activeYearObj ? (isAr ? activeYearObj.name_ar : activeYearObj.name_en) : undefined,
       thumbnailUrl: localPreviewUrl,
       visibility,
@@ -655,7 +591,6 @@ export function LectureFormModal({
       selectedPackageNames,
       mainVideoUrl,
       solutionVideoUrl,
-      chapters,
       attachments: [
         ...existingAttachments.map((a) => ({
           title_ar: a.title_ar,
@@ -673,9 +608,7 @@ export function LectureFormModal({
     };
   }, [
     titleAr,
-    titleEn,
     descriptionAr,
-    descriptionEn,
     academicYearId,
     availableYears,
     availableCourses,
@@ -688,7 +621,6 @@ export function LectureFormModal({
     scheduledTime,
     mainVideoUrl,
     solutionVideoUrl,
-    chapters,
     existingAttachments,
     pendingAttachments,
     isAr,
@@ -698,11 +630,12 @@ export function LectureFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-5xl max-h-[92vh] flex flex-col bg-[#0b0f0c] border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden text-neutral-200">
+      <div className="relative w-full max-w-5xl max-h-[94vh] flex flex-col bg-[#0b0f0c] border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden text-neutral-200">
+        
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800/80 bg-[#101612]">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800/60 shadow-xs">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800/80 bg-[#101612] flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800/60 shadow-xs">
               <Video className="h-5 w-5" />
             </div>
             <div>
@@ -717,8 +650,8 @@ export function LectureFormModal({
               </h2>
               <p className="text-xs text-neutral-400">
                 {isAr
-                  ? 'إدارة محتوى المحاضرة، الكورسات، الباقات، الفيديوهات والمرفقات'
-                  : 'Manage lecture metadata, assigned courses, packages, videos and attachments'}
+                  ? 'نموذج موحد متكامل لإدارة بيانات المحاضرة، الكورسات، الباقات، الفيديوهات والمرفقات'
+                  : 'One continuous form for lecture metadata, courses, packages, videos and attachments'}
               </p>
             </div>
           </div>
@@ -733,748 +666,781 @@ export function LectureFormModal({
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-1 px-6 py-2.5 bg-[#0e1310] border-b border-neutral-800 overflow-x-auto select-none">
-          {[
-            { key: 'basic', label: isAr ? 'البيانات الأساسية' : 'Basic Info', icon: FileText },
-            {
-              key: 'access',
-              label: isAr ? 'الكورسات والباقات' : 'Courses & Packages',
-              icon: BookOpen,
-              count: selectedCourseIds.length + selectedPackageIds.length,
-            },
-            { key: 'videos', label: isAr ? 'الفيديوهات' : 'Videos', icon: Video },
-            { key: 'visibility', label: isAr ? 'النشر والجدولة' : 'Visibility & Schedule', icon: Globe },
-            { key: 'chapters', label: isAr ? 'الفهرس' : 'Chapters', icon: ListOrdered, count: chapters.length },
-            {
-              key: 'attachments',
-              label: isAr ? 'المذكرات والمرفقات' : 'PDF Attachments',
-              icon: FileText,
-              count: existingAttachments.length + pendingAttachments.length,
-            },
-            { key: 'preview', label: isAr ? 'المعاينة الحية' : 'Live Preview', icon: Eye },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key as TabKey)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-700/60 shadow-xs'
-                    : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-850'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-emerald-400' : 'text-neutral-400'}`} />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className="text-[10px] bg-emerald-900/80 text-emerald-200 px-1.5 py-0.2 rounded-full font-mono">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Modal Body / Tab Content */}
+        {/* Modal Body: Continuous Vertical Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+          
+          {/* Error Banner */}
           {errorMessage && (
-            <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-red-950/60 border border-red-800/80 text-red-200 text-xs font-medium">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+            <div className="flex items-center gap-2.5 p-4 rounded-xl bg-red-950/70 border border-red-800/80 text-red-200 text-xs font-semibold shadow-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400" />
               <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* TAB 1: BASIC INFO */}
-          {activeTab === 'basic' && (
-            <div className="space-y-6">
-              {/* Academic Year Selection */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                  {isAr ? 'السنة الدراسية *' : 'Academic Year *'}
-                </label>
-                <select
-                  value={academicYearId}
-                  onChange={(e) => setAcademicYearId(e.target.value)}
-                  disabled={isSubmitting || (isEdit && Boolean(initialLecture?.academic_year_id))}
-                  className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                >
-                  <option value="">{isAr ? '-- اختر المرحلة الدراسية --' : '-- Select Academic Year --'}</option>
-                  {availableYears.map((year) => (
-                    <option key={year.id} value={year.id}>
-                      {isAr ? year.name_ar : year.name_en} ({year.code})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-neutral-500">
-                  {isAr
-                    ? 'يتم عزل الكورسات والباقات والمحاضرات وفقاً للسنة الدراسية لحماية خصوصية الطلاب.'
-                    : 'Courses, packages and lectures are strictly isolated by academic year.'}
+          {/* ============================================================ */}
+          {/* SECTION 01 — بيانات المحاضرة */}
+          {/* ============================================================ */}
+          <div className="bg-[#101612] border border-neutral-800/90 rounded-2xl p-5 sm:p-6 space-y-5 shadow-xs">
+            <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/70">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-950 text-emerald-400 font-mono font-bold text-xs border border-emerald-800/60">
+                01
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  {isAr ? 'بيانات المحاضرة' : 'Lecture Basic Info'}
+                </h3>
+                <p className="text-[11px] text-neutral-400">
+                  {isAr ? 'البيانات الأساسية وتحديد السنة الدراسية' : 'Title, description and academic year'}
                 </p>
               </div>
+            </div>
 
-              {/* Titles Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">
-                    {isAr ? 'اسم المحاضرة بالعربي *' : 'Lecture Title (Arabic) *'}
-                  </label>
-                  <input
-                    type="text"
-                    value={titleAr}
-                    onChange={(e) => setTitleAr(e.target.value)}
-                    placeholder={isAr ? 'الوحدة الأولى: قواعد الأزمنة' : 'Arabic Lecture Title'}
-                    disabled={isSubmitting}
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
+            {/* Academic Year Selection */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-neutral-200 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                {isAr ? 'السنة الدراسية *' : 'Academic Year *'}
+              </label>
+              <select
+                value={academicYearId}
+                onChange={(e) => setAcademicYearId(e.target.value)}
+                disabled={isSubmitting || (isEdit && Boolean(initialLecture?.academic_year_id))}
+                className="w-full bg-[#141b16] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+              >
+                <option value="">{isAr ? '-- اختر المرحلة الدراسية --' : '-- Select Academic Year --'}</option>
+                {availableYears.map((year) => (
+                  <option key={year.id} value={year.id}>
+                    {isAr ? year.name_ar : year.name_en} ({year.code})
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-neutral-400">
+                {isAr
+                  ? 'يتحكم اختيار السنة الدراسية في قائمة الكورسات والباقات المتاحة أدناه.'
+                  : 'Controls which courses and packages are available for selection.'}
+              </p>
+            </div>
+
+            {/* Title (Arabic Only) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-neutral-200">
+                {isAr ? 'اسم المحاضرة *' : 'Lecture Title (Arabic) *'}
+              </label>
+              <input
+                type="text"
+                value={titleAr}
+                onChange={(e) => setTitleAr(e.target.value)}
+                placeholder={isAr ? 'مثال: المحاضرة الأولى — مقدمة في الكيمياء العضوية' : 'Arabic Lecture Title'}
+                disabled={isSubmitting}
+                className="w-full bg-[#141b16] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors font-medium"
+              />
+            </div>
+
+            {/* Description (Arabic Only) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-neutral-200">
+                {isAr ? 'الوصف' : 'Description (Arabic)'}
+              </label>
+              <textarea
+                rows={3}
+                value={descriptionAr}
+                onChange={(e) => setDescriptionAr(e.target.value)}
+                placeholder={isAr ? 'اكتب ملخصاً لمحتوى المحاضرة والنقاط الأساسية والتمارين...' : 'Lecture description in Arabic...'}
+                disabled={isSubmitting}
+                className="w-full bg-[#141b16] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+              />
+            </div>
+
+            {/* Optional Thumbnail (16:9) */}
+            <div className="space-y-2 pt-2 border-t border-neutral-800/60">
+              <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                <Crop className="w-3.5 h-3.5 text-emerald-400" />
+                {isAr ? 'صورة غلاف المحاضرة — اختياري (16:9)' : 'Lecture Thumbnail (16:9 - Optional)'}
+              </label>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#141b16] p-3.5 rounded-xl border border-neutral-800">
+                <div className="relative aspect-video w-40 rounded-lg overflow-hidden bg-black/60 border border-neutral-700 flex items-center justify-center flex-shrink-0">
+                  {localPreviewUrl ? (
+                    <img
+                      src={localPreviewUrl}
+                      alt="Thumbnail preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Video className="w-7 h-7 text-neutral-600" />
+                  )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">
-                    {isAr ? 'اسم المحاضرة بالإنجليزي' : 'Lecture Title (English)'}
-                  </label>
-                  <input
-                    type="text"
-                    value={titleEn}
-                    onChange={(e) => setTitleEn(e.target.value)}
-                    placeholder="Unit 1: Tenses & Grammar"
-                    disabled={isSubmitting}
-                    dir="ltr"
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-sans focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
-                </div>
-              </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsCropperOpen(true)}
+                      disabled={isSubmitting}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/80 text-xs font-bold transition-colors"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>
+                        {localPreviewUrl
+                          ? isAr
+                            ? 'تغيير صورة الغلاف'
+                            : 'Change Cover'
+                          : isAr
+                          ? 'رفع وقص صورة غلاف'
+                          : 'Upload & Crop Cover'}
+                      </span>
+                    </button>
 
-              {/* Descriptions Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">
-                    {isAr ? 'الوصف بالعربي' : 'Description (Arabic)'}
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={descriptionAr}
-                    onChange={(e) => setDescriptionAr(e.target.value)}
-                    placeholder={isAr ? 'شرح تفصيلي لمحتوى المحاضرة والتمارين...' : 'Lecture description in Arabic...'}
-                    disabled={isSubmitting}
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">
-                    {isAr ? 'الوصف بالإنجليزي' : 'Description (English)'}
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={descriptionEn}
-                    onChange={(e) => setDescriptionEn(e.target.value)}
-                    placeholder="Detailed explanation of lecture topics and exercises..."
-                    disabled={isSubmitting}
-                    dir="ltr"
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-sans focus:outline-none focus:border-emerald-500 transition-colors resize-none"
-                  />
-                </div>
-              </div>
-
-              {/* Thumbnail / Cover Image (16:9 Crop) */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
-                  <Crop className="w-3.5 h-3.5 text-emerald-400" />
-                  {isAr ? 'صورة غلاف المحاضرة (16:9)' : 'Lecture Thumbnail / Cover (16:9)'}
-                </label>
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-[#121814] p-4 rounded-xl border border-neutral-800/80">
-                  <div className="relative aspect-video w-44 rounded-lg overflow-hidden bg-black/60 border border-neutral-700 flex items-center justify-center flex-shrink-0">
-                    {localPreviewUrl ? (
-                      <img
-                        src={localPreviewUrl}
-                        alt="Thumbnail preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Video className="w-8 h-8 text-neutral-600" />
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
+                    {localPreviewUrl && (
                       <button
                         type="button"
-                        onClick={() => setIsCropperOpen(true)}
+                        onClick={handleRemoveThumbnail}
                         disabled={isSubmitting}
-                        className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-colors shadow-xs"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-neutral-800 hover:bg-red-950/80 hover:text-red-300 text-neutral-400 text-xs transition-colors"
                       >
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>{localPreviewUrl ? (isAr ? 'استبدال وقص' : 'Replace & Crop') : (isAr ? 'رفع وقص صورة' : 'Upload & Crop')}</span>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'إزالة' : 'Remove'}</span>
                       </button>
-
-                      {localPreviewUrl && (
-                        <button
-                          type="button"
-                          onClick={handleRemoveThumbnail}
-                          disabled={isSubmitting}
-                          className="flex items-center gap-1 text-xs text-neutral-400 hover:text-red-400 py-1.5 px-2.5 rounded-lg border border-neutral-700 hover:border-red-900/60 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>{isAr ? 'إزالة' : 'Remove'}</span>
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-neutral-400 leading-relaxed">
-                      {isAr
-                        ? 'يتم تخزين الصور عبر Google Drive Proxy بنسبة 16:9 ولا يتم كشف روابط التخزين المباشرة.'
-                        : 'Uploaded via secure Google Drive backend proxy in 16:9 ratio.'}
-                    </p>
+                    )}
                   </div>
-                </div>
-              </div>
-
-              {/* Ordering */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">
-                    {isAr ? 'ترتيب المحاضرة (Sort Order)' : 'Sort Order'}
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(parseInt(e.target.value, 10) || 0)}
-                    disabled={isSubmitting}
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">
-                    {isAr ? 'الترتيب التسلسلي (Sequence Order)' : 'Sequence Order'}
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={sequenceOrder}
-                    onChange={(e) => setSequenceOrder(parseInt(e.target.value, 10) || 1)}
-                    disabled={isSubmitting}
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors font-mono"
-                  />
+                  <p className="text-[11px] text-neutral-500">
+                    {isAr
+                      ? 'في حال عدم رفع صورة مخصصة، سيتم استخدام صورة فيديو YouTube تلقائياً.'
+                      : 'If omitted, the YouTube video thumbnail will be automatically displayed.'}
+                  </p>
                 </div>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* TAB 2: COURSE & PACKAGE ACCESS (Sections 7, 8, 9) */}
-          {activeTab === 'access' && (
-            <div className="space-y-6">
-              {/* Academic Year Filter Bar inside Tab 2 */}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-[#121814] rounded-2xl border border-neutral-800">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-bold text-neutral-300">
-                    {isAr ? 'المرحلة الدراسية:' : 'Academic Stage:'}
-                  </span>
-                  <select
-                    value={academicYearId}
-                    onChange={(e) => setAcademicYearId(e.target.value)}
-                    disabled={isSubmitting || (isEdit && Boolean(initialLecture?.academic_year_id))}
-                    className="bg-[#0b0f0c] border border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="">{isAr ? '-- جميع المراحل الدراسية --' : '-- All Academic Stages --'}</option>
-                    {availableYears.map((year) => (
-                      <option key={year.id} value={year.id}>
-                        {isAr ? year.name_ar : year.name_en}
-                      </option>
-                    ))}
-                  </select>
+          {/* ============================================================ */}
+          {/* SECTION 02 — الكورسات والباقات */}
+          {/* ============================================================ */}
+          <div className="bg-[#101612] border border-neutral-800/90 rounded-2xl p-5 sm:p-6 space-y-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-800/70">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-950 text-emerald-400 font-mono font-bold text-xs border border-emerald-800/60">
+                  02
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-white">
+                    {isAr ? 'الكورسات والباقات' : 'Courses & Packages'}
+                  </h3>
+                  <p className="text-[11px] text-neutral-400">
+                    {isAr
+                      ? 'حدد الكورسات والباقات التي تتبع لها هذه المحاضرة (متعدد الاختيارات)'
+                      : 'Multi-select courses and packages for this lecture'}
+                  </p>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => fetchRelations(academicYearId)}
-                  disabled={isLoadingRelations}
-                  className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isLoadingRelations ? 'animate-spin' : ''}`} />
-                  <span>{isAr ? 'تحديث الكورسات والباقات' : 'Refresh'}</span>
-                </button>
               </div>
 
-              {/* Courses Multi-Select Section */}
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-emerald-400" />
-                    <h3 className="text-xs font-bold text-white">
-                      {isAr ? 'المحاضرة تظهر في الكورسات التالية:' : 'Lecture belongs to following courses:'}
-                    </h3>
-                    <span className="text-xs font-mono px-2 py-0.2 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800/60">
-                      {selectedCourseIds.length} {isAr ? 'محدد' : 'selected'}
-                    </span>
-                  </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 font-mono">
+                  {selectedCourseIds.length} {isAr ? 'كورس' : 'courses'} | {selectedPackageIds.length} {isAr ? 'باقة' : 'packages'}
+                </span>
+              </div>
+            </div>
 
-                  <div className="flex items-center gap-2">
+            {/* Courses and Packages Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Courses Column */}
+              <div className="space-y-3 bg-[#141b16] p-4 rounded-xl border border-neutral-800/90 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-neutral-200 flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4 text-emerald-400" />
+                    {isAr ? 'الكورسات' : 'Courses'}
+                  </label>
+                  <div className="flex items-center gap-1.5 text-[11px]">
                     <button
                       type="button"
                       onClick={selectAllCourses}
-                      disabled={isSubmitting || filteredCourses.length === 0}
-                      className="text-[11px] text-emerald-400 hover:underline"
+                      disabled={availableCourses.length === 0}
+                      className="text-emerald-400 hover:text-emerald-300 underline font-medium"
                     >
                       {isAr ? 'تحديد الكل' : 'Select All'}
                     </button>
-                    <span className="text-neutral-600">•</span>
+                    <span className="text-neutral-600">|</span>
                     <button
                       type="button"
                       onClick={clearAllCourses}
-                      disabled={isSubmitting || selectedCourseIds.length === 0}
-                      className="text-[11px] text-neutral-400 hover:text-red-400"
+                      disabled={selectedCourseIds.length === 0}
+                      className="text-neutral-400 hover:text-white underline font-medium"
                     >
-                      {isAr ? 'إلغاء التحديد' : 'Clear'}
+                      {isAr ? 'إلغاء' : 'Clear'}
                     </button>
                   </div>
                 </div>
 
-                {/* Course Search */}
+                {/* Search */}
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <Search className="w-3.5 h-3.5 text-neutral-500 absolute start-3 top-2.5" />
                   <input
                     type="text"
                     value={courseSearch}
                     onChange={(e) => setCourseSearch(e.target.value)}
                     placeholder={isAr ? 'بحث في الكورسات...' : 'Search courses...'}
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-8 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[#0c100d] border border-neutral-700/80 rounded-lg ps-8 pe-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
-                {/* Courses List */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                {/* Selected Courses Chips */}
+                {selectedCourseIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {availableCourses
+                      .filter((c) => selectedCourseIds.includes(c.id))
+                      .map((c) => (
+                        <span
+                          key={c.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/90 text-emerald-300 border border-emerald-700 text-[11px] font-bold animate-in fade-in"
+                        >
+                          <span className="truncate max-w-[140px]">{isAr ? c.title_ar : c.title_en || c.title_ar}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleCourse(c.id)}
+                            className="text-emerald-400 hover:text-white p-0.5 rounded-full hover:bg-emerald-900/50"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+                )}
+
+                {/* Courses Selection List */}
+                <div className="max-h-48 overflow-y-auto space-y-1.5 pe-1 pt-1 flex-1">
                   {isLoadingRelations ? (
-                    <div className="col-span-2 text-center py-6 text-xs text-neutral-500 flex items-center justify-center gap-2">
+                    <div className="py-6 flex items-center justify-center text-xs text-neutral-400 gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
                       <span>{isAr ? 'جاري تحميل الكورسات...' : 'Loading courses...'}</span>
                     </div>
-                  ) : filteredCourses.length > 0 ? (
+                  ) : filteredCourses.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-neutral-500">
+                      {isAr ? 'لا توجد كورسات متاحة لهذه المرحلة' : 'No courses found for this year'}
+                    </div>
+                  ) : (
                     filteredCourses.map((c) => {
-                      const isChecked = selectedCourseIds.includes(c.id);
-                      const yearObj = availableYears.find((y) => y.id === c.academic_year_id);
-                      const yearName = c.academic_year_name_ar || yearObj?.name_ar;
-
+                      const isSelected = selectedCourseIds.includes(c.id);
                       return (
                         <label
                           key={c.id}
-                          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
-                            isChecked
-                              ? 'bg-emerald-950/40 border-emerald-600/80 text-white'
-                              : 'bg-[#101612] border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                          className={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-emerald-950/50 border-emerald-700/80 text-white'
+                              : 'bg-[#0e1310] border-neutral-800 text-neutral-300 hover:bg-neutral-800/50'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 truncate min-w-0">
+                          <div className="flex items-center gap-2 truncate">
                             <input
                               type="checkbox"
-                              checked={isChecked}
-                              onChange={() => toggleCourse(c)}
-                              className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-emerald-500 focus:ring-0 focus:ring-offset-0 shrink-0"
+                              checked={isSelected}
+                              onChange={() => toggleCourse(c.id)}
+                              className="w-3.5 h-3.5 rounded border-neutral-700 bg-neutral-900 text-emerald-500 focus:ring-0"
                             />
-                            <div className="truncate">
-                              <span className="font-semibold truncate block">{c.title_ar}</span>
-                              {yearName && (
-                                <span className="text-[10px] text-neutral-400 block truncate">{yearName}</span>
-                              )}
-                            </div>
+                            <span className="truncate font-medium">
+                              {isAr ? c.title_ar : c.title_en || c.title_ar}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            {c.is_published ? (
-                              <span className="text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.2 rounded font-mono">
-                                {isAr ? 'منشور' : 'Pub'}
-                              </span>
-                            ) : (
-                              <span className="text-[10px] text-neutral-500 bg-neutral-900 px-1.5 py-0.2 rounded font-mono">
-                                {isAr ? 'مسودة' : 'Draft'}
-                              </span>
-                            )}
-                          </div>
+                          {c.price !== undefined && (
+                            <span className="text-[10px] text-neutral-400 font-mono flex-shrink-0 ms-2">
+                              {c.price > 0 ? `${c.price} ج.م` : isAr ? 'مجاني' : 'Free'}
+                            </span>
+                          )}
                         </label>
                       );
                     })
-                  ) : (
-                    <div className="col-span-2 text-center py-5 px-3 text-xs text-neutral-400 bg-[#101612] rounded-xl border border-neutral-800 space-y-2">
-                      <p>{isAr ? 'لا توجد كورسات مضافة في هذه المرحلة الدراسية' : 'No courses found in this stage'}</p>
-                      <button
-                        type="button"
-                        onClick={() => setAcademicYearId('')}
-                        className="text-emerald-400 hover:underline text-[11px] font-bold block mx-auto"
-                      >
-                        {isAr ? 'عرض كافة الكورسات من جميع المراحل' : 'Show courses from all stages'}
-                      </button>
-                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Packages Multi-Select Section */}
-              <div className="space-y-3 pt-4 border-t border-neutral-800">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <PackageIcon className="w-4 h-4 text-amber-400" />
-                    <h3 className="text-xs font-bold text-white">
-                      {isAr ? 'المحاضرة تظهر في الباقات التالية:' : 'Lecture belongs to following packages:'}
-                    </h3>
-                    <span className="text-xs font-mono px-2 py-0.2 rounded-full bg-amber-950 text-amber-300 border border-amber-800/60">
-                      {selectedPackageIds.length} {isAr ? 'محدد' : 'selected'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
+              {/* Packages Column */}
+              <div className="space-y-3 bg-[#141b16] p-4 rounded-xl border border-neutral-800/90 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-neutral-200 flex items-center gap-1.5">
+                    <PackageIcon className="w-4 h-4 text-purple-400" />
+                    {isAr ? 'الباقات' : 'Packages'}
+                  </label>
+                  <div className="flex items-center gap-1.5 text-[11px]">
                     <button
                       type="button"
                       onClick={selectAllPackages}
-                      disabled={isSubmitting || filteredPackages.length === 0}
-                      className="text-[11px] text-amber-400 hover:underline"
+                      disabled={availablePackages.length === 0}
+                      className="text-purple-400 hover:text-purple-300 underline font-medium"
                     >
                       {isAr ? 'تحديد الكل' : 'Select All'}
                     </button>
-                    <span className="text-neutral-600">•</span>
+                    <span className="text-neutral-600">|</span>
                     <button
                       type="button"
                       onClick={clearAllPackages}
-                      disabled={isSubmitting || selectedPackageIds.length === 0}
-                      className="text-[11px] text-neutral-400 hover:text-red-400"
+                      disabled={selectedPackageIds.length === 0}
+                      className="text-neutral-400 hover:text-white underline font-medium"
                     >
-                      {isAr ? 'إلغاء التحديد' : 'Clear'}
+                      {isAr ? 'إلغاء' : 'Clear'}
                     </button>
                   </div>
                 </div>
 
-                {/* Package Search */}
+                {/* Search */}
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <Search className="w-3.5 h-3.5 text-neutral-500 absolute start-3 top-2.5" />
                   <input
                     type="text"
                     value={packageSearch}
                     onChange={(e) => setPackageSearch(e.target.value)}
                     placeholder={isAr ? 'بحث في الباقات...' : 'Search packages...'}
-                    className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-8 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[#0c100d] border border-neutral-700/80 rounded-lg ps-8 pe-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500"
                   />
                 </div>
 
-                {/* Packages List */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                {/* Selected Packages Chips */}
+                {selectedPackageIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {availablePackages
+                      .filter((p) => selectedPackageIds.includes(p.id))
+                      .map((p) => (
+                        <span
+                          key={p.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-950/90 text-purple-300 border border-purple-700 text-[11px] font-bold animate-in fade-in"
+                        >
+                          <span className="truncate max-w-[140px]">{isAr ? p.title_ar : p.title_en || p.title_ar}</span>
+                          <button
+                            type="button"
+                            onClick={() => togglePackage(p.id)}
+                            className="text-purple-400 hover:text-white p-0.5 rounded-full hover:bg-purple-900/50"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                  </div>
+                )}
+
+                {/* Packages Selection List */}
+                <div className="max-h-48 overflow-y-auto space-y-1.5 pe-1 pt-1 flex-1">
                   {isLoadingRelations ? (
-                    <div className="col-span-2 text-center py-6 text-xs text-neutral-500 flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                    <div className="py-6 flex items-center justify-center text-xs text-neutral-400 gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
                       <span>{isAr ? 'جاري تحميل الباقات...' : 'Loading packages...'}</span>
                     </div>
-                  ) : filteredPackages.length > 0 ? (
+                  ) : filteredPackages.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-neutral-500">
+                      {isAr ? 'لا توجد باقات متاحة لهذه المرحلة' : 'No packages found for this year'}
+                    </div>
+                  ) : (
                     filteredPackages.map((p) => {
-                      const isChecked = selectedPackageIds.includes(p.id);
-                      const yearObj = availableYears.find((y) => y.id === p.academic_year_id);
-                      const yearName = p.academic_year_name_ar || yearObj?.name_ar;
-
+                      const isSelected = selectedPackageIds.includes(p.id);
                       return (
                         <label
                           key={p.id}
-                          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
-                            isChecked
-                              ? 'bg-amber-950/40 border-amber-600/80 text-white'
-                              : 'bg-[#101612] border-neutral-800 text-neutral-300 hover:border-neutral-700'
+                          className={`flex items-center justify-between p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-purple-950/50 border-purple-700/80 text-white'
+                              : 'bg-[#0e1310] border-neutral-800 text-neutral-300 hover:bg-neutral-800/50'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5 truncate min-w-0">
+                          <div className="flex items-center gap-2 truncate">
                             <input
                               type="checkbox"
-                              checked={isChecked}
-                              onChange={() => togglePackage(p)}
-                              className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-amber-500 focus:ring-0 focus:ring-offset-0 shrink-0"
+                              checked={isSelected}
+                              onChange={() => togglePackage(p.id)}
+                              className="w-3.5 h-3.5 rounded border-neutral-700 bg-neutral-900 text-purple-500 focus:ring-0"
                             />
-                            <div className="truncate">
-                              <span className="font-semibold truncate block">{p.title_ar}</span>
-                              {yearName && (
-                                <span className="text-[10px] text-neutral-400 block truncate">{yearName}</span>
-                              )}
-                            </div>
+                            <span className="truncate font-medium">
+                              {isAr ? p.title_ar : p.title_en || p.title_ar}
+                            </span>
                           </div>
-                          <span className="text-[10px] text-amber-400 font-mono shrink-0">
-                            {p.price} EGP
-                          </span>
+                          {p.price !== undefined && (
+                            <span className="text-[10px] text-neutral-400 font-mono flex-shrink-0 ms-2">
+                              {p.price > 0 ? `${p.price} ج.م` : isAr ? 'مجاني' : 'Free'}
+                            </span>
+                          )}
                         </label>
                       );
                     })
-                  ) : (
-                    <div className="col-span-2 text-center py-5 px-3 text-xs text-neutral-400 bg-[#101612] rounded-xl border border-neutral-800 space-y-2">
-                      <p>{isAr ? 'لا توجد باقات مضافة في هذه المرحلة الدراسية' : 'No packages found in this stage'}</p>
-                      <button
-                        type="button"
-                        onClick={() => setAcademicYearId('')}
-                        className="text-amber-400 hover:underline text-[11px] font-bold block mx-auto"
-                      >
-                        {isAr ? 'عرض كافة الباقات من جميع المراحل' : 'Show packages from all stages'}
-                      </button>
-                    </div>
                   )}
                 </div>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* TAB 3: VIDEOS (Sections 10, 11, 12) */}
-          {activeTab === 'videos' && (
-            <div className="space-y-6">
-              {/* Main Video Section */}
-              <div className="space-y-3 bg-[#121814] p-4 rounded-xl border border-neutral-800/80">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
+          {/* ============================================================ */}
+          {/* SECTION 03 — فيديو المحاضرة (Normal YouTube URL Only) */}
+          {/* ============================================================ */}
+          <div className="bg-[#101612] border border-neutral-800/90 rounded-2xl p-5 sm:p-6 space-y-5 shadow-xs">
+            <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/70">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-950 text-emerald-400 font-mono font-bold text-xs border border-emerald-800/60">
+                03
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  {isAr ? 'فيديو المحاضرة' : 'Lecture Video'}
+                </h3>
+                <p className="text-[11px] text-neutral-400">
+                  {isAr
+                    ? 'أدخل رابط YouTube العادي فقط — يقوم النظام بالتحقق واستخراج المعرف والمعاينة تلقائياً'
+                    : 'Paste normal YouTube URL — system automatically extracts ID and builds secure embed'}
+                </p>
+              </div>
+            </div>
+
+            {/* Main Video Input */}
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-neutral-200 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
                     <Video className="w-4 h-4 text-emerald-400" />
-                    <span>{isAr ? 'رابط فيديو المحاضرة الأساسي (Main Video)' : 'Main Lecture Video (YouTube)'}</span>
-                  </label>
-                  {mainVideoUrl && extractYouTubeVideoId(mainVideoUrl) && (
-                    <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-800/60 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      ID: {extractYouTubeVideoId(mainVideoUrl)}
+                    {isAr ? 'رابط فيديو YouTube الأساسي *' : 'Main YouTube Video URL *'}
+                  </span>
+                  {mainExtractedId && (
+                    <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
+                      ID: {mainExtractedId}
                     </span>
                   )}
-                </div>
-
+                </label>
                 <input
                   type="text"
                   value={mainVideoUrl}
-                  onChange={(e) => validateMainVideo(e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=... أو معرف الفيديو 11 حرف"
-                  disabled={isSubmitting}
+                  onChange={(e) => handleMainVideoChange(e.target.value)}
+                  placeholder="https://youtu.be/S_p-Q0h67os أو https://www.youtube.com/watch?v=S_p-Q0h67os"
                   dir="ltr"
-                  className={`w-full bg-[#0c100d] border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-sans focus:outline-none transition-colors ${
-                    mainVideoError ? 'border-red-600 focus:border-red-500' : 'border-neutral-700/80 focus:border-emerald-500'
-                  }`}
-                />
-
-                {mainVideoError && (
-                  <p className="text-xs text-red-400 font-medium flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    {mainVideoError}
-                  </p>
-                )}
-
-                {/* 16:9 YouTube Preview (Section 11) */}
-                {mainVideoUrl && extractYouTubeVideoId(mainVideoUrl) && (
-                  <div className="space-y-1.5 pt-2">
-                    <span className="text-[11px] font-semibold text-neutral-400">
-                      {isAr ? 'معاينة مشغل الفيديو (16:9 YouTube No-Cookie Player)' : '16:9 Player Preview'}
-                    </span>
-                    <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-neutral-700 shadow-lg">
-                      <iframe
-                        src={buildYouTubeEmbedUrl(extractYouTubeVideoId(mainVideoUrl)!)}
-                        title="Main Video Preview"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full border-0"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Solution Video Section */}
-              <div className="space-y-3 bg-[#121814] p-4 rounded-xl border border-neutral-800/80">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Video className="w-4 h-4 text-amber-400" />
-                    <span>{isAr ? 'رابط فيديو الحل النموذجي (Solution Video - اختياري)' : 'Solution Video (Optional)'}</span>
-                  </label>
-                  {solutionVideoUrl && extractYouTubeVideoId(solutionVideoUrl) && (
-                    <span className="text-[11px] font-mono text-amber-400 bg-amber-950 px-2 py-0.5 rounded-md border border-amber-800/60 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      ID: {extractYouTubeVideoId(solutionVideoUrl)}
-                    </span>
-                  )}
-                </div>
-
-                <input
-                  type="text"
-                  value={solutionVideoUrl}
-                  onChange={(e) => validateSolutionVideo(e.target.value)}
-                  placeholder="https://youtu.be/... أو معرف الفيديو"
                   disabled={isSubmitting}
-                  dir="ltr"
-                  className={`w-full bg-[#0c100d] border rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-sans focus:outline-none transition-colors ${
-                    solutionVideoError ? 'border-red-600 focus:border-red-500' : 'border-neutral-700/80 focus:border-amber-500'
-                  }`}
+                  className="w-full bg-[#141b16] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-emerald-500 transition-colors"
                 />
-
-                {solutionVideoError && (
-                  <p className="text-xs text-red-400 font-medium flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    {solutionVideoError}
-                  </p>
-                )}
-
-                {/* Solution Video Preview */}
-                {solutionVideoUrl && extractYouTubeVideoId(solutionVideoUrl) && (
-                  <div className="space-y-1.5 pt-2">
-                    <span className="text-[11px] font-semibold text-neutral-400">
-                      {isAr ? 'معاينة فيديو الحل (16:9 Player)' : 'Solution Player Preview'}
-                    </span>
-                    <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black border border-neutral-700 shadow-lg">
-                      <iframe
-                        src={buildYouTubeEmbedUrl(extractYouTubeVideoId(solutionVideoUrl)!)}
-                        title="Solution Video Preview"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full border-0"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: VISIBILITY & SCHEDULE (Sections 13, 14, 15) */}
-          {activeTab === 'visibility' && (
-            <div className="space-y-6">
-              {/* Visibility Options */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-300">
-                  {isAr ? 'حالة الظهور وإتاحة المحاضرة *' : 'Visibility & Access Tier *'}
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    {
-                      id: 'SUBSCRIBER_ONLY',
-                      title: isAr ? 'للمشتركين (Subscriber Only)' : 'Subscribers Only',
-                      desc: isAr ? 'تتطلب اشتراكاً نشطاً في أحد الكورسات أو الباقات المرتبطة.' : 'Requires active subscription in linked courses or packages.',
-                      icon: Lock,
-                      color: 'border-blue-700/80 bg-blue-950/30 text-blue-300',
-                    },
-                    {
-                      id: 'FREE',
-                      title: isAr ? 'مفتوحة للجميع (Free Preview)' : 'Free Access',
-                      desc: isAr ? 'متاحة مجاناً لجميع طلاب السنة الدراسية كمعاينة تجريبية.' : 'Free for all students in this grade level.',
-                      icon: Globe,
-                      color: 'border-emerald-700/80 bg-emerald-950/30 text-emerald-300',
-                    },
-                    {
-                      id: 'SCHEDULED',
-                      title: isAr ? 'مجدولة النشر (Scheduled Release)' : 'Scheduled Release',
-                      desc: isAr ? 'تظل مغلقة ومحمية حتى يحين تاريخ ووقت النزول المحدد.' : 'Locked and protected until the scheduled date/time arrives.',
-                      icon: Calendar,
-                      color: 'border-amber-700/80 bg-amber-950/30 text-amber-300',
-                    },
-                    {
-                      id: 'DRAFT',
-                      title: isAr ? 'مسودة (Draft)' : 'Draft',
-                      desc: isAr ? 'مخفية تماماً عن الطلاب وتظهر فقط للإدارة والمعلمين.' : 'Hidden from students; staff only.',
-                      icon: Clock,
-                      color: 'border-neutral-700 bg-neutral-900/60 text-neutral-300',
-                    },
-                  ].map((opt) => {
-                    const Icon = opt.icon;
-                    const isSelected = visibility === opt.id;
-                    return (
-                      <label
-                        key={opt.id}
-                        className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                          isSelected
-                            ? `${opt.color} shadow-sm`
-                            : 'bg-[#121814] border-neutral-800 hover:border-neutral-700 text-neutral-400'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="visibility"
-                          value={opt.id}
-                          checked={isSelected}
-                          onChange={() => setVisibility(opt.id)}
-                          className="mt-0.5 text-emerald-500 focus:ring-0"
-                        />
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-xs flex items-center gap-1.5 text-white">
-                            <Icon className="w-3.5 h-3.5" />
-                            {opt.title}
-                          </span>
-                          <p className="text-[11px] leading-relaxed text-neutral-400">{opt.desc}</p>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
+                <p className="text-[11px] text-neutral-400">
+                  {isAr
+                    ? 'يقبل النظام الروابط المباشرة لـ YouTube (بما فيها الروابط المختصرة و Shorts). لا تقم بلصق كود iframe.'
+                    : 'Accepts standard YouTube URLs (watch, share, shorts). Do not enter iframe HTML.'}
+                </p>
               </div>
 
-              {/* Schedule Date & Time Pickers (Section 14) */}
-              {visibility === 'SCHEDULED' && (
-                <div className="bg-[#121814] p-4 rounded-xl border border-amber-900/60 space-y-3 animate-in fade-in duration-150">
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
-                    <Clock className="w-4 h-4" />
-                    <span>{isAr ? 'توقيت نزول المحاضرة (Scheduled Date & Time)' : 'Scheduled Date & Time'}</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-neutral-400">
-                        {isAr ? 'تاريخ النزول *' : 'Release Date *'}
-                      </label>
-                      <input
-                        type="date"
-                        value={scheduledDate}
-                        onChange={(e) => setScheduledDate(e.target.value)}
-                        disabled={isSubmitting}
-                        className="w-full bg-[#0c100d] border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-neutral-400">
-                        {isAr ? 'وقت النزول *' : 'Release Time *'}
-                      </label>
-                      <input
-                        type="time"
-                        value={scheduledTime}
-                        onChange={(e) => setScheduledTime(e.target.value)}
-                        disabled={isSubmitting}
-                        className="w-full bg-[#0c100d] border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <p className="text-[11px] text-neutral-500">
-                    {isAr
-                      ? 'يتم التحكم في الإتاحة بالكامل من الخادم (Server-Side Authorization). قبل حلول الوقت المحدد يُرفض تشغيل الفيديو أو تحميل الملفات للمشتركين بـ 403 LECTURE_LOCKED_SCHEDULED.'
-                      : 'Server-side enforced scheduled lock. Returns 403 LECTURE_LOCKED_SCHEDULED prior to release.'}
-                  </p>
+              {/* Main Video Error */}
+              {mainVideoError && (
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-950/50 border border-red-800/80 text-red-300 text-xs">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{mainVideoError}</span>
                 </div>
               )}
 
-              {/* Status Select */}
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-bold text-neutral-300">
-                  {isAr ? 'حالة النشر العامة (Status)' : 'Publication Status'}
+              {/* Main Video Live 16:9 Embed Preview */}
+              {mainExtractedId && (
+                <div className="bg-[#141b16] p-3.5 rounded-xl border border-neutral-800/80 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-neutral-300 font-semibold">
+                    <span className="flex items-center gap-1.5 text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {isAr ? 'معاينة مشغل الفيديو الأساسي' : 'Main Video Player Preview'}
+                    </span>
+                    <span className="text-[10px] text-neutral-500 font-mono">youtube-nocookie.com</span>
+                  </div>
+                  <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-neutral-800 shadow-md">
+                    <iframe
+                      src={buildYouTubeEmbedUrl(mainExtractedId)}
+                      title="Main Video Preview"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Solution Video Input (Optional) */}
+            <div className="space-y-3 pt-4 border-t border-neutral-800/60">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-neutral-300 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                    {isAr ? 'رابط فيديو الحل — اختياري' : 'Solution Video URL (Optional)'}
+                  </span>
+                  {solutionExtractedId && (
+                    <span className="text-[11px] font-mono text-purple-400 bg-purple-950/80 px-2 py-0.5 rounded border border-purple-800/60">
+                      ID: {solutionExtractedId}
+                    </span>
+                  )}
                 </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                <input
+                  type="text"
+                  value={solutionVideoUrl}
+                  onChange={(e) => handleSolutionVideoChange(e.target.value)}
+                  placeholder="https://youtu.be/... (فيديو حل الأسئلة والتمارين)"
+                  dir="ltr"
                   disabled={isSubmitting}
-                  className="w-full bg-[#121814] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-                >
-                  <option value="PUBLISHED">{isAr ? 'منشورة (PUBLISHED)' : 'Published'}</option>
-                  <option value="DRAFT">{isAr ? 'مسودة (DRAFT)' : 'Draft'}</option>
-                  <option value="ARCHIVED">{isAr ? 'مؤرشفة (ARCHIVED)' : 'Archived'}</option>
-                </select>
+                  className="w-full bg-[#141b16] border border-neutral-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 font-mono focus:outline-none focus:border-purple-500 transition-colors"
+                />
+              </div>
+
+              {/* Solution Video Error */}
+              {solutionVideoError && (
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-950/50 border border-red-800/80 text-red-300 text-xs">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{solutionVideoError}</span>
+                </div>
+              )}
+
+              {/* Solution Video Live 16:9 Embed Preview */}
+              {solutionExtractedId && (
+                <div className="bg-[#141b16] p-3.5 rounded-xl border border-neutral-800/80 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-neutral-300 font-semibold">
+                    <span className="flex items-center gap-1.5 text-purple-400">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {isAr ? 'معاينة فيديو الحل' : 'Solution Video Player Preview'}
+                    </span>
+                    <span className="text-[10px] text-neutral-500 font-mono">youtube-nocookie.com</span>
+                  </div>
+                  <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-neutral-800 shadow-md">
+                    <iframe
+                      src={buildYouTubeEmbedUrl(solutionExtractedId)}
+                      title="Solution Video Preview"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ============================================================ */}
+          {/* SECTION 04 — النشر والجدولة */}
+          {/* ============================================================ */}
+          <div className="bg-[#101612] border border-neutral-800/90 rounded-2xl p-5 sm:p-6 space-y-5 shadow-xs">
+            <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/70">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-950 text-emerald-400 font-mono font-bold text-xs border border-emerald-800/60">
+                04
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  {isAr ? 'النشر والجدولة' : 'Publishing & Scheduling'}
+                </h3>
+                <p className="text-[11px] text-neutral-400">
+                  {isAr
+                    ? 'حدد حالة إتاحة المحاضرة وسياسة الوصول وسعر المشاهدة'
+                    : 'Set visibility status, access control, and scheduled release date'}
+                </p>
               </div>
             </div>
-          )}
 
-          {/* TAB 5: CHAPTERS (Section 17) */}
-          {activeTab === 'chapters' && (
-            <LectureChaptersManager
-              chapters={chapters}
-              onChange={setChapters}
-              disabled={isSubmitting}
-            />
-          )}
+            {/* Publication Status (3 Clear Options) */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-neutral-200">
+                {isAr ? 'حالة النشر *' : 'Publication Status *'}
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                
+                {/* 1. Publish Now */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVisibility('SUBSCRIBER_ONLY');
+                    setStatus('PUBLISHED');
+                  }}
+                  className={`p-3.5 rounded-xl border text-start transition-all flex flex-col justify-between gap-2 ${
+                    visibility === 'SUBSCRIBER_ONLY' && status === 'PUBLISHED'
+                      ? 'bg-emerald-950/60 border-emerald-600 text-white shadow-xs'
+                      : 'bg-[#141b16] border-neutral-800 text-neutral-300 hover:bg-neutral-800/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-bold flex items-center gap-1.5 text-emerald-400">
+                      <Globe className="w-3.5 h-3.5" />
+                      {isAr ? 'نشر الآن' : 'Publish Now'}
+                    </span>
+                    {visibility === 'SUBSCRIBER_ONLY' && status === 'PUBLISHED' && (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-400">
+                    {isAr ? 'تكون المحاضرة متاحة للطلاب فوراً' : 'Immediately visible to students'}
+                  </p>
+                </button>
 
-          {/* TAB 6: ATTACHMENTS & PDF (Sections 18, 19) */}
-          {activeTab === 'attachments' && (
+                {/* 2. Draft */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVisibility('DRAFT');
+                    setStatus('DRAFT');
+                  }}
+                  className={`p-3.5 rounded-xl border text-start transition-all flex flex-col justify-between gap-2 ${
+                    visibility === 'DRAFT' || status === 'DRAFT'
+                      ? 'bg-neutral-800/80 border-neutral-500 text-white shadow-xs'
+                      : 'bg-[#141b16] border-neutral-800 text-neutral-300 hover:bg-neutral-800/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-bold flex items-center gap-1.5 text-neutral-300">
+                      <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                      {isAr ? 'مسودة' : 'Draft'}
+                    </span>
+                    {(visibility === 'DRAFT' || status === 'DRAFT') && (
+                      <CheckCircle2 className="w-4 h-4 text-neutral-300" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-400">
+                    {isAr ? 'مخفية تماماً عن الطلاب للتجهيز' : 'Hidden from students'}
+                  </p>
+                </button>
+
+                {/* 3. Scheduled */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setVisibility('SCHEDULED');
+                    setStatus('PUBLISHED');
+                  }}
+                  className={`p-3.5 rounded-xl border text-start transition-all flex flex-col justify-between gap-2 ${
+                    visibility === 'SCHEDULED'
+                      ? 'bg-amber-950/60 border-amber-600 text-white shadow-xs'
+                      : 'bg-[#141b16] border-neutral-800 text-neutral-300 hover:bg-neutral-800/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-bold flex items-center gap-1.5 text-amber-400">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {isAr ? 'جدولة المحاضرة' : 'Schedule Release'}
+                    </span>
+                    {visibility === 'SCHEDULED' && (
+                      <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-400">
+                    {isAr ? 'تفتح المحاضرة تلقائياً في موعد محدد' : 'Auto-unlocks at specified date/time'}
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Scheduled Date/Time Picker */}
+            {visibility === 'SCHEDULED' && (
+              <div className="bg-[#141b16] p-4 rounded-xl border border-amber-800/70 space-y-3 animate-in fade-in">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                  <Clock className="w-4 h-4" />
+                  <span>{isAr ? 'تاريخ ووقت النشر المجدول (بتوقيت القاهرة)' : 'Scheduled Release Date & Time'}</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-neutral-300">
+                      {isAr ? 'تاريخ النزول *' : 'Release Date *'}
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      disabled={isSubmitting}
+                      className="w-full bg-[#0c100d] border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-neutral-300">
+                      {isAr ? 'وقت النزول *' : 'Release Time *'}
+                    </label>
+                    <input
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      disabled={isSubmitting}
+                      className="w-full bg-[#0c100d] border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-neutral-400">
+                  {isAr
+                    ? 'يتم قفل المحاضرة وحمايتها برمجياً على الخادم (403 Locked) حتى حلول هذا التوقيت.'
+                    : 'Strictly locked on server side prior to release time.'}
+                </p>
+              </div>
+            )}
+
+            {/* Access Tier / Price Selection */}
+            <div className="space-y-2 pt-2 border-t border-neutral-800/60">
+              <label className="text-xs font-bold text-neutral-200">
+                {isAr ? 'نوع الوصول / السعر' : 'Access Tier / Pricing'}
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                
+                {/* Subscribers Only */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFree(false);
+                    if (visibility === 'FREE') setVisibility('SUBSCRIBER_ONLY');
+                  }}
+                  className={`p-3.5 rounded-xl border text-start transition-all flex items-center justify-between ${
+                    visibility !== 'FREE' && !isFree
+                      ? 'bg-blue-950/60 border-blue-600 text-white'
+                      : 'bg-[#141b16] border-neutral-800 text-neutral-300 hover:bg-neutral-800/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Lock className="w-4 h-4 text-blue-400" />
+                    <div>
+                      <p className="text-xs font-bold">{isAr ? 'للمشتركين فقط' : 'Subscribers Only'}</p>
+                      <p className="text-[11px] text-neutral-400">
+                        {isAr ? 'تتطلب اشتراكاً فعالاً في الكورس أو الباقة' : 'Requires active course/package subscription'}
+                      </p>
+                    </div>
+                  </div>
+                  {visibility !== 'FREE' && !isFree && (
+                    <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                  )}
+                </button>
+
+                {/* Free Access */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFree(true);
+                    setVisibility('FREE');
+                  }}
+                  className={`p-3.5 rounded-xl border text-start transition-all flex items-center justify-between ${
+                    visibility === 'FREE' || isFree
+                      ? 'bg-emerald-950/60 border-emerald-600 text-white'
+                      : 'bg-[#141b16] border-neutral-800 text-neutral-300 hover:bg-neutral-800/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Globe className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <p className="text-xs font-bold">{isAr ? 'مجانية للجميع' : 'Free for Everyone'}</p>
+                      <p className="text-[11px] text-neutral-400">
+                        {isAr ? 'عينة مجانية متاحة لجميع الطلاب دون اشتراك' : 'Available for all students without subscription'}
+                      </p>
+                    </div>
+                  </div>
+                  {(visibility === 'FREE' || isFree) && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ============================================================ */}
+          {/* SECTION 05 — المذكرات والمرفقات */}
+          {/* ============================================================ */}
+          <div className="bg-[#101612] border border-neutral-800/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
+            <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/70">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-950 text-emerald-400 font-mono font-bold text-xs border border-emerald-800/60">
+                05
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  {isAr ? 'المذكرات والمرفقات' : 'Memos & PDF Attachments'}
+                </h3>
+                <p className="text-[11px] text-neutral-400">
+                  {isAr
+                    ? 'رفع مذكرة المحاضرة وملفات الشرح والواجبات الإضافية (PDF)'
+                    : 'Upload lecture PDF notes, summaries and homework attachments'}
+                </p>
+              </div>
+            </div>
+
+            {/* Attachments Manager */}
             <LectureAttachmentsManager
               existingAttachments={existingAttachments}
               pendingAttachments={pendingAttachments}
@@ -1490,25 +1456,78 @@ export function LectureFormModal({
               academicYearId={academicYearId}
               disabled={isSubmitting}
             />
-          )}
+          </div>
 
-          {/* TAB 7: LIVE PREVIEW (Section 20) */}
-          {activeTab === 'preview' && (
-            <LectureCardPreview data={previewData} mode="full" />
-          )}
+          {/* ============================================================ */}
+          {/* SECTION 06 — المعاينة الحية */}
+          {/* ============================================================ */}
+          <div className="bg-[#101612] border border-neutral-800/90 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
+            <div className="flex items-center gap-3 pb-3 border-b border-neutral-800/70">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-950 text-emerald-400 font-mono font-bold text-xs border border-emerald-800/60">
+                06
+              </span>
+              <div>
+                <h3 className="text-sm font-bold text-white">
+                  {isAr ? 'معاينة المحاضرة' : 'Live Student Preview'}
+                </h3>
+                <p className="text-[11px] text-neutral-400">
+                  {isAr
+                    ? 'تحقق من الشكل النهائي للمحاضرة ومظهرها للطالب قبل الحفظ'
+                    : 'Preview exactly how the lecture appears to enrolled students'}
+                </p>
+              </div>
+            </div>
 
-          {/* Modal Footer */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-neutral-800 bg-[#0b0f0c]">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
-            >
-              {isAr ? 'إلغاء' : 'Cancel'}
-            </button>
+            <div className="bg-[#141b16] p-5 rounded-xl border border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="space-y-1 text-center sm:text-start">
+                <p className="text-xs font-bold text-white flex items-center justify-center sm:justify-start gap-1.5">
+                  <Eye className="w-4 h-4 text-emerald-400" />
+                  <span>{isAr ? 'معاينة تجربة الطالب الحقيقية' : 'Realistic Student Experience'}</span>
+                </p>
+                <p className="text-[11px] text-neutral-400">
+                  {isAr
+                    ? 'شاهد الفيديو الأساسي وفيديو الحل وتنزيل المذكرات كما ستظهر داخل حساب الطالب.'
+                    : 'Preview video player, solution video, and memo download buttons.'}
+                </p>
+              </div>
 
-            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsPreviewModalOpen(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold transition-all shadow-sm border border-neutral-700/80 hover:border-emerald-500/50"
+              >
+                <Eye className="w-4 h-4 text-emerald-400" />
+                <span>{isAr ? 'معاينة شكل المحاضرة للطلاب' : 'Preview Student View'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Sticky Bottom Action Bar Inside Form */}
+          <div className="sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-4 p-4 -mx-6 -mb-6 bg-[#0b0f0c]/95 backdrop-blur-md border-t border-neutral-800 shadow-2xl">
+            <div className="flex items-center gap-2 text-xs text-neutral-400">
+              <span className="font-medium text-neutral-300">
+                {titleAr ? `«${titleAr}»` : isAr ? 'محاضرة جديدة' : 'New Lecture'}
+              </span>
+              <span>•</span>
+              <span>
+                {selectedCourseIds.length} {isAr ? 'كورس' : 'courses'}
+              </span>
+              <span>•</span>
+              <span>
+                {selectedPackageIds.length} {isAr ? 'باقة' : 'packages'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+              >
+                {isAr ? 'إلغاء' : 'Cancel'}
+              </button>
+
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -1522,7 +1541,15 @@ export function LectureFormModal({
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>{isEdit ? (isAr ? 'حفظ التعديلات' : 'Save Changes') : (isAr ? 'حفظ وإنشاء المحاضرة' : 'Create Lecture')}</span>
+                    <span>
+                      {isEdit
+                        ? isAr
+                          ? 'حفظ التعديلات'
+                          : 'Save Changes'
+                        : isAr
+                        ? 'حفظ المحاضرة'
+                        : 'Create Lecture'}
+                    </span>
                   </>
                 )}
               </button>
@@ -1530,6 +1557,31 @@ export function LectureFormModal({
           </div>
         </form>
       </div>
+
+      {/* Realistic Student Preview Modal */}
+      {isPreviewModalOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#0b0f0c] border border-neutral-800 rounded-2xl shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-bold text-white">
+                  {isAr ? 'معاينة المحاضرة (كما يراها الطالب)' : 'Student View Preview'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPreviewModalOpen(false)}
+                className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <LectureCardPreview data={previewData} mode="full" />
+          </div>
+        </div>
+      )}
 
       {/* Image Cropper Modal */}
       {isCropperOpen && (
