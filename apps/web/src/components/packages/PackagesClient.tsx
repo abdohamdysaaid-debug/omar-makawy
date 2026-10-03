@@ -43,7 +43,7 @@ const DEFAULT_YEARS: AcademicYearItem[] = [
 ];
 
 export default function PackagesClient() {
-  const { student, isAuthenticated, openAuthGate } = useAuth();
+  const { student, isAuthenticated, openAuthGate, isSubscribedToPackage, refreshSubscriptions } = useAuth();
   const [yearsList, setYearsList] = useState<AcademicYearItem[]>(DEFAULT_YEARS);
   const [selectedYearId, setSelectedYearId] = useState<string | number | 'all'>(() => {
     if (typeof window !== 'undefined') {
@@ -227,6 +227,7 @@ export default function PackagesClient() {
             isActivation: true,
           });
           setPurchaseSuccess(true);
+          await refreshSubscriptions();
           return;
         }
       } catch (err: any) {
@@ -326,6 +327,7 @@ export default function PackagesClient() {
         message: '🎉 تم شراء الباقة والاشتراك فيها بنجاح من رصيد محفظتك!',
         isActivation: true,
       });
+      await refreshSubscriptions();
     } catch (err: any) {
       const errMsg = err?.message || '';
       if (errMsg.includes('balance') || errMsg.includes('رصيد') || errMsg.includes('Insufficient')) {
@@ -341,6 +343,7 @@ export default function PackagesClient() {
           message: '🎉 تم الاشتراك في الباقة بنجاح!',
           isActivation: true,
         });
+        await refreshSubscriptions();
       }
     } finally {
       setPurchasing(false);
@@ -411,12 +414,16 @@ export default function PackagesClient() {
               const rawImage = pkg.thumbnail_url || pkg.imageUrl;
               const image = resolveMediaUrl(rawImage);
 
+              const isPurchased = isSubscribedToPackage(pkg.id);
+
               return (
                 <div
                   key={pkg.id}
                   onClick={() => openPackageDetails(pkg)}
                   className={`group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border ${
-                    isPopular
+                    isPurchased
+                      ? 'border-emerald-500/80 dark:border-emerald-500 shadow-md'
+                      : isPopular
                       ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/15'
                       : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
                   } rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 hover:-translate-y-1`}
@@ -438,12 +445,17 @@ export default function PackagesClient() {
                         <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
                         <span>{pkg.academic_year_name_ar || 'باقة معتمدة'}</span>
                       </span>
-                      {isPopular && (
+                      {isPurchased ? (
+                        <span className="bg-emerald-600 text-white font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 border border-emerald-400/30">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          تم الشراء
+                        </span>
+                      ) : isPopular ? (
                         <span className="bg-amber-400 text-stone-950 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
                           <Star className="w-3 h-3 fill-stone-950" />
                           الأكثر طلباً
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Title */}
@@ -463,7 +475,12 @@ export default function PackagesClient() {
                   <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
                     {/* Price Pill */}
                     <div className="text-center bg-emerald-50 dark:bg-emerald-950/40 py-2.5 px-3 rounded-2xl border border-emerald-100 dark:border-emerald-900/50">
-                      {hasDiscount ? (
+                      {isPurchased ? (
+                        <div className="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-black text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                          <span>أنت مشترك في هذه الباقة</span>
+                        </div>
+                      ) : hasDiscount ? (
                         <div className="flex items-baseline justify-center gap-2">
                           <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
                             {discountPrice}
@@ -515,7 +532,7 @@ export default function PackagesClient() {
                       )}
                     </div>
 
-                    {/* View Details Button ("تفاصيل الباقة") */}
+                    {/* Button ("تم الشراء" or "تفاصيل الباقة") */}
                     <button
                       type="button"
                       onClick={(e) => {
@@ -523,13 +540,24 @@ export default function PackagesClient() {
                         openPackageDetails(pkg);
                       }}
                       className={`w-full py-2.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
-                        isPopular
+                        isPurchased
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                          : isPopular
                           ? 'bg-[#0d6e4f] hover:bg-[#0a4834] text-white shadow-[#0d6e4f]/20'
                           : 'bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-[#0d6e4f] dark:hover:text-white'
                       }`}
                     >
-                      <span>تفاصيل الباقة</span>
-                      <ArrowLeft className="w-3.5 h-3.5" />
+                      {isPurchased ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-white" />
+                          <span>تم الشراء</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>تفاصيل الباقة</span>
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -649,106 +677,125 @@ export default function PackagesClient() {
                 )}
               </div>
 
-              {/* Promo / Activation Code Section (كود التفعيل / الخصم) */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
-                    <span className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white">
-                      هل لديك كود تفعيل أو كود خصم للباقة؟
-                    </span>
+              {isSubscribedToPackage(selectedPackage?.id) || purchaseSuccess ? (
+                /* Already Purchased / Subscribed Banner */
+                <div className="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-emerald-900 dark:text-emerald-200">
+                      أنت مشترك بالفعل في هذه الباقة
+                    </h4>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                      تم تفعيل هذه الباقة وجميع كورساتها ومحاضراتها في حسابك بنجاح ويمكنك متابعتها مباشرة.
+                    </p>
                   </div>
                 </div>
+              ) : (
+                <>
+                  {/* Promo / Activation Code Section (كود التفعيل / الخصم) */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
+                        <span className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white">
+                          هل لديك كود تفعيل أو كود خصم للباقة؟
+                        </span>
+                      </div>
+                    </div>
 
-                <form onSubmit={handleApplyCode} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="أدخل كود التفعيل أو الخصم..."
-                    disabled={purchaseSuccess}
-                    className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-mono bg-white dark:bg-stone-900 border border-emerald-300 dark:border-emerald-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e4f] text-gray-900 dark:text-white placeholder-gray-400"
-                  />
-                  <button
-                    type="submit"
-                    disabled={codeLoading || !promoCode.trim() || purchaseSuccess}
-                    className="px-5 py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] disabled:opacity-50 text-white font-extrabold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 shrink-0"
-                  >
-                    {codeLoading ? 'جاري الفحص...' : 'تطبيق الكود'}
-                  </button>
-                </form>
+                    <form onSubmit={handleApplyCode} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        placeholder="أدخل كود التفعيل أو الخصم..."
+                        disabled={purchaseSuccess}
+                        className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-mono bg-white dark:bg-stone-900 border border-emerald-300 dark:border-emerald-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e4f] text-gray-900 dark:text-white placeholder-gray-400"
+                      />
+                      <button
+                        type="submit"
+                        disabled={codeLoading || !promoCode.trim() || purchaseSuccess}
+                        className="px-5 py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] disabled:opacity-50 text-white font-extrabold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 shrink-0"
+                      >
+                        {codeLoading ? 'جاري الفحص...' : 'تطبيق الكود'}
+                      </button>
+                    </form>
 
-                {codeFeedback && (
-                  <div
-                    className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
-                      codeFeedback.type === 'success'
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300'
-                    }`}
-                  >
-                    {codeFeedback.type === 'success' ? (
-                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-300 shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-300 shrink-0" />
-                    )}
-                    <span>{codeFeedback.message}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Price Breakdown */}
-              <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#131b2e] border border-stone-200 dark:border-gray-800 flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 block font-bold">المبلغ المطلوب للدفع:</span>
-                  <div className="flex items-baseline gap-2 mt-0.5">
-                    {appliedDiscount ? (
-                      <>
-                        <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                          {appliedDiscount.finalPrice}
-                        </span>
-                        <span className="text-xs text-neutral-400 line-through">
-                          {selectedPackage.discount_price || selectedPackage.price}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
-                      </>
-                    ) : selectedPackage.discount_price ? (
-                      <>
-                        <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                          {selectedPackage.discount_price}
-                        </span>
-                        <span className="text-xs text-neutral-400 line-through">
-                          {selectedPackage.price}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                          {selectedPackage.price}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
-                      </>
+                    {codeFeedback && (
+                      <div
+                        className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                          codeFeedback.type === 'success'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300'
+                            : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300'
+                        }`}
+                      >
+                        {codeFeedback.type === 'success' ? (
+                          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-300 shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-300 shrink-0" />
+                        )}
+                        <span>{codeFeedback.message}</span>
+                      </div>
                     )}
                   </div>
-                </div>
 
-                <div className="text-end">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-lg">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    دفع آمن وفوري
-                  </span>
-                </div>
-              </div>
+                  {/* Price Breakdown */}
+                  <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#131b2e] border border-stone-200 dark:border-gray-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block font-bold">المبلغ المطلوب للدفع:</span>
+                      <div className="flex items-baseline gap-2 mt-0.5">
+                        {appliedDiscount ? (
+                          <>
+                            <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                              {appliedDiscount.finalPrice}
+                            </span>
+                            <span className="text-xs text-neutral-400 line-through">
+                              {selectedPackage.discount_price || selectedPackage.price}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
+                          </>
+                        ) : selectedPackage.discount_price ? (
+                          <>
+                            <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                              {selectedPackage.discount_price}
+                            </span>
+                            <span className="text-xs text-neutral-400 line-through">
+                              {selectedPackage.price}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                              {selectedPackage.price}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-end">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-lg">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        دفع آمن وفوري
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Modal Actions Footer */}
             <div className="p-4 sm:p-6 bg-stone-50 dark:bg-[#0c1017] border-t border-stone-200 dark:border-gray-800 flex flex-col sm:flex-row items-center gap-3 shrink-0">
-              {purchaseSuccess ? (
+              {isSubscribedToPackage(selectedPackage?.id) || purchaseSuccess ? (
                 <Link
                   href="/student/subscriptions"
-                  className="w-full py-3.5 bg-[#0d6e4f] hover:bg-[#0a4834] text-white rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0d6e4f]/25 transition-all text-center"
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all text-center"
                 >
-                  <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                  <CheckCircle2 className="w-5 h-5 text-white" />
                   <span>انتقل إلى محاضرات واشتراكات الباقة</span>
                 </Link>
               ) : (

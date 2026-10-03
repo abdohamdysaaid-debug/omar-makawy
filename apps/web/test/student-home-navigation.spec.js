@@ -56,4 +56,61 @@ describe('Student Home & Navigation Contract Tests', () => {
     assert.equal(qualified.length, 1);
     assert.equal(qualified[0].id, 'l1');
   });
+
+  it('4. Subscribed courses and packages display "تم الشراء" instead of details CTA', () => {
+    const activeSubscriptions = [
+      { id: 'sub-1', item_type: 'PACKAGE', item_id: 'pkg-100', status: 'ACTIVE' },
+      { id: 'sub-2', item_type: 'COURSE', item_id: 'crs-200', course_id: 'crs-200', status: 'ACTIVE' },
+    ];
+
+    const isSubscribedToPackage = (packageId) =>
+      activeSubscriptions.some(
+        (s) => s.status === 'ACTIVE' && s.item_type === 'PACKAGE' && (s.item_id === packageId || s.id === packageId)
+      );
+
+    const isSubscribedToCourse = (courseId) =>
+      activeSubscriptions.some(
+        (s) => s.status === 'ACTIVE' && (s.item_type === 'COURSE' || !s.item_type) && (s.course_id === courseId || s.item_id === courseId || s.id === courseId)
+      );
+
+    // Verify Package 100 is purchased
+    assert.equal(isSubscribedToPackage('pkg-100'), true);
+    assert.equal(isSubscribedToPackage('pkg-999'), false);
+
+    // Verify Course 200 is purchased
+    assert.equal(isSubscribedToCourse('crs-200'), true);
+    assert.equal(isSubscribedToCourse('crs-999'), false);
+
+    // Verify button text logic
+    const getPackageButtonText = (pkgId) => (isSubscribedToPackage(pkgId) ? 'تم الشراء' : 'تفاصيل الباقة');
+    const getCourseButtonText = (crsId) => (isSubscribedToCourse(crsId) ? 'تم الشراء' : 'تفاصيل الكورس');
+
+    assert.equal(getPackageButtonText('pkg-100'), 'تم الشراء');
+    assert.equal(getPackageButtonText('pkg-999'), 'تفاصيل الباقة');
+
+    assert.equal(getCourseButtonText('crs-200'), 'تم الشراء');
+    assert.equal(getCourseButtonText('crs-999'), 'تفاصيل الكورس');
+  });
+
+  it('5. Active subscriptions page categorizes packages and courses with direct access URLs', () => {
+    const subscriptions = [
+      { id: 'sub-1', item_type: 'PACKAGE', item_id: 'pkg-1', title_ar: 'باقة الشهر الأول' },
+      { id: 'sub-2', item_type: 'COURSE', item_id: 'crs-1', course_id: 'crs-1', title_ar: 'كورس القواعد' },
+    ];
+
+    const mapped = subscriptions.map((sub) => {
+      const isPackage = sub.item_type === 'PACKAGE';
+      return {
+        ...sub,
+        badgeText: isPackage ? 'باقة مفعلة' : 'كورس مفعل',
+        targetUrl: isPackage ? '/student/courses' : `/courses/${sub.course_id || sub.item_id}`,
+      };
+    });
+
+    assert.equal(mapped[0].badgeText, 'باقة مفعلة');
+    assert.equal(mapped[0].targetUrl, '/student/courses');
+
+    assert.equal(mapped[1].badgeText, 'كورس مفعل');
+    assert.equal(mapped[1].targetUrl, '/courses/crs-1');
+  });
 });

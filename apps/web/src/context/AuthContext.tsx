@@ -26,6 +26,10 @@ interface AuthContextType {
   openAuthGate: (returnUrl?: string) => void;
   closeAuthGate: () => void;
   updateStudentAvatar: (avatarUrl: string) => Promise<void>;
+  subscriptions: any[];
+  refreshSubscriptions: () => Promise<void>;
+  isSubscribedToCourse: (courseId: string | number | undefined | null) => boolean;
+  isSubscribedToPackage: (packageId: string | number | undefined | null) => boolean;
 }
 
 export interface RegisterData {
@@ -202,6 +206,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   }, []);
 
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+
+  const refreshSubscriptions = useCallback(async () => {
+    const token = getStoredAccessToken();
+    if (!token) {
+      setSubscriptions([]);
+      return;
+    }
+    try {
+      let res: any = await apiClient.get<any[]>('/subscriptions').catch(() => null);
+      if (!res || (!Array.isArray(res) && !Array.isArray(res?.data))) {
+        res = await apiClient.get<any[]>('/api/v1/subscriptions').catch(() => null);
+      }
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      setSubscriptions(list);
+    } catch {
+      // Keep existing or empty
+    }
+  }, []);
+
+  // Fetch subscriptions whenever authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshSubscriptions();
+    } else {
+      setSubscriptions([]);
+    }
+  }, [isAuthenticated, refreshSubscriptions]);
+
+  const isSubscribedToCourse = useCallback(
+    (courseId: string | number | undefined | null): boolean => {
+      if (!courseId || !subscriptions.length) return false;
+      const targetStr = String(courseId).toLowerCase();
+      return subscriptions.some((s) => {
+        if (s.status !== 'ACTIVE') return false;
+        const matchesType = s.item_type === 'COURSE' || !s.item_type;
+        const matchesId =
+          String(s.course_id || '').toLowerCase() === targetStr ||
+          String(s.item_id || '').toLowerCase() === targetStr ||
+          String(s.id || '').toLowerCase() === targetStr;
+        return matchesType && matchesId;
+      });
+    },
+    [subscriptions]
+  );
+
+  const isSubscribedToPackage = useCallback(
+    (packageId: string | number | undefined | null): boolean => {
+      if (!packageId || !subscriptions.length) return false;
+      const targetStr = String(packageId).toLowerCase();
+      return subscriptions.some((s) => {
+        if (s.status !== 'ACTIVE') return false;
+        const matchesType = s.item_type === 'PACKAGE';
+        const matchesId =
+          String(s.package_id || '').toLowerCase() === targetStr ||
+          String(s.item_id || '').toLowerCase() === targetStr ||
+          String(s.id || '').toLowerCase() === targetStr;
+        return matchesType && matchesId;
+      });
+    },
+    [subscriptions]
+  );
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout().catch(() => null);
@@ -209,6 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearStoredAuth();
       setStudent(null);
       setIsAuthenticated(false);
+      setSubscriptions([]);
       setReturnUrl(null);
       if (typeof window !== 'undefined') {
         window.location.href = '/';
@@ -252,6 +320,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         openAuthGate,
         closeAuthGate,
         updateStudentAvatar,
+        subscriptions,
+        refreshSubscriptions,
+        isSubscribedToCourse,
+        isSubscribedToPackage,
       }}
     >
       {children}

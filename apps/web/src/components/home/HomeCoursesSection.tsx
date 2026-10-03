@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { courses } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
-import { PlaySquare, Clock, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
+import { PlaySquare, Clock, ArrowLeft, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 import { apiClient, resolveMediaUrl } from '@/lib/api';
@@ -21,7 +21,7 @@ const GRADE_UUID_MAP: Record<number, string> = {
 };
 
 export default function HomeCoursesSection({ selectedAcademicYearId = null }: HomeCoursesSectionProps) {
-  const { isAuthenticated, openAuthGate } = useAuth();
+  const { isAuthenticated, openAuthGate, isSubscribedToCourse } = useAuth();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -223,10 +223,30 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
                         </div>
                       </div>
 
-                      <button className="w-full py-2.5 bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white font-extrabold rounded-full text-xs flex items-center justify-center gap-2 transition-all">
-                        <span>{t('courses.exploreCourse', 'تفاصيل الكورس')}</span>
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                      </button>
+                      {(() => {
+                        const isPurchased = isSubscribedToCourse(course.id);
+                        return (
+                          <button
+                            className={`w-full py-2.5 font-extrabold rounded-full text-xs flex items-center justify-center gap-2 transition-all ${
+                              isPurchased
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                                : 'bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white'
+                            }`}
+                          >
+                            {isPurchased ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>تم الشراء</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>{t('courses.exploreCourse', 'تفاصيل الكورس')}</span>
+                                <ArrowLeft className="w-3.5 h-3.5" />
+                              </>
+                            )}
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 </motion.div>

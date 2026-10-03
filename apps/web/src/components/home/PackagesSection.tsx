@@ -19,7 +19,7 @@ const GRADE_UUID_MAP: Record<number, string> = {
 };
 
 export default function PackagesSection({ selectedAcademicYearId = null }: PackagesSectionProps) {
-  const { isAuthenticated, openAuthGate } = useAuth();
+  const { isAuthenticated, openAuthGate, isSubscribedToPackage } = useAuth();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -139,6 +139,7 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
               const price = Number(pkg.price) || 0;
               const discountPrice = pkg.discount_price ? Number(pkg.discount_price) : null;
               const hasDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < price;
+              const isPurchased = isSubscribedToPackage(pkg.id);
 
               return (
                 <motion.div
@@ -150,7 +151,9 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
                   viewport={{ amount: 0.55 }}
                   transition={{ duration: 0.35, ease: 'easeOut' }}
                   className={`snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border ${
-                    isPopular
+                    isPurchased
+                      ? 'border-emerald-500/80 dark:border-emerald-500 shadow-md'
+                      : isPopular
                       ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/15'
                       : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
                   } rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 touch-pan-y`}
@@ -166,12 +169,17 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
                         <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
                         <span>{pkg.academic_year_name_ar || 'باقة معتمدة'}</span>
                       </span>
-                      {isPopular && (
+                      {isPurchased ? (
+                        <span className="bg-emerald-600 text-white font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 border border-emerald-400/30">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          تم الشراء
+                        </span>
+                      ) : isPopular ? (
                         <span className="bg-amber-400 text-stone-950 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
                           <Star className="w-3 h-3 fill-stone-950" />
                           الأكثر طلباً
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Title */}
@@ -248,13 +256,24 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
                     <button
                       onClick={() => handleSubscribe(pkg.id)}
                       className={`w-full py-2.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
-                        isPopular
+                        isPurchased
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                          : isPopular
                           ? 'bg-[#0d6e4f] hover:bg-[#0a4834] text-white shadow-[#0d6e4f]/20'
                           : 'bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-[#0d6e4f] dark:hover:text-white'
                       }`}
                     >
-                      <span>اشترك الآن</span>
-                      <ArrowLeft className="w-3.5 h-3.5" />
+                      {isPurchased ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>تم الشراء</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>اشترك الآن</span>
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                        </>
+                      )}
                     </button>
                   </div>
                 </motion.div>

@@ -47,7 +47,7 @@ const DEFAULT_YEARS: AcademicYearItem[] = [
 
 function CoursesContent() {
   const searchParams = useSearchParams();
-  const { student, isAuthenticated, openAuthGate } = useAuth();
+  const { student, isAuthenticated, openAuthGate, isSubscribedToCourse, refreshSubscriptions } = useAuth();
   const { t } = useLanguage();
   const initialYear = searchParams.get('year');
   const searchQuery = searchParams.get('search')?.toLowerCase();
@@ -246,6 +246,7 @@ function CoursesContent() {
             isActivation: true,
           });
           setPurchaseSuccess(true);
+          await refreshSubscriptions();
           return;
         }
       } catch {
@@ -343,6 +344,7 @@ function CoursesContent() {
         message: '🎉 تم شراء الكورس والاشتراك فيه بنجاح من رصيد محفظتك!',
         isActivation: true,
       });
+      await refreshSubscriptions();
     } catch (err: any) {
       const errMsg = err?.message || '';
       if (errMsg.includes('balance') || errMsg.includes('رصيد') || errMsg.includes('Insufficient')) {
@@ -357,6 +359,7 @@ function CoursesContent() {
           message: '🎉 تم الاشتراك في الكورس بنجاح!',
           isActivation: true,
         });
+        await refreshSubscriptions();
       }
     } finally {
       setPurchasing(false);
@@ -544,110 +547,129 @@ function CoursesContent() {
                 </div>
               </div>
 
-              {/* Promo / Activation Code Section (كود التفعيل / الخصم) */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
-                    <span className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white">
-                      هل لديك كود تفعيل أو كود خصم لهذا الكورس؟
-                    </span>
+              {isSubscribedToCourse(selectedCourse?.id) || purchaseSuccess ? (
+                /* Already Purchased / Subscribed Banner */
+                <div className="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-emerald-900 dark:text-emerald-200">
+                      أنت مشترك بالفعل في هذا الكورس
+                    </h4>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                      تم تفعيل اشتراكك بنجاح. يمكنك متابعة كافة المحاضرات والمذكرات والاختبارات الآن.
+                    </p>
                   </div>
                 </div>
+              ) : (
+                <>
+                  {/* Promo / Activation Code Section (كود التفعيل / الخصم) */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
+                        <span className="text-xs sm:text-sm font-extrabold text-gray-900 dark:text-white">
+                          هل لديك كود تفعيل أو كود خصم لهذا الكورس؟
+                        </span>
+                      </div>
+                    </div>
 
-                <form onSubmit={handleApplyCode} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="أدخل كود التفعيل أو الخصم..."
-                    disabled={purchaseSuccess}
-                    className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-mono bg-white dark:bg-stone-900 border border-emerald-300 dark:border-emerald-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e4f] text-gray-900 dark:text-white placeholder-gray-400"
-                  />
-                  <button
-                    type="submit"
-                    disabled={codeLoading || !promoCode.trim() || purchaseSuccess}
-                    className="px-5 py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] disabled:opacity-50 text-white font-extrabold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 shrink-0 cursor-pointer"
-                  >
-                    {codeLoading ? 'جاري الفحص...' : 'تطبيق الكود'}
-                  </button>
-                </form>
+                    <form onSubmit={handleApplyCode} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        placeholder="أدخل كود التفعيل أو الخصم..."
+                        disabled={purchaseSuccess}
+                        className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-mono bg-white dark:bg-stone-900 border border-emerald-300 dark:border-emerald-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e4f] text-gray-900 dark:text-white placeholder-gray-400"
+                      />
+                      <button
+                        type="submit"
+                        disabled={codeLoading || !promoCode.trim() || purchaseSuccess}
+                        className="px-5 py-2.5 bg-[#0d6e4f] hover:bg-[#0a4834] disabled:opacity-50 text-white font-extrabold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 shrink-0 cursor-pointer"
+                      >
+                        {codeLoading ? 'جاري الفحص...' : 'تطبيق الكود'}
+                      </button>
+                    </form>
 
-                {codeFeedback && (
-                  <div
-                    className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
-                      codeFeedback.type === 'success'
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300'
-                        : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300'
-                    }`}
-                  >
-                    {codeFeedback.type === 'success' ? (
-                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-300 shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-300 shrink-0" />
+                    {codeFeedback && (
+                      <div
+                        className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                          codeFeedback.type === 'success'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300'
+                            : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300 border border-red-300'
+                        }`}
+                      >
+                        {codeFeedback.type === 'success' ? (
+                          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-300 shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-300 shrink-0" />
+                        )}
+                        <span>{codeFeedback.message}</span>
+                      </div>
                     )}
-                    <span>{codeFeedback.message}</span>
                   </div>
-                )}
-              </div>
 
-              {/* Price Breakdown */}
-              <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#131b2e] border border-stone-200 dark:border-gray-800 flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 block font-bold">المبلغ المطلوب للدفع:</span>
-                  <div className="flex items-baseline gap-2 mt-0.5">
-                    {appliedDiscount ? (
-                      <>
-                        <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                          {appliedDiscount.finalPrice}
-                        </span>
-                        <span className="text-xs text-neutral-400 line-through">
-                          {selectedCourse.discount_price || selectedCourse.price}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
-                      </>
-                    ) : selectedCourse.discount_price ? (
-                      <>
-                        <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                          {selectedCourse.discount_price}
-                        </span>
-                        <span className="text-xs text-neutral-400 line-through">
-                          {selectedCourse.price}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
-                      </>
-                    ) : selectedCourse.price > 0 ? (
-                      <>
-                        <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                          {selectedCourse.price}
-                        </span>
-                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
-                      </>
-                    ) : (
-                      <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                        مجاني
+                  {/* Price Breakdown */}
+                  <div className="p-4 rounded-2xl bg-stone-50 dark:bg-[#131b2e] border border-stone-200 dark:border-gray-800 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block font-bold">المبلغ المطلوب للدفع:</span>
+                      <div className="flex items-baseline gap-2 mt-0.5">
+                        {appliedDiscount ? (
+                          <>
+                            <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                              {appliedDiscount.finalPrice}
+                            </span>
+                            <span className="text-xs text-neutral-400 line-through">
+                              {selectedCourse.discount_price || selectedCourse.price}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
+                          </>
+                        ) : selectedCourse.discount_price ? (
+                          <>
+                            <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                              {selectedCourse.discount_price}
+                            </span>
+                            <span className="text-xs text-neutral-400 line-through">
+                              {selectedCourse.price}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
+                          </>
+                        ) : selectedCourse.price > 0 ? (
+                          <>
+                            <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                              {selectedCourse.price}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">ج.م</span>
+                          </>
+                        ) : (
+                          <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
+                            مجاني
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-end">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-lg">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        دفع آمن وفوري
                       </span>
-                    )}
+                    </div>
                   </div>
-                </div>
-
-                <div className="text-end">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-1 rounded-lg">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    دفع آمن وفوري
-                  </span>
-                </div>
-              </div>
+                </>
+              )}
             </div>
 
             {/* Modal Actions Footer */}
             <div className="p-4 sm:p-6 bg-stone-50 dark:bg-[#0c1017] border-t border-stone-200 dark:border-gray-800 flex flex-col sm:flex-row items-center gap-3 shrink-0">
-              {purchaseSuccess ? (
+              {isSubscribedToCourse(selectedCourse?.id) || purchaseSuccess ? (
                 <Link
                   href={`/courses/${selectedCourse.id}`}
-                  className="w-full py-3.5 bg-[#0d6e4f] hover:bg-[#0a4834] text-white rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#0d6e4f]/25 transition-all text-center"
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all text-center"
                 >
-                  <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                  <CheckCircle2 className="w-5 h-5 text-white" />
                   <span>ابدأ مشاهدة محاضرات الكورس الآن</span>
                 </Link>
               ) : (
