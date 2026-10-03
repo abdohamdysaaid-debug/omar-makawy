@@ -7,8 +7,22 @@ import { BookOpen, ShoppingBag, ArrowLeft, ChevronRight, ChevronLeft } from 'luc
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 
+import { apiClient } from '@/lib/api';
+
 export interface HomeBooksSectionProps {
   selectedAcademicYearId?: number | null;
+}
+
+function parseGrade(id?: string | number): number | undefined {
+  if (!id) return undefined;
+  if (typeof id === 'number') return id;
+  const map: Record<string, number> = {
+    'a0000000-0000-0000-0000-000000000001': 1,
+    'a0000000-0000-0000-0000-000000000002': 2,
+    'a0000000-0000-0000-0000-000000000003': 3,
+    'a0000000-0000-0000-0000-000000000004': 4,
+  };
+  return map[id] || parseInt(String(id), 10) || undefined;
 }
 
 export default function HomeBooksSection({ selectedAcademicYearId = null }: HomeBooksSectionProps) {
@@ -52,9 +66,8 @@ export default function HomeBooksSection({ selectedAcademicYearId = null }: Home
     let isMounted = true;
     async function fetchBooks() {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.omarmeckawy.com/api/v1';
-        const res = await fetch(`${baseUrl}/books?is_active=true`).then((r) => r.json()).catch(() => []);
-        const list = res?.data || (Array.isArray(res) ? res : []);
+        const res: any = await apiClient.get('/books').catch(() => null);
+        const list = Array.isArray(res) ? res : (res?.data || []);
         if (isMounted) {
           setAvailableBooks(list);
         }

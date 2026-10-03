@@ -8,6 +8,8 @@ import { books, academicYears } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
 import { Search, ChevronDown, Filter } from 'lucide-react';
 
+import { apiClient } from '@/lib/api';
+
 const LOCAL_STORAGE_GRADE_KEY = 'omar_selected_academic_grade';
 
 function parseGrade(id?: string | number): number | undefined {
@@ -19,7 +21,7 @@ function parseGrade(id?: string | number): number | undefined {
     'a0000000-0000-0000-0000-000000000003': 3,
     'a0000000-0000-0000-0000-000000000004': 4,
   };
-  return map[id] || parseInt(id, 10) || undefined;
+  return map[id] || parseInt(String(id), 10) || undefined;
 }
 
 function getStoredGrade(studentAcademicYearId?: string | number): number | 'all' {
@@ -35,7 +37,7 @@ function getStoredGrade(studentAcademicYearId?: string | number): number | 'all'
       }
     } catch {}
   }
-  return parseGrade(studentAcademicYearId) || 'all';
+  return 'all';
 }
 
 function saveStoredGrade(grade: number | 'all') {
@@ -50,22 +52,8 @@ export default function BookstoreClient() {
   const { student } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedYearId, setSelectedYearId] = useState<number | 'all'>(() => {
-    return getStoredGrade(student?.academicYearId);
-  });
+  const [selectedYearId, setSelectedYearId] = useState<number | 'all'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-  // Sync if student logs in later and no manual override exists
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LOCAL_STORAGE_GRADE_KEY);
-      const studentGrade = parseGrade(student?.academicYearId);
-      if (!saved && studentGrade) {
-        setSelectedYearId(studentGrade);
-        saveStoredGrade(studentGrade);
-      }
-    }
-  }, [student?.academicYearId]);
 
   const handleYearChange = (newVal: number | 'all') => {
     setSelectedYearId(newVal);
@@ -80,9 +68,8 @@ export default function BookstoreClient() {
     async function loadBooks() {
       setLoading(true);
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.omarmeckawy.com/api/v1';
-        const res = await fetch(`${baseUrl}/books?is_active=true`).then((r) => r.json()).catch(() => []);
-        const list = res?.data || (Array.isArray(res) ? res : []);
+        const res: any = await apiClient.get('/books').catch(() => null);
+        const list = Array.isArray(res) ? res : (res?.data || []);
         if (isMounted) {
           setAvailableBooks(list);
         }
