@@ -162,6 +162,7 @@ export default function StaffCodesManagementPage() {
 
   // Post-Generation Result & Print Modals
   const [batchResult, setBatchResult] = useState<GeneratedBatchResult | null>(null);
+  const [rawBatchesMap, setRawBatchesMap] = useState<Record<string, Array<{ raw?: string; code?: string; preview?: string; code_preview?: string; expires_at?: any }>>>({});
   const [isPrintModeOpen, setIsPrintModeOpen] = useState<boolean>(false);
   const [printTargetBatch, setPrintTargetBatch] = useState<{
     title: string;
@@ -364,13 +365,24 @@ export default function StaffCodesManagementPage() {
       if (item.status === 'ACTIVE') grp.activeCount += 1;
       else if (item.status === 'USED') grp.usedCount += 1;
       else if (item.status === 'DISABLED') grp.disabledCount += 1;
-      grp.codes.push(item);
+
+      // Check if we have cached raw plaintext codes for this batch
+      const cachedList = rawBatchesMap[item.batch_id || ''] || rawBatchesMap[bKey];
+      if (cachedList && cachedList[grp.codes.length]) {
+        const cachedItem = cachedList[grp.codes.length];
+        grp.codes.push({
+          ...item,
+          raw: cachedItem.raw || cachedItem.code,
+        });
+      } else {
+        grp.codes.push(item);
+      }
     });
 
     return Array.from(map.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-  }, [items, activeTab, isAr]);
+  }, [items, activeTab, isAr, rawBatchesMap]);
 
   // Actions
   // 1. Generate Recharge Codes
@@ -389,6 +401,11 @@ export default function StaffCodesManagementPage() {
 
       const res: any = await apiClient.post('/admin/recharge-codes/generate', payload);
       const generatedList = res?.codes || [];
+
+      setRawBatchesMap((prev) => ({
+        ...prev,
+        [generatedBatchId]: generatedList,
+      }));
 
       setBatchResult({
         title: isAr
@@ -425,8 +442,9 @@ export default function StaffCodesManagementPage() {
     setIsSavingSingleDisc(true);
     setFeedback(null);
     try {
+      const cleanCode = singleDiscCode.trim().toUpperCase();
       const payload: any = {
-        code: singleDiscCode.trim().toUpperCase(),
+        code: cleanCode,
         discount_type: singleDiscType,
         discount_value: Number(singleDiscValue),
         min_order_amount: Number(singleDiscMinOrder),
@@ -440,13 +458,18 @@ export default function StaffCodesManagementPage() {
 
       await apiClient.post('/admin/discounts', payload);
 
+      setRawBatchesMap((prev) => ({
+        ...prev,
+        [cleanCode]: [{ raw: cleanCode, expires_at: singleDiscExpiresAt }],
+      }));
+
       setIsSingleDiscModalOpen(false);
       setSingleDiscCode('');
       setFeedback({
         type: 'success',
         message: isAr
-          ? `تم إنشاء كوبون الخصم (${singleDiscCode.toUpperCase()}) بنجاح`
-          : `Discount coupon (${singleDiscCode.toUpperCase()}) created successfully`,
+          ? `تم إنشاء كوبون الخصم (${cleanCode}) بنجاح`
+          : `Discount coupon (${cleanCode}) created successfully`,
       });
       loadData(1);
     } catch (err: any) {
@@ -482,6 +505,11 @@ export default function StaffCodesManagementPage() {
 
       const res: any = await apiClient.post('/admin/discounts/generate', payload);
       const generatedList = res?.codes || [];
+
+      setRawBatchesMap((prev) => ({
+        ...prev,
+        [generatedBatchId]: generatedList,
+      }));
 
       setBatchResult({
         title: isAr
