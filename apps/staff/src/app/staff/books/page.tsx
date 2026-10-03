@@ -546,9 +546,14 @@ export default function StaffBooksPage() {
                     <div className="flex items-baseline justify-between pt-2 border-t border-neutral-800/60">
                       <div className="flex items-baseline gap-1.5">
                         <span className="font-black text-emerald-400 text-base">
-                          {Number(b.discount_price || b.price).toLocaleString()} ج.م
+                          {(() => {
+                            const disc = Number(b.discount_price || 0);
+                            const pr = Number(b.price || 0);
+                            return (disc > 0 && disc < pr ? disc : pr).toLocaleString();
+                          })()}{' '}
+                          ج.م
                         </span>
-                        {b.discount_price && Number(b.discount_price) < Number(b.price) && (
+                        {Number(b.discount_price || 0) > 0 && Number(b.discount_price) < Number(b.price) && (
                           <span className="text-xs text-neutral-500 line-through">
                             {Number(b.price).toLocaleString()} ج.م
                           </span>

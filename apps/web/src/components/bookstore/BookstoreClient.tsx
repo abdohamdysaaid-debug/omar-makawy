@@ -108,7 +108,12 @@ export default function BookstoreClient() {
     const matchesSearch = title.includes(query) || desc.includes(query);
 
     const yearId = book.academic_year_id || book.academicYearId;
-    const matchesYear = selectedYearId === 'all' || yearId === selectedYearId || String(yearId) === String(selectedYearId);
+    const parsedBookGrade = parseGrade(yearId);
+    const matchesYear =
+      selectedYearId === 'all' ||
+      yearId === selectedYearId ||
+      String(yearId) === String(selectedYearId) ||
+      (parsedBookGrade !== undefined && parsedBookGrade === selectedYearId);
 
     const category = book.type === 'NOTE' ? 'مذكرات' : (book.category || 'كتب');
     const matchesCategory = selectedCategory === 'all' || category === selectedCategory || book.type === selectedCategory;

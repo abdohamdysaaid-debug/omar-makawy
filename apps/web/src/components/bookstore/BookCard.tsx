@@ -14,11 +14,21 @@ interface BookCardProps {
 export default function BookCard({ book }: BookCardProps) {
   const { addItem } = useCart();
   const yearId = (book as any).academic_year_id || book.academicYearId;
-  const academicYear = academicYears.find((y) => String(y.id) === String(yearId));
+  const gradeMap: Record<string, number> = {
+    'a0000000-0000-0000-0000-000000000001': 1,
+    'a0000000-0000-0000-0000-000000000002': 2,
+    'a0000000-0000-0000-0000-000000000003': 3,
+  };
+  const parsedGrade = gradeMap[yearId] || parseInt(String(yearId), 10);
+  const academicYear = academicYears.find((y) => String(y.id) === String(yearId) || y.id === parsedGrade);
 
   const title = book.title || (book as any).title_ar || (book as any).title_en || 'كتاب دراسي';
   const description = book.description || (book as any).description_ar || (book as any).description_en || '';
-  const price = Number(book.price || (book as any).price || 0);
+
+  const rawPrice = Number((book as any).price || book.price || 0);
+  const discountPrice = Number((book as any).discount_price || (book as any).discountPrice || 0);
+  const price = discountPrice > 0 && discountPrice < rawPrice ? discountPrice : rawPrice;
+
   const stock = book.stock !== undefined ? book.stock : Number((book as any).stock_quantity ?? 1);
   const category = book.category || ((book as any).type === 'NOTE' ? 'مذكرة' : 'كتاب');
   const coverUrl = (book as any).coverImage || (book as any).cover_image_url;
