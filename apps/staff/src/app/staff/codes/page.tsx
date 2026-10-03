@@ -7,9 +7,6 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
 import { SystemPermissions } from '@omar-makawy/shared';
 import {
-  Ticket,
-  Package as PackageIcon,
-  BookOpen,
   Wallet,
   Tag,
   Plus,
@@ -22,23 +19,18 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Eye,
-  Percent,
   Coins,
   Calendar,
   X,
   ShieldAlert,
   AlertTriangle,
-  ArrowRight,
-  FileSpreadsheet,
+  Percent,
 } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/FeedbackStates';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
-type TabType = 'packages' | 'courses' | 'wallet' | 'discounts';
+type TabType = 'wallet' | 'discounts';
 
 interface GeneratedCodeItem {
   raw?: string;
@@ -57,7 +49,7 @@ interface GeneratedCodeItem {
 
 interface GeneratedBatchResult {
   title: string;
-  type: 'PACKAGE' | 'COURSE' | 'WALLET' | 'DISCOUNT';
+  type: 'WALLET' | 'DISCOUNT';
   targetName?: string;
   amount?: number | string;
   discountType?: string;
@@ -77,8 +69,8 @@ export default function StaffCodesManagementPage() {
     hasPermission(SystemPermissions.PACKAGES_MANAGE) ||
     hasPermission(SystemPermissions.COURSES_MANAGE);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<TabType>('packages');
+  // Active Tab: Wallet Cards or Discount Coupons
+  const [activeTab, setActiveTab] = useState<TabType>('wallet');
 
   // Lookups Data
   const [academicYears, setAcademicYears] = useState<any[]>([]);
@@ -98,7 +90,6 @@ export default function StaffCodesManagementPage() {
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [yearFilter, setYearFilter] = useState<string>(activeAcademicYearId || 'ALL');
   const [discountTypeFilter, setDiscountTypeFilter] = useState<string>('ALL');
   const [discountTargetFilter, setDiscountTargetFilter] = useState<string>('ALL');
 
@@ -119,8 +110,6 @@ export default function StaffCodesManagementPage() {
   });
 
   // Generation Modals Open State
-  const [isPkgModalOpen, setIsPkgModalOpen] = useState<boolean>(false);
-  const [isCourseModalOpen, setIsCourseModalOpen] = useState<boolean>(false);
   const [isRechargeModalOpen, setIsRechargeModalOpen] = useState<boolean>(false);
   const [isSingleDiscModalOpen, setIsSingleDiscModalOpen] = useState<boolean>(false);
   const [isBulkDiscModalOpen, setIsBulkDiscModalOpen] = useState<boolean>(false);
@@ -130,50 +119,27 @@ export default function StaffCodesManagementPage() {
   const [isPrintModeOpen, setIsPrintModeOpen] = useState<boolean>(false);
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
 
-  // Generation Forms State
-  // 1. Package Form
-  const [pkgTargetId, setPkgTargetId] = useState<string>('');
-  const [pkgCount, setPkgCount] = useState<number>(50);
-  const [pkgMaxUses, setPkgMaxUses] = useState<number>(1);
-  const [pkgExpiresAt, setPkgExpiresAt] = useState<string>(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + 6);
-    return d.toISOString().split('T')[0];
-  });
-  const [pkgConfirmStep, setPkgConfirmStep] = useState<boolean>(false);
-  const [isGeneratingPkg, setIsGeneratingPkg] = useState<boolean>(false);
-
-  // 2. Course Form
-  const [courseTargetId, setCourseTargetId] = useState<string>('');
-  const [courseCount, setCourseCount] = useState<number>(50);
-  const [courseMaxUses, setCourseMaxUses] = useState<number>(1);
-  const [courseExpiresAt, setCourseExpiresAt] = useState<string>(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + 6);
-    return d.toISOString().split('T')[0];
-  });
-  const [courseConfirmStep, setCourseConfirmStep] = useState<boolean>(false);
-  const [isGeneratingCourse, setIsGeneratingCourse] = useState<boolean>(false);
-
-  // 3. Recharge Form
+  // Forms State
+  // 1. Recharge Cards Form
   const [rechargeAmount, setRechargeAmount] = useState<number>(100);
   const [rechargeCount, setRechargeCount] = useState<number>(50);
   const [rechargeExpiresAt, setRechargeExpiresAt] = useState<string>(() => {
     const d = new Date();
-    d.setFullYear(d.getFullYear() + 1);
+    d.setMonth(d.getMonth() + 6);
     return d.toISOString().split('T')[0];
   });
   const [rechargeConfirmStep, setRechargeConfirmStep] = useState<boolean>(false);
   const [isGeneratingRecharge, setIsGeneratingRecharge] = useState<boolean>(false);
 
-  // 4. Single Discount Form
+  // 2. Single Discount Form
   const [singleDiscCode, setSingleDiscCode] = useState<string>('');
   const [singleDiscType, setSingleDiscType] = useState<'PERCENTAGE' | 'FIXED_AMOUNT'>('PERCENTAGE');
-  const [singleDiscValue, setSingleDiscValue] = useState<number>(20);
+  const [singleDiscValue, setSingleDiscValue] = useState<number>(10);
   const [singleDiscMinOrder, setSingleDiscMinOrder] = useState<number>(0);
-  const [singleDiscMaxUses, setSingleDiscMaxUses] = useState<number>(1);
-  const [singleDiscScope, setSingleDiscScope] = useState<'ALL' | 'PACKAGE' | 'COURSE'>('ALL');
+  const [singleDiscMaxUses, setSingleDiscMaxUses] = useState<number>(100);
+  const [singleDiscScope, setSingleDiscScope] = useState<'ALL' | 'COURSE' | 'PACKAGE'>('ALL');
   const [singleDiscTargetId, setSingleDiscTargetId] = useState<string>('');
+  const [singleDiscAcademicYear, setSingleDiscAcademicYear] = useState<string>('');
   const [singleDiscStartsAt, setSingleDiscStartsAt] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [singleDiscExpiresAt, setSingleDiscExpiresAt] = useState<string>(() => {
     const d = new Date();
@@ -182,13 +148,13 @@ export default function StaffCodesManagementPage() {
   });
   const [isSavingSingleDisc, setIsSavingSingleDisc] = useState<boolean>(false);
 
-  // 5. Bulk Discount Form
+  // 3. Bulk Discount Form
+  const [bulkDiscCount, setBulkDiscCount] = useState<number>(20);
   const [bulkDiscType, setBulkDiscType] = useState<'PERCENTAGE' | 'FIXED_AMOUNT'>('PERCENTAGE');
-  const [bulkDiscValue, setBulkDiscValue] = useState<number>(20);
-  const [bulkDiscCount, setBulkDiscCount] = useState<number>(50);
+  const [bulkDiscValue, setBulkDiscValue] = useState<number>(15);
   const [bulkDiscMinOrder, setBulkDiscMinOrder] = useState<number>(0);
   const [bulkDiscMaxUses, setBulkDiscMaxUses] = useState<number>(1);
-  const [bulkDiscScope, setBulkDiscScope] = useState<'ALL' | 'PACKAGE' | 'COURSE'>('ALL');
+  const [bulkDiscScope, setBulkDiscScope] = useState<'ALL' | 'COURSE' | 'PACKAGE'>('ALL');
   const [bulkDiscTargetId, setBulkDiscTargetId] = useState<string>('');
   const [bulkDiscStartsAt, setBulkDiscStartsAt] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [bulkDiscExpiresAt, setBulkDiscExpiresAt] = useState<string>(() => {
@@ -199,235 +165,110 @@ export default function StaffCodesManagementPage() {
   const [bulkDiscConfirmStep, setBulkDiscConfirmStep] = useState<boolean>(false);
   const [isGeneratingBulkDisc, setIsGeneratingBulkDisc] = useState<boolean>(false);
 
-  // Sync yearFilter with activeAcademicYearId
+  // Debounce Search Input
   useEffect(() => {
-    if (activeAcademicYearId) {
-      setYearFilter(activeAcademicYearId);
-    } else {
-      setYearFilter('ALL');
-    }
-  }, [activeAcademicYearId]);
-
-  // Debounced search handler
-  useEffect(() => {
-    const timer = setTimeout(() => {
+    const handler = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1);
     }, 350);
-    return () => clearTimeout(timer);
+    return () => clearTimeout(handler);
   }, [search]);
 
-  // Clear feedback after 5 seconds
+  // Load Lookups (Academic Years, Packages, Courses)
   useEffect(() => {
-    if (feedback) {
-      const timer = setTimeout(() => setFeedback(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [feedback]);
-
-  // Load Lookups on Mount
-  useEffect(() => {
+    let isMounted = true;
     async function loadLookups() {
       setLoadingLookups(true);
       try {
-        const [yearsRes, pkgsRes, coursesRes]: any = await Promise.all([
-          apiClient.get('/auth/academic-years'),
-          apiClient.get('/packages?limit=100'),
-          apiClient.get('/courses?limit=100'),
+        const [yearsRes, pkgsRes, coursesRes] = await Promise.all([
+          apiClient.get('/auth/academic-years').catch(() => []),
+          apiClient.get('/packages?limit=100').catch(() => ({ data: [] })),
+          apiClient.get('/courses?limit=100').catch(() => ({ data: [] })),
         ]);
 
-        const yList = Array.isArray(yearsRes?.data) ? yearsRes.data : Array.isArray(yearsRes) ? yearsRes : [];
-        const pList = Array.isArray(pkgsRes?.data) ? pkgsRes.data : Array.isArray(pkgsRes) ? pkgsRes : [];
-        const cList = Array.isArray(coursesRes?.data) ? coursesRes.data : Array.isArray(coursesRes) ? coursesRes : [];
-
-        setAcademicYears(yList);
-        setPackagesList(pList);
-        setCoursesList(cList);
-
-        if (pList.length > 0) {
-          setPkgTargetId(pList[0].id);
-          setSingleDiscTargetId(pList[0].id);
-          setBulkDiscTargetId(pList[0].id);
+        if (isMounted) {
+          setAcademicYears(Array.isArray(yearsRes) ? yearsRes : (yearsRes as any)?.data || []);
+          setPackagesList(Array.isArray(pkgsRes) ? pkgsRes : (pkgsRes as any)?.data || []);
+          setCoursesList(Array.isArray(coursesRes) ? coursesRes : (coursesRes as any)?.data || []);
         }
-        if (cList.length > 0) {
-          setCourseTargetId(cList[0].id);
-        }
-      } catch (err: any) {
-        console.error('Failed to load lookups', err);
-        setFeedback({
-          type: 'error',
-          message: err?.message || (isAr ? 'فشل تحميل بيانات الباقات والكورسات من الخادم' : 'Failed to load lookups from server'),
-        });
+      } catch (e) {
+        console.error('Failed to load lookups', e);
       } finally {
-        setLoadingLookups(false);
+        if (isMounted) setLoadingLookups(false);
       }
     }
     loadLookups();
-  }, [isAr]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  // Load Table Data
+  // Fetch Table Data Based on Active Tab
   const loadData = useCallback(
-    async (targetPage = page) => {
+    async (pageNumber = 1) => {
       setIsLoading(true);
       setError(null);
       try {
-        const queryParams = new URLSearchParams();
-        queryParams.set('page', targetPage.toString());
-        queryParams.set('limit', '20');
-
-        if (debouncedSearch.trim()) queryParams.set('search', debouncedSearch.trim());
-        if (statusFilter !== 'ALL') queryParams.set('status', statusFilter);
-
         let endpoint = '';
-        if (activeTab === 'packages') {
-          queryParams.set('type', 'PACKAGE');
-          if (yearFilter !== 'ALL') queryParams.set('academic_year_id', yearFilter);
-          endpoint = `/admin/activation-codes?${queryParams.toString()}`;
-        } else if (activeTab === 'courses') {
-          queryParams.set('type', 'COURSE');
-          if (yearFilter !== 'ALL') queryParams.set('academic_year_id', yearFilter);
-          endpoint = `/admin/activation-codes?${queryParams.toString()}`;
-        } else if (activeTab === 'wallet') {
-          endpoint = `/admin/recharge-codes?${queryParams.toString()}`;
-        } else if (activeTab === 'discounts') {
-          if (discountTypeFilter !== 'ALL') queryParams.set('discount_type', discountTypeFilter);
-          if (discountTargetFilter !== 'ALL') queryParams.set('target_type', discountTargetFilter);
-          if (yearFilter !== 'ALL') queryParams.set('academic_year_id', yearFilter);
-          endpoint = `/admin/discounts?${queryParams.toString()}`;
+        const params: Record<string, any> = {
+          page: pageNumber,
+          limit: 20,
+        };
+
+        if (statusFilter !== 'ALL') {
+          params.status = statusFilter;
+        }
+        if (debouncedSearch.trim()) {
+          params.search = debouncedSearch.trim();
         }
 
-        const res: any = await apiClient.get(endpoint);
-        const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-        setItems(list);
+        if (activeTab === 'wallet') {
+          endpoint = '/admin/recharge-codes';
+        } else {
+          endpoint = '/admin/discounts';
+          if (discountTypeFilter !== 'ALL') {
+            params.discount_type = discountTypeFilter;
+          }
+          if (discountTargetFilter !== 'ALL') {
+            params.target_type = discountTargetFilter;
+          }
+        }
 
-        const resTotal = res?.total ?? res?.meta?.total ?? list.length;
-        const resPage = res?.page ?? res?.meta?.page ?? targetPage;
-        const resLimit = res?.limit ?? res?.meta?.limit ?? 20;
-        const resTotalPages = res?.totalPages ?? res?.meta?.totalPages ?? res?.meta?.pages ?? (Math.ceil(resTotal / resLimit) || 1);
+        const queryStr = new URLSearchParams(
+          Object.entries(params).map(([k, v]) => [k, String(v)]),
+        ).toString();
 
+        const response: any = await apiClient.get(`${endpoint}?${queryStr}`);
+
+        const resData = response?.data || (Array.isArray(response) ? response : []);
+        const resTotal = response?.total ?? response?.meta?.total ?? resData.length;
+        const resPage = response?.page ?? response?.meta?.page ?? pageNumber;
+        const resTotalPages =
+          response?.totalPages ??
+          response?.meta?.totalPages ??
+          response?.meta?.pages ??
+          Math.max(1, Math.ceil(resTotal / 20));
+
+        setItems(resData);
         setTotal(resTotal);
         setPage(resPage);
         setTotalPages(resTotalPages);
       } catch (err: any) {
-        console.error('Failed to load table data', err);
-        const errorMsg = err?.message || (isAr ? 'تعذر جلب البيانات من الخادم. تأكد من اتصال السيرفر.' : 'Failed to fetch data from server.');
-        setError(errorMsg);
+        console.error('Error fetching codes data', err);
+        setError(err?.message || (isAr ? 'تعذر تحميل البيانات' : 'Failed to load data'));
         setItems([]);
       } finally {
         setIsLoading(false);
       }
     },
-    [activeTab, debouncedSearch, statusFilter, yearFilter, discountTypeFilter, discountTargetFilter, page, isAr],
+    [activeTab, statusFilter, debouncedSearch, discountTypeFilter, discountTargetFilter, isAr],
   );
 
-  // Trigger loadData on filter/tab changes
   useEffect(() => {
     loadData(1);
-  }, [activeTab, debouncedSearch, statusFilter, yearFilter, discountTypeFilter, discountTargetFilter]);
+  }, [loadData]);
 
-  // Selected Target Previews
-  const selectedPackage = useMemo(
-    () => packagesList.find((p) => p.id === pkgTargetId) || packagesList[0],
-    [packagesList, pkgTargetId],
-  );
-
-  const selectedCourse = useMemo(
-    () => coursesList.find((c) => c.id === courseTargetId) || coursesList[0],
-    [coursesList, courseTargetId],
-  );
-
-  // Handlers for Code Generation
-  // 1. Generate Package Codes
-  const handleGeneratePackageCodes = async () => {
-    if (!pkgTargetId) return;
-    setIsGeneratingPkg(true);
-    setFeedback(null);
-    try {
-      const payload = {
-        type: 'PACKAGE',
-        target_id: pkgTargetId,
-        count: Number(pkgCount),
-        max_uses: Number(pkgMaxUses),
-        expires_at: new Date(pkgExpiresAt).toISOString(),
-        batch_id: `PKG-${Date.now().toString().slice(-6)}`,
-      };
-
-      const res: any = await apiClient.post('/admin/activation-codes/generate', payload);
-      const generatedList = res?.codes || [];
-
-      setBatchResult({
-        title: isAr ? 'أكواد باقة تم توليدها بنجاح' : 'Generated Package Codes',
-        type: 'PACKAGE',
-        targetName: selectedPackage ? (selectedPackage.title_ar || selectedPackage.title_en) : '',
-        codes: generatedList,
-      });
-
-      setIsPkgModalOpen(false);
-      setPkgConfirmStep(false);
-      setFeedback({
-        type: 'success',
-        message: isAr
-          ? `تم توليد ${generatedList.length} كود تفعيل للباقة بنجاح`
-          : `Successfully generated ${generatedList.length} package codes`,
-      });
-      loadData(1);
-    } catch (err: any) {
-      console.error('Package generation error', err);
-      setFeedback({
-        type: 'error',
-        message: err?.message || (isAr ? 'فشل توليد أكواد الباقة' : 'Failed to generate package codes'),
-      });
-    } finally {
-      setIsGeneratingPkg(false);
-    }
-  };
-
-  // 2. Generate Course Codes
-  const handleGenerateCourseCodes = async () => {
-    if (!courseTargetId) return;
-    setIsGeneratingCourse(true);
-    setFeedback(null);
-    try {
-      const payload = {
-        type: 'COURSE',
-        target_id: courseTargetId,
-        count: Number(courseCount),
-        max_uses: Number(courseMaxUses),
-        expires_at: new Date(courseExpiresAt).toISOString(),
-        batch_id: `CRS-${Date.now().toString().slice(-6)}`,
-      };
-
-      const res: any = await apiClient.post('/admin/activation-codes/generate', payload);
-      const generatedList = res?.codes || [];
-
-      setBatchResult({
-        title: isAr ? 'أكواد كورس تم توليدها بنجاح' : 'Generated Course Codes',
-        type: 'COURSE',
-        targetName: selectedCourse ? (selectedCourse.title_ar || selectedCourse.title_en) : '',
-        codes: generatedList,
-      });
-
-      setIsCourseModalOpen(false);
-      setCourseConfirmStep(false);
-      setFeedback({
-        type: 'success',
-        message: isAr
-          ? `تم توليد ${generatedList.length} كود تفعيل للكورس بنجاح`
-          : `Successfully generated ${generatedList.length} course codes`,
-      });
-      loadData(1);
-    } catch (err: any) {
-      console.error('Course generation error', err);
-      setFeedback({
-        type: 'error',
-        message: err?.message || (isAr ? 'فشل توليد أكواد الكورس' : 'Failed to generate course codes'),
-      });
-    } finally {
-      setIsGeneratingCourse(false);
-    }
-  };
-
-  // 3. Generate Recharge Codes
+  // Actions
+  // 1. Generate Recharge Codes
   const handleGenerateRechargeCodes = async () => {
     if (rechargeAmount <= 0 || rechargeCount <= 0) return;
     setIsGeneratingRecharge(true);
@@ -455,8 +296,8 @@ export default function StaffCodesManagementPage() {
       setFeedback({
         type: 'success',
         message: isAr
-          ? `تم توليد ${generatedList.length} كرت شحن بقيمة ${rechargeAmount} ج.م بنجاح`
-          : `Successfully generated ${generatedList.length} recharge cards of ${rechargeAmount} EGP`,
+          ? `تم توليد ${generatedList.length} كارت شحن بنجاح بإجمالي ${(rechargeAmount * generatedList.length).toLocaleString()} ج.م`
+          : `Successfully generated ${generatedList.length} recharge cards`,
       });
       loadData(1);
     } catch (err: any) {
@@ -470,10 +311,9 @@ export default function StaffCodesManagementPage() {
     }
   };
 
-  // 4. Create Single Discount Coupon
-  const handleCreateSingleDiscount = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!singleDiscCode.trim()) return;
+  // 2. Create Single Discount Coupon
+  const handleCreateSingleDiscount = async () => {
+    if (!singleDiscCode.trim() || singleDiscValue <= 0) return;
     setIsSavingSingleDisc(true);
     setFeedback(null);
     try {
@@ -487,6 +327,7 @@ export default function StaffCodesManagementPage() {
         expires_at: new Date(singleDiscExpiresAt).toISOString(),
         target_type: singleDiscScope,
         target_id: singleDiscScope !== 'ALL' ? singleDiscTargetId : undefined,
+        academic_year_id: singleDiscAcademicYear || undefined,
       };
 
       await apiClient.post('/admin/discounts', payload);
@@ -511,7 +352,7 @@ export default function StaffCodesManagementPage() {
     }
   };
 
-  // 5. Generate Bulk Discount Coupons
+  // 3. Generate Bulk Discount Coupons
   const handleGenerateBulkDiscount = async () => {
     if (bulkDiscCount <= 0 || bulkDiscValue <= 0) return;
     setIsGeneratingBulkDisc(true);
@@ -562,7 +403,7 @@ export default function StaffCodesManagementPage() {
   };
 
   // Disable Code Actions with Confirmation
-  const confirmDisableItem = (id: string, codePreview: string, type: 'ACTIVATION' | 'RECHARGE' | 'DISCOUNT') => {
+  const confirmDisableItem = (id: string, codePreview: string, type: 'RECHARGE' | 'DISCOUNT') => {
     let title = isAr ? 'تعطيل الكود' : 'Disable Code';
     let message = isAr
       ? `هل أنت متأكد من تعطيل الكود (${codePreview})؟ لن يتمكن أي طالب من استخدامه بعد الآن.`
@@ -570,9 +411,7 @@ export default function StaffCodesManagementPage() {
 
     const action = async () => {
       try {
-        if (type === 'ACTIVATION') {
-          await apiClient.patch(`/admin/activation-codes/${id}/disable`, {});
-        } else if (type === 'RECHARGE') {
+        if (type === 'RECHARGE') {
           await apiClient.patch(`/admin/recharge-codes/${id}/disable`, {});
         } else if (type === 'DISCOUNT') {
           await apiClient.patch(`/admin/discounts/${id}/disable`, {});
@@ -599,198 +438,126 @@ export default function StaffCodesManagementPage() {
     });
   };
 
-  // Copy Single Code from Post-Gen Screen
-  const handleCopyCode = (codeStr: string, idx: number) => {
-    navigator.clipboard.writeText(codeStr);
-    setCopiedCodeIndex(idx);
+  // Copy Code to Clipboard
+  const handleCopyCode = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCodeIndex(index);
     setTimeout(() => setCopiedCodeIndex(null), 2000);
   };
 
-  // CSV Export for Newly Generated Result Batch
+  // Export CSV of generated codes
   const exportGeneratedCodesCSV = () => {
     if (!batchResult || !batchResult.codes.length) return;
+    const headers = ['Index', 'Type', 'Code', 'Target/Value', 'Max Uses', 'Created At', 'Expires At'];
+    const rows = batchResult.codes.map((c, i) => [
+      i + 1,
+      batchResult.type,
+      c.raw || c.code || c.preview,
+      batchResult.amount ? `${batchResult.amount} EGP` : batchResult.discountValue ? `${batchResult.discountValue} (${batchResult.discountType})` : '',
+      c.max_uses || 1,
+      new Date().toISOString(),
+      c.expires_at ? new Date(c.expires_at).toISOString() : '',
+    ]);
 
-    const headers = ['Code', 'Type', 'Target/Amount', 'Max Uses', 'Expiration Date'];
-    const rows = batchResult.codes.map((c) => {
-      const codeValue = c.raw || c.code || c.preview || '';
-      const typeStr = batchResult.type;
-      const targetStr = batchResult.targetName || (batchResult.amount ? `${batchResult.amount} EGP` : batchResult.discountValue || '');
-      const maxUses = c.max_uses ?? (batchResult.type === 'WALLET' ? '1' : '1');
-      const expDate = c.expires_at ? new Date(c.expires_at).toLocaleDateString('en-GB') : '';
+    const csvContent =
+      'data:text/csv;charset=utf-8,\uFEFF' +
+      [headers.join(','), ...rows.map((e) => e.map((val) => `"${val}"`).join(','))].join('\n');
 
-      return [
-        `"${codeValue}"`,
-        `"${typeStr}"`,
-        `"${targetStr}"`,
-        `"${maxUses}"`,
-        `"${expDate}"`,
-      ].join(',');
-    });
-
-    const csvContent = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `generated-codes-${batchResult.type.toLowerCase()}-${Date.now()}.csv`);
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `codes-${batchResult.type.toLowerCase()}-${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-primary-50 dark:bg-primary-950/50 text-primary-600 dark:text-primary-400 border border-primary-100 dark:border-primary-900/50">
-              <Ticket className="w-6 h-6" />
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              {isAr ? 'أكواد التفعيل والشحن' : 'Activation & Recharge Codes'}
-            </h1>
-          </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {isAr
-              ? 'إدارة أكواد تفعيل الباقات والكورسات وكروت شحن المحفظة وكوبونات الخصم'
-              : 'Central management for package & course activation codes, wallet top-up cards and discount coupons'}
-          </p>
-        </div>
-
-        {/* Primary Actions based on Active Tab */}
-        <div className="flex flex-wrap items-center gap-3">
-          {canManage && activeTab === 'packages' && (
-            <button
-              onClick={() => {
-                setPkgConfirmStep(false);
-                setIsPkgModalOpen(true);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-primary-500/20"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{isAr ? 'توليد أكواد باقة' : 'Generate Package Codes'}</span>
-            </button>
-          )}
-
-          {canManage && activeTab === 'courses' && (
-            <button
-              onClick={() => {
-                setCourseConfirmStep(false);
-                setIsCourseModalOpen(true);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-primary-500/20"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{isAr ? 'توليد أكواد كورس' : 'Generate Course Codes'}</span>
-            </button>
-          )}
-
-          {canManage && activeTab === 'wallet' && (
-            <button
-              onClick={() => {
-                setRechargeConfirmStep(false);
-                setIsRechargeModalOpen(true);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-emerald-500/20"
-            >
-              <Plus className="w-4 h-4" />
-              <span>{isAr ? 'توليد كروت شحن' : 'Generate Top-Up Cards'}</span>
-            </button>
-          )}
-
-          {canManage && activeTab === 'discounts' && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsSingleDiscModalOpen(true)}
-                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{isAr ? 'إنشاء كوبون' : 'Create Single Coupon'}</span>
-              </button>
-              <button
-                onClick={() => {
-                  setBulkDiscConfirmStep(false);
-                  setIsBulkDiscModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-sm transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{isAr ? 'توليد كوبونات' : 'Bulk Generate Coupons'}</span>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Global Feedback Banner */}
+    <div className="space-y-6 pb-12">
+      {/* Feedback Banner */}
       {feedback && (
         <div
-          className={`flex items-center justify-between p-4 rounded-xl text-sm font-medium border ${
+          className={`p-4 rounded-xl flex items-center justify-between gap-3 text-sm font-semibold transition-all ${
             feedback.type === 'success'
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50'
-              : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/50'
+              ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+              : 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-            )}
+            <AlertCircle className="w-5 h-5 shrink-0" />
             <span>{feedback.message}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="p-1 hover:opacity-75">
+          <button
+            onClick={() => setFeedback(null)}
+            className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Main Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 overflow-x-auto pb-1">
-        <button
-          onClick={() => {
-            setActiveTab('packages');
-            setStatusFilter('ALL');
-            setSearch('');
-          }}
-          className={`inline-flex items-center gap-2.5 px-5 py-3 border-b-2 text-sm font-semibold transition-all whitespace-nowrap ${
-            activeTab === 'packages'
-              ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
-              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <PackageIcon className="w-4 h-4" />
-          <span>{isAr ? 'أكواد الباقات' : 'Package Codes'}</span>
-        </button>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            {isAr ? 'كروت الشحن وكوبونات الخصم' : 'Recharge Cards & Discount Coupons'}
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {isAr
+              ? 'إدارة وتوليد كروت شحن رصيد المحفظة التعليمية وكوبونات الخصم'
+              : 'Manage and generate wallet top-up cards and discount coupons'}
+          </p>
+        </div>
 
-        <button
-          onClick={() => {
-            setActiveTab('courses');
-            setStatusFilter('ALL');
-            setSearch('');
-          }}
-          className={`inline-flex items-center gap-2.5 px-5 py-3 border-b-2 text-sm font-semibold transition-all whitespace-nowrap ${
-            activeTab === 'courses'
-              ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
-              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>{isAr ? 'أكواد الكورسات' : 'Course Codes'}</span>
-        </button>
+        {/* Primary Action Buttons */}
+        {canManage && (
+          <div className="flex flex-wrap items-center gap-2.5">
+            {activeTab === 'wallet' && (
+              <button
+                onClick={() => {
+                  setRechargeConfirmStep(false);
+                  setIsRechargeModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{isAr ? 'توليد كروت شحن محفظة' : 'Generate Top-Up Cards'}</span>
+              </button>
+            )}
 
+            {activeTab === 'discounts' && (
+              <>
+                <button
+                  onClick={() => setIsSingleDiscModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{isAr ? 'إنشاء كوبون مخصص' : 'Create Single Coupon'}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setBulkDiscConfirmStep(false);
+                    setIsBulkDiscModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm transition-all shadow-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{isAr ? 'توليد كوبونات مجمعة' : 'Generate Bulk Coupons'}</span>
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Tabs Navigation */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-1">
         <button
-          onClick={() => {
-            setActiveTab('wallet');
-            setStatusFilter('ALL');
-            setSearch('');
-          }}
-          className={`inline-flex items-center gap-2.5 px-5 py-3 border-b-2 text-sm font-semibold transition-all whitespace-nowrap ${
+          onClick={() => setActiveTab('wallet')}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
             activeTab === 'wallet'
-              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 dark:border-emerald-400'
-              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Wallet className="w-4 h-4" />
@@ -798,17 +565,11 @@ export default function StaffCodesManagementPage() {
         </button>
 
         <button
-          onClick={() => {
-            setActiveTab('discounts');
-            setStatusFilter('ALL');
-            setDiscountTypeFilter('ALL');
-            setDiscountTargetFilter('ALL');
-            setSearch('');
-          }}
-          className={`inline-flex items-center gap-2.5 px-5 py-3 border-b-2 text-sm font-semibold transition-all whitespace-nowrap ${
+          onClick={() => setActiveTab('discounts')}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
             activeTab === 'discounts'
-              ? 'border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400'
-              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              ? 'bg-primary-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Tag className="w-4 h-4" />
@@ -816,149 +577,125 @@ export default function StaffCodesManagementPage() {
         </button>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      {/* Filters Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
         {/* Search */}
-        <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 text-slate-400 start-3" />
+        <div className="relative">
+          <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
+            placeholder={isAr ? 'بحث في الأكواد...' : 'Search codes...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={
-              isAr
-                ? activeTab === 'wallet'
-                  ? 'بحث بمعرف الكارت أو الدفعة...'
-                  : 'بحث برمز الكود أو العنوان...'
-                : 'Search codes...'
-            }
-            className="w-full ps-9 pe-4 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            className="w-full ps-9 pe-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
           />
         </div>
 
-        {/* Dropdown Filters */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-          {/* Academic Year Filter (Activation & Discounts) */}
-          {(activeTab === 'packages' || activeTab === 'courses' || activeTab === 'discounts') && (
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none"
-            >
-              <option value="ALL">{isAr ? 'جميع السنوات الدراسية' : 'All Academic Years'}</option>
-              {academicYears.map((y) => (
-                <option key={y.id} value={y.id}>
-                  {isAr ? y.name_ar : y.name_en}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {/* Status Filter */}
+        {/* Status Filter */}
+        <div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none"
+            className="w-full px-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
           >
             <option value="ALL">{isAr ? 'جميع الحالات' : 'All Statuses'}</option>
-            <option value="ACTIVE">{isAr ? 'نشط / متاح' : 'Active'}</option>
-            <option value="USED">{isAr ? 'مستخدم / مكتمل' : 'Used'}</option>
-            {activeTab === 'discounts' && <option value="EXHAUSTED">{isAr ? 'منتهي الاستخدام' : 'Exhausted'}</option>}
+            <option value="ACTIVE">{isAr ? 'نشط (متاح للاستخدام)' : 'Active'}</option>
+            <option value="USED">{isAr ? 'مستخدم بالكامل' : 'Used / Exhausted'}</option>
             <option value="DISABLED">{isAr ? 'معطل' : 'Disabled'}</option>
           </select>
+        </div>
 
-          {/* Discount Specific Filters */}
-          {activeTab === 'discounts' && (
-            <>
+        {/* Discount Specific Filters */}
+        {activeTab === 'discounts' && (
+          <>
+            <div>
               <select
                 value={discountTypeFilter}
                 onChange={(e) => setDiscountTypeFilter(e.target.value)}
-                className="px-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none"
+                className="w-full px-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
               >
-                <option value="ALL">{isAr ? 'جميع أنواع الخصم' : 'All Types'}</option>
+                <option value="ALL">{isAr ? 'جميع أنواع الخصم' : 'All Discount Types'}</option>
                 <option value="PERCENTAGE">{isAr ? 'نسبة مئوية (%)' : 'Percentage (%)'}</option>
                 <option value="FIXED_AMOUNT">{isAr ? 'مبلغ ثابت (ج.م)' : 'Fixed Amount (EGP)'}</option>
               </select>
+            </div>
 
+            <div>
               <select
                 value={discountTargetFilter}
                 onChange={(e) => setDiscountTargetFilter(e.target.value)}
-                className="px-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none"
+                className="w-full px-3 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
               >
                 <option value="ALL">{isAr ? 'جميع النطاقات' : 'All Scopes'}</option>
-                <option value="ALL">{isAr ? 'المنصة كاملة' : 'Platform Wide'}</option>
-                <option value="PACKAGE">{isAr ? 'باقة محددة' : 'Package'}</option>
-                <option value="COURSE">{isAr ? 'كورس محدد' : 'Course'}</option>
+                <option value="COURSE">{isAr ? 'كورس محدد' : 'Specific Course'}</option>
+                <option value="PACKAGE">{isAr ? 'باقة محددة' : 'Specific Package'}</option>
               </select>
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          {/* Refresh Button */}
+        {/* Reset / Refresh */}
+        <div className="flex items-center justify-end">
           <button
             onClick={() => loadData(page)}
             disabled={isLoading}
-            className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
-            title={isAr ? 'إعادة التحميل' : 'Refresh'}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isAr ? 'تحديث' : 'Refresh'}</span>
           </button>
         </div>
       </div>
 
       {/* Main Table Content */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="py-20">
-            <LoadingState message={isAr ? 'جاري تحميل قائمة الأكواد...' : 'Loading codes list...'} />
+          <div className="p-12">
+            <LoadingState message={isAr ? 'جاري تحميل الأكواد...' : 'Loading codes...'} />
           </div>
         ) : error ? (
-          <div className="py-20">
-            <ErrorState message={error} onRetry={() => loadData(page)} />
+          <div className="p-12">
+            <ErrorState message={error} onRetry={() => loadData(1)} />
           </div>
         ) : items.length === 0 ? (
-          <div className="py-20">
+          <div className="p-12">
             <EmptyState
-              title={isAr ? 'لا توجد أكواد مسجلة' : 'No codes found'}
+              title={isAr ? 'لا توجد أكواد حالياً' : 'No codes found'}
               description={
                 isAr
-                  ? 'لم يتم العثور على أي أكواد تطابق شروط البحث أو الفلاتر المحددة.'
-                  : 'No records found matching current search or filters.'
+                  ? 'لم يتم العثور على أي أكواد تطابق معايير البحث الحالية.'
+                  : 'No codes found matching your current filter criteria.'
               }
             />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-start text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold">
-                <tr>
-                  <th className="py-3.5 px-4 text-start">{isAr ? 'الكود' : 'Code'}</th>
+            <table className="w-full text-start text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-800/50 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                  <th className="py-3.5 px-4 text-start">{isAr ? 'الكود (المعاينة)' : 'Code Preview'}</th>
 
-                  {/* Target Column */}
-                  {activeTab === 'packages' && <th className="py-3.5 px-4 text-start">{isAr ? 'الباقة المستهدفة' : 'Target Package'}</th>}
-                  {activeTab === 'courses' && <th className="py-3.5 px-4 text-start">{isAr ? 'الكورس المستهدف' : 'Target Course'}</th>}
-                  {activeTab === 'wallet' && <th className="py-3.5 px-4 text-start">{isAr ? 'قيمة الكارت' : 'Card Value'}</th>}
+                  {activeTab === 'wallet' && (
+                    <th className="py-3.5 px-4 text-start">{isAr ? 'القيمة' : 'Value'}</th>
+                  )}
+
                   {activeTab === 'discounts' && (
                     <>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'نوع الخصم' : 'Discount Type'}</th>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'قيمة الخصم' : 'Value'}</th>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'النطاق / الهدف' : 'Scope / Target'}</th>
+                      <th className="py-3.5 px-4 text-start">{isAr ? 'نوع الخصم' : 'Type'}</th>
+                      <th className="py-3.5 px-4 text-start">{isAr ? 'قيمة الخصم' : 'Discount'}</th>
+                      <th className="py-3.5 px-4 text-start">{isAr ? 'النطاق / العنصر' : 'Scope'}</th>
                     </>
                   )}
 
-                  {/* Academic Year Column */}
-                  {(activeTab === 'packages' || activeTab === 'courses') && (
-                    <th className="py-3.5 px-4 text-start">{isAr ? 'السنة الدراسية' : 'Academic Year'}</th>
+                  {/* Usage Quota */}
+                  {activeTab === 'discounts' && (
+                    <th className="py-3.5 px-4 text-start">{isAr ? 'مرات الاستخدام' : 'Usage'}</th>
                   )}
 
-                  {/* Usage Info */}
-                  {activeTab !== 'wallet' && (
-                    <th className="py-3.5 px-4 text-start">{isAr ? 'مرات الاستخدام' : 'Usage Limit'}</th>
-                  )}
-
-                  {/* Wallet Specific Used By */}
+                  {/* Wallet Used Info */}
                   {activeTab === 'wallet' && (
                     <>
-                      <th className="py-3.5 px-4 text-start">{isAr ? 'المستخدم' : 'Used By'}</th>
+                      <th className="py-3.5 px-4 text-start">{isAr ? 'المستخدم بواسطة' : 'Used By'}</th>
                       <th className="py-3.5 px-4 text-start">{isAr ? 'تاريخ الاستخدام' : 'Used At'}</th>
                     </>
                   )}
@@ -969,34 +706,20 @@ export default function StaffCodesManagementPage() {
                   {canManage && <th className="py-3.5 px-4 text-center">{isAr ? 'الإجراءات' : 'Actions'}</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-normal">
                 {items.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/75 dark:hover:bg-slate-800/40 transition-colors">
+                  <tr
+                    key={row.id}
+                    className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                  >
                     {/* Code Preview */}
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-slate-100">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
-                        <span className="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md text-xs border border-slate-200 dark:border-slate-700">
-                          {row.code_preview || row.code || 'CODE-****-XXXX'}
+                        <span className="font-mono font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md text-xs tracking-wider">
+                          {row.code_preview || row.code || 'CODE'}
                         </span>
                       </div>
                     </td>
-
-                    {/* Tab Specific Content */}
-                    {activeTab === 'packages' && (
-                      <td className="py-3.5 px-4">
-                        <span className="font-medium text-slate-900 dark:text-white">
-                          {row.target_title || (isAr ? 'باقة تعليمية' : 'Package')}
-                        </span>
-                      </td>
-                    )}
-
-                    {activeTab === 'courses' && (
-                      <td className="py-3.5 px-4">
-                        <span className="font-medium text-slate-900 dark:text-white">
-                          {row.target_title || (isAr ? 'كورس تعليمي' : 'Course')}
-                        </span>
-                      </td>
-                    )}
 
                     {activeTab === 'wallet' && (
                       <td className="py-3.5 px-4">
@@ -1024,15 +747,8 @@ export default function StaffCodesManagementPage() {
                       </>
                     )}
 
-                    {/* Academic Year */}
-                    {(activeTab === 'packages' || activeTab === 'courses') && (
-                      <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
-                        {isAr ? row.academic_year_name_ar || '—' : row.academic_year_name_en || '—'}
-                      </td>
-                    )}
-
                     {/* Usage Limits */}
-                    {activeTab !== 'wallet' && (
+                    {activeTab === 'discounts' && (
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
                           <span className="text-slate-900 dark:text-white font-bold">{row.used_count ?? 0}</span>
@@ -1086,11 +802,7 @@ export default function StaffCodesManagementPage() {
                               confirmDisableItem(
                                 row.id,
                                 row.code_preview || row.code || 'CODE',
-                                activeTab === 'wallet'
-                                  ? 'RECHARGE'
-                                  : activeTab === 'discounts'
-                                  ? 'DISCOUNT'
-                                  : 'ACTIVATION',
+                                activeTab === 'wallet' ? 'RECHARGE' : 'DISCOUNT',
                               )
                             }
                             className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-colors"
@@ -1152,428 +864,7 @@ export default function StaffCodesManagementPage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* 1. PACKAGE GENERATION MODAL                                               */}
-      {/* ========================================================================= */}
-      {isPkgModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400">
-                  <PackageIcon className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {isAr ? 'توليد أكواد باقة تعليمية' : 'Generate Package Activation Codes'}
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsPkgModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              {!pkgConfirmStep ? (
-                <>
-                  {/* Package Selector */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      {isAr ? 'اختار الباقة' : 'Select Package'} *
-                    </label>
-                    <select
-                      value={pkgTargetId}
-                      onChange={(e) => setPkgTargetId(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                    >
-                      {packagesList.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.title_ar || p.title_en} — ({p.price} ج.م)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Live Package Card Preview */}
-                  {selectedPackage && (
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center gap-4">
-                      {selectedPackage.thumbnail_url ? (
-                        <img
-                          src={selectedPackage.thumbnail_url}
-                          alt=""
-                          className="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-slate-700"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-lg bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-600">
-                          <PackageIcon className="w-8 h-8" />
-                        </div>
-                      )}
-                      <div className="space-y-1 text-xs">
-                        <p className="font-bold text-sm text-slate-900 dark:text-white">
-                          {selectedPackage.title_ar || selectedPackage.title_en}
-                        </p>
-                        <p className="text-slate-500">
-                          {isAr ? 'السعر الأساسي:' : 'Price:'}{' '}
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{selectedPackage.price} ج.م</span>
-                          {selectedPackage.discount_price && (
-                            <span className="text-emerald-600 ms-2">
-                              ({isAr ? 'الخصم:' : 'Discount:'} {selectedPackage.discount_price} ج.م)
-                            </span>
-                          )}
-                        </p>
-                        <span className="inline-block px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium">
-                          {selectedPackage.academic_year_id ? (isAr ? 'تتبع مرحلة دراسية محددة' : 'Year Bound') : ''}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Count & Max Uses */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'عدد الأكواد' : 'Number of Codes'} *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="1000"
-                        value={pkgCount}
-                        onChange={(e) => setPkgCount(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'مرات استخدام الكود' : 'Max Uses Per Code'} *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={pkgMaxUses}
-                        onChange={(e) => setPkgMaxUses(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Expiration Date */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      {isAr ? 'تاريخ انتهاء الصلاحية' : 'Expiration Date'} *
-                    </label>
-                    <input
-                      type="date"
-                      value={pkgExpiresAt}
-                      onChange={(e) => setPkgExpiresAt(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Generation Summary Box */}
-                  <div className="p-4 rounded-xl bg-primary-50/50 dark:bg-primary-950/20 border border-primary-100 dark:border-primary-900/40 text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
-                    <p className="font-bold text-primary-900 dark:text-primary-300">{isAr ? 'ملخص التوليد:' : 'Summary:'}</p>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'الباقة:' : 'Package:'}</span>
-                      <span className="font-bold">{selectedPackage?.title_ar || selectedPackage?.title_en || '—'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'عدد الأكواد:' : 'Codes Count:'}</span>
-                      <span className="font-bold">{pkgCount} كود</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'مرات الاستخدام لكل كود:' : 'Max Uses:'}</span>
-                      <span className="font-bold">{pkgMaxUses}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'تاريخ الانتهاء:' : 'Expires:'}</span>
-                      <span className="font-bold">{pkgExpiresAt}</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                /* Confirmation Step */
-                <div className="text-center py-4 space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 mx-auto flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-slate-900 dark:text-white">
-                      {isAr ? 'تأكيد أمر التوليد' : 'Confirm Generation'}
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      {isAr
-                        ? `أنت على وشك توليد ${pkgCount} كود تفعيل للباقة (${selectedPackage?.title_ar || selectedPackage?.title_en}). هل تريد المتابعة؟`
-                        : `You are about to generate ${pkgCount} activation codes. Continue?`}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-              {!pkgConfirmStep ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setIsPkgModalOpen(false)}
-                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    {isAr ? 'إلغاء' : 'Cancel'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPkgConfirmStep(true)}
-                    className="px-5 py-2 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 text-white shadow-sm"
-                  >
-                    {isAr ? 'متابعة وتأكيد' : 'Continue'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setPkgConfirmStep(false)}
-                    disabled={isGeneratingPkg}
-                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    {isAr ? 'تعديل البيانات' : 'Back'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGeneratePackageCodes}
-                    disabled={isGeneratingPkg}
-                    className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 text-white shadow-sm"
-                  >
-                    {isGeneratingPkg ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>{isAr ? 'جاري التوليد...' : 'Generating...'}</span>
-                      </>
-                    ) : (
-                      <span>{isAr ? 'تأكيد وتوليد الآن' : 'Confirm & Generate'}</span>
-                    )}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 2. COURSE GENERATION MODAL                                                */}
-      {/* ========================================================================= */}
-      {isCourseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {isAr ? 'توليد أكواد كورس تعليمي' : 'Generate Course Activation Codes'}
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsCourseModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              {!courseConfirmStep ? (
-                <>
-                  {/* Course Selector */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      {isAr ? 'اختار الكورس' : 'Select Course'} *
-                    </label>
-                    <select
-                      value={courseTargetId}
-                      onChange={(e) => setCourseTargetId(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                    >
-                      {coursesList.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.title_ar || c.title_en} — ({c.price} ج.م)
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Live Course Card Preview */}
-                  {selectedCourse && (
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center gap-4">
-                      {selectedCourse.thumbnail_url ? (
-                        <img
-                          src={selectedCourse.thumbnail_url}
-                          alt=""
-                          className="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-slate-700"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-lg bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-600">
-                          <BookOpen className="w-8 h-8" />
-                        </div>
-                      )}
-                      <div className="space-y-1 text-xs">
-                        <p className="font-bold text-sm text-slate-900 dark:text-white">
-                          {selectedCourse.title_ar || selectedCourse.title_en}
-                        </p>
-                        <p className="text-slate-500">
-                          {isAr ? 'السعر الأساسي:' : 'Price:'}{' '}
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{selectedCourse.price} ج.م</span>
-                          {selectedCourse.discount_price && (
-                            <span className="text-emerald-600 ms-2">
-                              ({isAr ? 'الخصم:' : 'Discount:'} {selectedCourse.discount_price} ج.م)
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Count & Max Uses */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'عدد الأكواد' : 'Number of Codes'} *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="1000"
-                        value={courseCount}
-                        onChange={(e) => setCourseCount(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'مرات استخدام الكود' : 'Max Uses Per Code'} *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={courseMaxUses}
-                        onChange={(e) => setCourseMaxUses(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Expiration Date */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      {isAr ? 'تاريخ انتهاء الصلاحية' : 'Expiration Date'} *
-                    </label>
-                    <input
-                      type="date"
-                      value={courseExpiresAt}
-                      onChange={(e) => setCourseExpiresAt(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Generation Summary Box */}
-                  <div className="p-4 rounded-xl bg-primary-50/50 dark:bg-primary-950/20 border border-primary-100 dark:border-primary-900/40 text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
-                    <p className="font-bold text-primary-900 dark:text-primary-300">{isAr ? 'ملخص التوليد:' : 'Summary:'}</p>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'الكورس:' : 'Course:'}</span>
-                      <span className="font-bold">{selectedCourse?.title_ar || selectedCourse?.title_en || '—'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'عدد الأكواد:' : 'Codes Count:'}</span>
-                      <span className="font-bold">{courseCount} كود</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'مرات الاستخدام لكل كود:' : 'Max Uses:'}</span>
-                      <span className="font-bold">{courseMaxUses}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'تاريخ الانتهاء:' : 'Expires:'}</span>
-                      <span className="font-bold">{courseExpiresAt}</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                /* Confirmation Step */
-                <div className="text-center py-4 space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 mx-auto flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-slate-900 dark:text-white">
-                      {isAr ? 'تأكيد أمر التوليد' : 'Confirm Generation'}
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      {isAr
-                        ? `أنت على وشك توليد ${courseCount} كود تفعيل للكورس (${selectedCourse?.title_ar || selectedCourse?.title_en}). هل تريد المتابعة؟`
-                        : `You are about to generate ${courseCount} course activation codes. Continue?`}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-              {!courseConfirmStep ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setIsCourseModalOpen(false)}
-                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    {isAr ? 'إلغاء' : 'Cancel'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCourseConfirmStep(true)}
-                    className="px-5 py-2 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 text-white shadow-sm"
-                  >
-                    {isAr ? 'متابعة وتأكيد' : 'Continue'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setCourseConfirmStep(false)}
-                    disabled={isGeneratingCourse}
-                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    {isAr ? 'تعديل البيانات' : 'Back'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleGenerateCourseCodes}
-                    disabled={isGeneratingCourse}
-                    className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 text-white shadow-sm"
-                  >
-                    {isGeneratingCourse ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>{isAr ? 'جاري التوليد...' : 'Generating...'}</span>
-                      </>
-                    ) : (
-                      <span>{isAr ? 'تأكيد وتوليد الآن' : 'Confirm & Generate'}</span>
-                    )}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 3. RECHARGE CARDS GENERATION MODAL                                        */}
+      {/* 1. RECHARGE CARDS GENERATION MODAL                                        */}
       {/* ========================================================================= */}
       {isRechargeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1729,7 +1020,7 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 4. SINGLE DISCOUNT COUPON MODAL                                           */}
+      {/* 2. CREATE SINGLE DISCOUNT MODAL                                           */}
       {/* ========================================================================= */}
       {isSingleDiscModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1740,7 +1031,7 @@ export default function StaffCodesManagementPage() {
                   <Tag className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {isAr ? 'إنشاء كوبون خصم فردي' : 'Create Single Discount Coupon'}
+                  {isAr ? 'إنشاء كوبون خصم مخصص' : 'Create Custom Discount Coupon'}
                 </h3>
               </div>
               <button
@@ -1751,23 +1042,29 @@ export default function StaffCodesManagementPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateSingleDiscount} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              {/* Code */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateSingleDiscount();
+              }}
+              className="p-6 space-y-4 max-h-[80vh] overflow-y-auto"
+            >
+              {/* Code String */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  {isAr ? 'رمز الكوبون' : 'Coupon Code'} *
+                  {isAr ? 'كود الكوبون (نص الكود)' : 'Coupon Code'} *
                 </label>
                 <input
                   type="text"
-                  required
+                  placeholder="e.g. EXAM2026, VIP50"
                   value={singleDiscCode}
                   onChange={(e) => setSingleDiscCode(e.target.value.toUpperCase())}
-                  placeholder="e.g. DISCOUNT20"
-                  className="w-full px-3.5 py-2.5 text-sm font-mono font-bold uppercase rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                  required
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono font-bold tracking-wider focus:outline-none"
                 />
               </div>
 
-              {/* Discount Type & Value */}
+              {/* Type & Value */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -1785,14 +1082,18 @@ export default function StaffCodesManagementPage() {
 
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {isAr ? 'قيمة الخصم' : 'Discount Value'} *
+                    {singleDiscType === 'PERCENTAGE'
+                      ? isAr ? 'النسبة المئوية (%)' : 'Percentage (%)'
+                      : isAr ? 'المبلغ (ج.م)' : 'Amount (EGP)'}{' '}
+                    *
                   </label>
                   <input
                     type="number"
                     min="1"
-                    max={singleDiscType === 'PERCENTAGE' ? '100' : '10000'}
+                    max={singleDiscType === 'PERCENTAGE' ? 100 : 10000}
                     value={singleDiscValue}
-                    onChange={(e) => setSingleDiscValue(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => setSingleDiscValue(Math.max(1, parseFloat(e.target.value) || 0))}
+                    required
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none"
                   />
                 </div>
@@ -1801,76 +1102,70 @@ export default function StaffCodesManagementPage() {
               {/* Scope */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  {isAr ? 'نطاق التطبيق' : 'Application Scope'} *
+                  {isAr ? 'نطاق الخصم' : 'Discount Scope'} *
                 </label>
                 <select
                   value={singleDiscScope}
-                  onChange={(e) => setSingleDiscScope(e.target.value as any)}
+                  onChange={(e) => {
+                    setSingleDiscScope(e.target.value as any);
+                    setSingleDiscTargetId('');
+                  }}
                   className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                 >
-                  <option value="ALL">{isAr ? 'جميع محتويات المنصة' : 'Platform Wide (All)'}</option>
-                  <option value="PACKAGE">{isAr ? 'باقة محددة' : 'Specific Package'}</option>
-                  <option value="COURSE">{isAr ? 'كورس محدد' : 'Specific Course'}</option>
+                  <option value="ALL">{isAr ? 'المنصة كاملة (جميع الكورسات والباقات)' : 'Entire Platform'}</option>
+                  <option value="COURSE">{isAr ? 'كورس محدد فقط' : 'Specific Course Only'}</option>
+                  <option value="PACKAGE">{isAr ? 'باقة محددة فقط' : 'Specific Package Only'}</option>
                 </select>
               </div>
 
-              {/* Target Dropdown based on Scope */}
-              {singleDiscScope === 'PACKAGE' && (
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {isAr ? 'اختار الباقة' : 'Select Target Package'} *
-                  </label>
-                  <select
-                    value={singleDiscTargetId}
-                    onChange={(e) => setSingleDiscTargetId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                  >
-                    {packagesList.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.title_ar || p.title_en}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
+              {/* Target Selector if not ALL */}
               {singleDiscScope === 'COURSE' && (
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {isAr ? 'اختار الكورس' : 'Select Target Course'} *
+                    {isAr ? 'اختار الكورس' : 'Select Course'} *
                   </label>
                   <select
                     value={singleDiscTargetId}
                     onChange={(e) => setSingleDiscTargetId(e.target.value)}
+                    required
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                   >
+                    <option value="">{isAr ? '-- اختار الكورس --' : '-- Select Course --'}</option>
                     {coursesList.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.title_ar || c.title_en}
+                        {c.title_ar || c.title_en} ({c.price} ج.م)
                       </option>
                     ))}
                   </select>
                 </div>
               )}
 
-              {/* Max Uses & Dates */}
+              {singleDiscScope === 'PACKAGE' && (
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {isAr ? 'اختار الباقة' : 'Select Package'} *
+                  </label>
+                  <select
+                    value={singleDiscTargetId}
+                    onChange={(e) => setSingleDiscTargetId(e.target.value)}
+                    required
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                  >
+                    <option value="">{isAr ? '-- اختار الباقة --' : '-- Select Package --'}</option>
+                    {packagesList.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title_ar || p.title_en} ({p.price} ج.م)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Min Order & Max Uses */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {isAr ? 'مرات الاستخدام الإجمالية' : 'Total Max Uses'} *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={singleDiscMaxUses}
-                    onChange={(e) => setSingleDiscMaxUses(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {isAr ? 'الحد الأدنى للطلب (ج.م)' : 'Min Order (EGP)'}
+                    {isAr ? 'أدنى قيمة للطلب (ج.م)' : 'Min Order (EGP)'}
                   </label>
                   <input
                     type="number"
@@ -1880,29 +1175,46 @@ export default function StaffCodesManagementPage() {
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {isAr ? 'أقصى عدد استخدام' : 'Max Redemptions'} *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={singleDiscMaxUses}
+                    onChange={(e) => setSingleDiscMaxUses(Math.max(1, parseInt(e.target.value) || 1))}
+                    required
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                  />
+                </div>
               </div>
 
+              {/* Dates */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {isAr ? 'تاريخ البداية' : 'Start Date'}
+                    {isAr ? 'يبدأ في' : 'Starts At'} *
                   </label>
                   <input
                     type="date"
                     value={singleDiscStartsAt}
                     onChange={(e) => setSingleDiscStartsAt(e.target.value)}
+                    required
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {isAr ? 'تاريخ الانتهاء' : 'End Date'} *
+                    {isAr ? 'ينتهي في' : 'Expires At'} *
                   </label>
                   <input
                     type="date"
                     value={singleDiscExpiresAt}
                     onChange={(e) => setSingleDiscExpiresAt(e.target.value)}
+                    required
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
@@ -1927,7 +1239,7 @@ export default function StaffCodesManagementPage() {
                       <span>{isAr ? 'جاري الحفظ...' : 'Saving...'}</span>
                     </>
                   ) : (
-                    <span>{isAr ? 'إنشاء الكوبون' : 'Create Coupon'}</span>
+                    <span>{isAr ? 'حفظ الكوبون' : 'Save Coupon'}</span>
                   )}
                 </button>
               </div>
@@ -1937,7 +1249,7 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 5. BULK DISCOUNT COUPONS MODAL                                            */}
+      {/* 3. BULK DISCOUNT COUPONS GENERATION MODAL                                 */}
       {/* ========================================================================= */}
       {isBulkDiscModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -1945,10 +1257,10 @@ export default function StaffCodesManagementPage() {
             <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400">
-                  <Percent className="w-5 h-5" />
+                  <Tag className="w-5 h-5" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  {isAr ? 'توليد دفعة كوبونات خصم' : 'Bulk Generate Discount Coupons'}
+                  {isAr ? 'توليد كوبونات خصم مجمعة' : 'Generate Bulk Discount Coupons'}
                 </h3>
               </div>
               <button
@@ -1962,23 +1274,21 @@ export default function StaffCodesManagementPage() {
             <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
               {!bulkDiscConfirmStep ? (
                 <>
-                  {/* Count */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      {isAr ? 'عدد الكوبونات المراد توليدها' : 'Number of Coupons to Generate'} *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={bulkDiscCount}
-                      onChange={(e) => setBulkDiscCount(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Discount Type & Value */}
                   <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {isAr ? 'عدد الكوبونات' : 'Coupons Count'} *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="500"
+                        value={bulkDiscCount}
+                        onChange={(e) => setBulkDiscCount(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                      />
+                    </div>
+
                     <div className="space-y-1.5">
                       <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                         {isAr ? 'نوع الخصم' : 'Discount Type'} *
@@ -1992,58 +1302,44 @@ export default function StaffCodesManagementPage() {
                         <option value="FIXED_AMOUNT">{isAr ? 'مبلغ ثابت (ج.م)' : 'Fixed Amount (EGP)'}</option>
                       </select>
                     </div>
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'قيمة الخصم' : 'Discount Value'} *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max={bulkDiscType === 'PERCENTAGE' ? '100' : '10000'}
-                        value={bulkDiscValue}
-                        onChange={(e) => setBulkDiscValue(parseFloat(e.target.value) || 0)}
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none"
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {bulkDiscType === 'PERCENTAGE'
+                        ? isAr ? 'النسبة المئوية (%)' : 'Percentage (%)'
+                        : isAr ? 'المبلغ (ج.م)' : 'Amount (EGP)'}{' '}
+                      *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={bulkDiscValue}
+                      onChange={(e) => setBulkDiscValue(Math.max(1, parseFloat(e.target.value) || 0))}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none"
+                    />
                   </div>
 
                   {/* Scope */}
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                      {isAr ? 'نطاق التطبيق' : 'Application Scope'} *
+                      {isAr ? 'نطاق الكوبونات' : 'Discount Scope'} *
                     </label>
                     <select
                       value={bulkDiscScope}
-                      onChange={(e) => setBulkDiscScope(e.target.value as any)}
+                      onChange={(e) => {
+                        setBulkDiscScope(e.target.value as any);
+                        setBulkDiscTargetId('');
+                      }}
                       className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                     >
-                      <option value="ALL">{isAr ? 'جميع محتويات المنصة' : 'Platform Wide (All)'}</option>
-                      <option value="PACKAGE">{isAr ? 'باقة محددة' : 'Specific Package'}</option>
-                      <option value="COURSE">{isAr ? 'كورس محدد' : 'Specific Course'}</option>
+                      <option value="ALL">{isAr ? 'المنصة كاملة (جميع الكورسات والباقات)' : 'Entire Platform'}</option>
+                      <option value="COURSE">{isAr ? 'كورس محدد فقط' : 'Specific Course Only'}</option>
+                      <option value="PACKAGE">{isAr ? 'باقة محددة فقط' : 'Specific Package Only'}</option>
                     </select>
                   </div>
 
-                  {/* Target Selectors */}
-                  {bulkDiscScope === 'PACKAGE' && (
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'اختار الباقة' : 'Select Package'} *
-                      </label>
-                      <select
-                        value={bulkDiscTargetId}
-                        onChange={(e) => setBulkDiscTargetId(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                      >
-                        {packagesList.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.title_ar || p.title_en}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
+                  {/* Target Selector if not ALL */}
                   {bulkDiscScope === 'COURSE' && (
                     <div className="space-y-1.5">
                       <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -2054,6 +1350,7 @@ export default function StaffCodesManagementPage() {
                         onChange={(e) => setBulkDiscTargetId(e.target.value)}
                         className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
                       >
+                        <option value="">{isAr ? '-- اختار الكورس --' : '-- Select Course --'}</option>
                         {coursesList.map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.title_ar || c.title_en}
@@ -2063,67 +1360,53 @@ export default function StaffCodesManagementPage() {
                     </div>
                   )}
 
-                  {/* Uses & Expiration */}
-                  <div className="grid grid-cols-2 gap-4">
+                  {bulkDiscScope === 'PACKAGE' && (
                     <div className="space-y-1.5">
                       <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'مرات الاستخدام لكل كود' : 'Max Uses Per Code'} *
+                        {isAr ? 'اختار الباقة' : 'Select Package'} *
                       </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={bulkDiscMaxUses}
-                        onChange={(e) => setBulkDiscMaxUses(Math.max(1, parseInt(e.target.value) || 1))}
+                      <select
+                        value={bulkDiscTargetId}
+                        onChange={(e) => setBulkDiscTargetId(e.target.value)}
                         className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                      />
+                      >
+                        <option value="">{isAr ? '-- اختار الباقة --' : '-- Select Package --'}</option>
+                        {packagesList.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.title_ar || p.title_en}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+                  )}
 
-                    <div className="space-y-1.5">
-                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        {isAr ? 'تاريخ الانتهاء' : 'Expiration Date'} *
-                      </label>
-                      <input
-                        type="date"
-                        value={bulkDiscExpiresAt}
-                        onChange={(e) => setBulkDiscExpiresAt(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Summary Box */}
-                  <div className="p-4 rounded-xl bg-primary-50/50 dark:bg-primary-950/20 border border-primary-100 dark:border-primary-900/40 text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
-                    <p className="font-bold text-primary-900 dark:text-primary-300">{isAr ? 'ملخص التوليد:' : 'Summary:'}</p>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'عدد الكوبونات:' : 'Coupons Count:'}</span>
-                      <span className="font-bold">{bulkDiscCount} كوبون</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'قيمة الخصم:' : 'Discount Value:'}</span>
-                      <span className="font-bold">
-                        {bulkDiscValue} {bulkDiscType === 'PERCENTAGE' ? '%' : 'ج.م'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{isAr ? 'النطاق:' : 'Scope:'}</span>
-                      <span className="font-bold">{bulkDiscScope === 'ALL' ? (isAr ? 'المنصة كاملة' : 'All') : bulkDiscScope}</span>
-                    </div>
+                  {/* Expiration */}
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {isAr ? 'تاريخ الانتهاء' : 'Expires At'} *
+                    </label>
+                    <input
+                      type="date"
+                      value={bulkDiscExpiresAt}
+                      onChange={(e) => setBulkDiscExpiresAt(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                    />
                   </div>
                 </>
               ) : (
                 /* Confirmation Step */
                 <div className="text-center py-4 space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 mx-auto flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 mx-auto flex items-center justify-center">
+                    <Tag className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
                     <h4 className="font-bold text-slate-900 dark:text-white">
-                      {isAr ? 'تأكيد أمر توليد الكوبونات' : 'Confirm Bulk Coupons'}
+                      {isAr ? 'تأكيد توليد كوبونات الخصم' : 'Confirm Bulk Coupons'}
                     </h4>
                     <p className="text-xs text-slate-500">
                       {isAr
-                        ? `سيتم إنشاء ${bulkDiscCount} كوبون خصم بقيمة ${bulkDiscValue} (${bulkDiscType === 'PERCENTAGE' ? '%' : 'ج.م'}). هل تريد المتابعة؟`
-                        : `Generating ${bulkDiscCount} coupons with value ${bulkDiscValue}. Continue?`}
+                        ? `سيتم توليد ${bulkDiscCount} كوبون خصم بقيمة ${bulkDiscValue}${bulkDiscType === 'PERCENTAGE' ? '%' : ' ج.م'}.`
+                        : `Generating ${bulkDiscCount} coupons with value of ${bulkDiscValue}${bulkDiscType === 'PERCENTAGE' ? '%' : ' EGP'}.`}
                     </p>
                   </div>
                 </div>
@@ -2181,22 +1464,22 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 6. POST-GENERATION RESULTS MODAL                                          */}
+      {/* 4. POST-GENERATION RESULT SCREEN (SECURE IN-MEMORY DISPLAY)                */}
       {/* ========================================================================= */}
       {batchResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-emerald-50/50 dark:bg-emerald-950/20">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300">
-                  <CheckCircle2 className="w-5 h-5" />
+                <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+                  <Check className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{batchResult.title}</h3>
                   <p className="text-xs text-slate-500">
                     {isAr
-                      ? `تم إنشاء ${batchResult.codes.length} كود صالح للاستخدام فوراً.`
-                      : `Successfully created ${batchResult.codes.length} active codes.`}
+                      ? `تم توليد عدد (${batchResult.codes.length}) كود بنجاح`
+                      : `Successfully generated ${batchResult.codes.length} codes`}
                   </p>
                 </div>
               </div>
@@ -2283,7 +1566,7 @@ export default function StaffCodesManagementPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 7. PRINT VIEW MODAL (A4 READY)                                            */}
+      {/* 5. PRINT VIEW MODAL (A4 READY)                                            */}
       {/* ========================================================================= */}
       {isPrintModeOpen && batchResult && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/90 backdrop-blur-md p-4 sm:p-8 flex flex-col items-center">
@@ -2319,7 +1602,7 @@ export default function StaffCodesManagementPage() {
               <p className="text-xs text-slate-500 mt-1">
                 {batchResult.type === 'WALLET'
                   ? isAr ? 'كروت شحن رصيد المحفظة التعليمية' : 'Educational Wallet Recharge Vouchers'
-                  : isAr ? `أكواد تفعيل (${batchResult.targetName || batchResult.title})` : `Activation Codes - ${batchResult.targetName || ''}`}
+                  : isAr ? 'كوبونات خصم' : 'Discount Vouchers'}
               </p>
             </div>
 
@@ -2341,16 +1624,6 @@ export default function StaffCodesManagementPage() {
                       {batchResult.type === 'WALLET' && (
                         <div className="text-emerald-700 font-bold text-base">
                           {isAr ? 'قيمة الكارت:' : 'Value:'} {batchResult.amount} {isAr ? 'جنيه' : 'EGP'}
-                        </div>
-                      )}
-                      {batchResult.type === 'PACKAGE' && (
-                        <div className="text-slate-800 font-bold text-xs">
-                          {isAr ? 'تفعيل باقة:' : 'Package:'} {batchResult.targetName}
-                        </div>
-                      )}
-                      {batchResult.type === 'COURSE' && (
-                        <div className="text-slate-800 font-bold text-xs">
-                          {isAr ? 'تفعيل كورس:' : 'Course:'} {batchResult.targetName}
                         </div>
                       )}
                       {batchResult.type === 'DISCOUNT' && (
