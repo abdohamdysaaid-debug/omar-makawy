@@ -28,6 +28,7 @@ export const translations: Translations = {
   'nav.subscriptions': { ar: 'الاشتراكات والتسجيل', en: 'Subscriptions' },
   'nav.financial': { ar: 'المالية والمحافظ', en: 'Finance & Wallets' },
   'nav.platform_wallet': { ar: 'خزنة المنصة / طلبات الشحن', en: 'Platform Wallet & Top-Ups' },
+  'nav.books_and_notes': { ar: 'الكتب والمذكرات', en: 'Books & Notes' },
   'nav.wallets': { ar: 'محافظ الطلاب', en: 'Wallets' },
   'nav.recharge_codes': { ar: 'أكواد الشحن', en: 'Recharge Codes' },
   'nav.discounts': { ar: 'كوبونات الخصم', en: 'Discounts' },

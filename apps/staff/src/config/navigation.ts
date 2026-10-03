@@ -57,6 +57,12 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         icon: Wallet,
         permission: SystemPermissions.WALLET_READ,
       },
+      {
+        key: 'nav.books_and_notes',
+        href: '/staff/books',
+        icon: BookOpen,
+        permission: SystemPermissions.BOOKS_READ,
+      },
     ],
   },
   {
