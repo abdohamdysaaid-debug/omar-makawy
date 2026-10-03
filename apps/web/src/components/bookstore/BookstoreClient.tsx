@@ -98,12 +98,21 @@ export default function BookstoreClient() {
 
   const categories = ['مذكرات', 'تدريبات', 'قواعد', 'مراجعة'];
 
-  const filteredBooks = availableBooks.filter((book) => {
-    const matchesSearch =
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesYear = selectedYearId === 'all' || book.academicYearId === selectedYearId;
-    const matchesCategory = selectedCategory === 'all' || book.category === selectedCategory;
+  const booksList = Array.isArray(availableBooks) ? availableBooks : [];
+
+  const filteredBooks = booksList.filter((book) => {
+    if (!book) return false;
+    const title = String(book.title_ar || book.title_en || book.title || '').toLowerCase();
+    const desc = String(book.description_ar || book.description_en || book.description || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = title.includes(query) || desc.includes(query);
+
+    const yearId = book.academic_year_id || book.academicYearId;
+    const matchesYear = selectedYearId === 'all' || yearId === selectedYearId || String(yearId) === String(selectedYearId);
+
+    const category = book.type === 'NOTE' ? 'مذكرات' : (book.category || 'كتب');
+    const matchesCategory = selectedCategory === 'all' || category === selectedCategory || book.type === selectedCategory;
+
     return matchesSearch && matchesYear && matchesCategory;
   });
 

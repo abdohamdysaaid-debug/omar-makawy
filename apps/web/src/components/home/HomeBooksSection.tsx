@@ -68,9 +68,13 @@ export default function HomeBooksSection({ selectedAcademicYearId = null }: Home
     return () => { isMounted = false; };
   }, []);
 
-  const activeBooks = availableBooks.filter((b) => {
+  const booksList = Array.isArray(availableBooks) ? availableBooks : [];
+
+  const activeBooks = booksList.filter((b) => {
+    if (!b) return false;
+    const yearId = b.academic_year_id || b.academicYearId;
     if (selectedAcademicYearId !== null && selectedAcademicYearId !== undefined && selectedAcademicYearId !== 0) {
-      return b.academicYearId === selectedAcademicYearId;
+      return yearId === selectedAcademicYearId || String(yearId) === String(selectedAcademicYearId);
     }
     return true;
   }).slice(0, 6);
