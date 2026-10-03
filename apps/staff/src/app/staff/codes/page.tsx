@@ -162,6 +162,7 @@ export default function StaffCodesManagementPage() {
 
   // Post-Generation Result & Print Modals
   const [batchResult, setBatchResult] = useState<GeneratedBatchResult | null>(null);
+  const [isAllCopied, setIsAllCopied] = useState<boolean>(false);
   const [rawBatchesMap, setRawBatchesMap] = useState<Record<string, Array<{ raw?: string; code?: string; preview?: string; code_preview?: string; expires_at?: any }>>>({});
   const [isPrintModeOpen, setIsPrintModeOpen] = useState<boolean>(false);
   const [printTargetBatch, setPrintTargetBatch] = useState<{
@@ -437,6 +438,7 @@ export default function StaffCodesManagementPage() {
   };
 
   // 2. Create Single Discount Coupon
+  // 2. Create Single Discount Coupon
   const handleCreateSingleDiscount = async () => {
     if (!singleDiscCode.trim() || singleDiscValue <= 0) return;
     setIsSavingSingleDisc(true);
@@ -456,20 +458,31 @@ export default function StaffCodesManagementPage() {
         academic_year_id: singleDiscAcademicYear || undefined,
       };
 
-      await apiClient.post('/admin/discounts', payload);
+      const res: any = await apiClient.post('/admin/discounts', payload);
+      const actualCode = res?.code || res?.raw || res?.discount?.code || cleanCode;
 
       setRawBatchesMap((prev) => ({
         ...prev,
-        [cleanCode]: [{ raw: cleanCode, expires_at: singleDiscExpiresAt }],
+        [cleanCode]: [{ code: actualCode, raw: actualCode, expires_at: singleDiscExpiresAt }],
       }));
+
+      setBatchResult({
+        title: isAr
+          ? `تم إنشاء كوبون الخصم (${actualCode}) بنجاح`
+          : `Generated Discount Coupon (${actualCode})`,
+        type: 'DISCOUNT',
+        discountType: singleDiscType,
+        discountValue: singleDiscValue,
+        codes: [{ code: actualCode, raw: actualCode, expires_at: singleDiscExpiresAt }],
+      });
 
       setIsSingleDiscModalOpen(false);
       setSingleDiscCode('');
       setFeedback({
         type: 'success',
         message: isAr
-          ? `تم إنشاء كوبون الخصم (${cleanCode}) بنجاح`
-          : `Discount coupon (${cleanCode}) created successfully`,
+          ? `تم إنشاء كوبون الخصم (${actualCode}) بنجاح`
+          : `Discount coupon (${actualCode}) created successfully`,
       });
       loadData(1);
     } catch (err: any) {
@@ -513,8 +526,8 @@ export default function StaffCodesManagementPage() {
 
       setBatchResult({
         title: isAr
-          ? `تم توليد دفعة كوبونات خصم (${bulkDiscCount} كوبون)`
-          : `Generated ${bulkDiscCount} Discount Coupons`,
+          ? `تم إنشاء (${generatedList.length}) كوبونات بنجاح`
+          : `Successfully generated (${generatedList.length}) discount coupons`,
         type: 'DISCOUNT',
         discountType: bulkDiscType,
         discountValue: bulkDiscValue,
@@ -593,11 +606,11 @@ export default function StaffCodesManagementPage() {
     discType?: string,
   ) => {
     if (!codes.length) return;
-    const headers = ['Index', 'Type', 'Code Preview / Code', 'Value', 'Status', 'Created At', 'Expires At'];
+    const headers = ['Index', 'Type', 'Code', 'Value', 'Status', 'Created At', 'Expires At'];
     const rows = codes.map((c, i) => [
       i + 1,
       type,
-      c.raw || c.code || c.code_preview || c.preview,
+      c.code || c.raw || c.code_preview || c.preview || '',
       amount ? `${amount} EGP` : discVal ? `${discVal} (${discType})` : '',
       c.status || 'ACTIVE',
       c.created_at || new Date().toISOString(),
@@ -626,7 +639,8 @@ export default function StaffCodesManagementPage() {
       discountType: batch.discountType,
       discountValue: batch.discountValue,
       codes: batch.codes.map((c) => ({
-        raw: c.code_preview || c.code || 'CODE',
+        code: c.code || c.raw || c.code_preview || 'CODE',
+        raw: c.code || c.raw || c.code_preview || 'CODE',
         expires_at: c.expires_at,
       })),
     });
@@ -1301,60 +1315,63 @@ export default function StaffCodesManagementPage() {
               {selectedBatch.codes
                 .filter((c) =>
                   batchSearchQuery.trim()
-                    ? (c.code_preview || c.code || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
+                    ? (c.code || c.raw || c.code_preview || '').toLowerCase().includes(batchSearchQuery.toLowerCase()) ||
                       (c.used_by_name || '').toLowerCase().includes(batchSearchQuery.toLowerCase())
                     : true,
                 )
-                .map((codeItem, cIdx) => (
-                  <div
-                    key={cIdx}
-                    className="py-3 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/40 px-2 rounded-lg transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-400 font-mono w-7">#{cIdx + 1}</span>
-                      <div>
-                        <span className="font-mono font-bold text-sm text-slate-900 dark:text-white">
-                          {codeItem.code_preview || codeItem.code || 'CODE'}
-                        </span>
-                        {codeItem.used_by_name && (
-                          <p className="text-[11px] text-slate-400">
-                            {isAr ? 'مستخدم بواسطة:' : 'Used by:'} {codeItem.used_by_name} ({codeItem.used_by_phone})
-                          </p>
+                .map((codeItem, cIdx) => {
+                  const codeStr = codeItem.code || codeItem.raw || codeItem.code_preview || 'CODE';
+                  return (
+                    <div
+                      key={cIdx}
+                      className="py-3 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/40 px-2 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-400 font-mono w-7">#{cIdx + 1}</span>
+                        <div>
+                          <span className="font-mono font-bold text-sm text-slate-900 dark:text-white">
+                            {codeStr}
+                          </span>
+                          {codeItem.used_by_name && (
+                            <p className="text-[11px] text-slate-400">
+                              {isAr ? 'مستخدم بواسطة:' : 'Used by:'} {codeItem.used_by_name} ({codeItem.used_by_phone})
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <StatusBadge status={codeItem.status} />
+
+                        <button
+                          onClick={() => handleCopyCode(codeStr, cIdx)}
+                          className="p-1.5 text-xs rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                        >
+                          {copiedCodeIndex === cIdx ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+
+                        {canManage && codeItem.status === 'ACTIVE' && (
+                          <button
+                            onClick={() =>
+                              confirmDisableItem(
+                                codeItem.id,
+                                codeStr,
+                                selectedBatch.type === 'WALLET' ? 'RECHARGE' : 'DISCOUNT',
+                              )
+                            }
+                            className="px-2 py-0.5 text-xs font-semibold rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100"
+                          >
+                            {isAr ? 'تعطيل' : 'Disable'}
+                          </button>
                         )}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                      <StatusBadge status={codeItem.status} />
-
-                      <button
-                        onClick={() => handleCopyCode(codeItem.code_preview || codeItem.code || '', cIdx)}
-                        className="p-1.5 text-xs rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
-                      >
-                        {copiedCodeIndex === cIdx ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-
-                      {canManage && codeItem.status === 'ACTIVE' && (
-                        <button
-                          onClick={() =>
-                            confirmDisableItem(
-                              codeItem.id,
-                              codeItem.code_preview || codeItem.code || 'CODE',
-                              selectedBatch.type === 'WALLET' ? 'RECHARGE' : 'DISCOUNT',
-                            )
-                          }
-                          className="px-2 py-0.5 text-xs font-semibold rounded bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100"
-                        >
-                          {isAr ? 'تعطيل' : 'Disable'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
 
             {/* Modal Footer */}
@@ -1971,7 +1988,7 @@ export default function StaffCodesManagementPage() {
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{batchResult.title}</h3>
                   <p className="text-xs text-slate-500">
                     {isAr
-                      ? `تم توليد عدد (${batchResult.codes.length}) كود بنجاح داخل هذا المستطيل`
+                      ? `تم إنشاء (${batchResult.codes.length}) كود بنجاح داخل هذا المستطيل`
                       : `Successfully generated ${batchResult.codes.length} codes`}
                   </p>
                 </div>
@@ -1994,7 +2011,32 @@ export default function StaffCodesManagementPage() {
                       : 'Security notice: Raw plaintext codes are shown once upon generation and never stored unhashed on the server.'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Copy All Button */}
+                  <button
+                    onClick={() => {
+                      const all = batchResult.codes
+                        .map((c) => c.code || c.raw || c.preview || c.code_preview || '')
+                        .join('\n');
+                      navigator.clipboard.writeText(all);
+                      setIsAllCopied(true);
+                      setTimeout(() => setIsAllCopied(false), 2000);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                  >
+                    {isAllCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{isAr ? 'تم نسخ الكل' : 'All Copied'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'نسخ الكل' : 'Copy All'}</span>
+                      </>
+                    )}
+                  </button>
+
                   <button
                     onClick={() =>
                       generateBatchPDF({
@@ -2006,7 +2048,7 @@ export default function StaffCodesManagementPage() {
                         codes: batchResult.codes,
                       })
                     }
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     <span>{isAr ? 'تحميل ملف PDF' : 'Download PDF'}</span>
@@ -2051,7 +2093,7 @@ export default function StaffCodesManagementPage() {
               {/* Codes Grid */}
               <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 {batchResult.codes.map((c, idx) => {
-                  const codeStr = c.raw || c.code || c.preview || '';
+                  const codeStr = c.code || c.raw || c.preview || c.code_preview || '';
                   return (
                     <div key={idx} className="flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                       <div className="flex items-center gap-3">
@@ -2072,7 +2114,7 @@ export default function StaffCodesManagementPage() {
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5" />
-                            <span>{isAr ? 'نسخ' : 'Copy'}</span>
+                            <span>{isAr ? 'نسخ الكود' : 'Copy'}</span>
                           </>
                         )}
                       </button>
@@ -2141,28 +2183,28 @@ export default function StaffCodesManagementPage() {
             {/* Grid of Printable Rectangular Cards (2 Columns for A4 balance) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 print:grid-cols-2 print:gap-4">
               {printTargetBatch.codes.map((c, idx) => {
-                const codeStr = c.raw || c.code || c.preview || c.code_preview || '';
+                const codeStr = c.code || c.raw || c.preview || c.code_preview || '';
                 return (
                   <div
                     key={idx}
-                    className="border-2 border-slate-900 rounded-xl p-4 bg-white flex flex-col justify-between space-y-3 relative overflow-hidden shadow-xs print:shadow-none"
+                    className="border-2 border-black rounded-xl p-4 bg-emerald-100 flex flex-col justify-between space-y-3 relative overflow-hidden shadow-xs print:shadow-none"
                   >
                     {/* Top Green Accent Bar */}
                     <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-600"></div>
 
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 pt-1">
-                      <span className="font-bold text-xs text-emerald-700 tracking-wide">MR. OMAR MAKAWY</span>
-                      <span className="text-[11px] text-slate-900 font-bold font-mono">#{idx + 1}</span>
+                    <div className="flex items-center justify-between border-b border-black/40 pb-2 pt-1">
+                      <span className="font-bold text-xs text-black tracking-wide">MR. OMAR MAKAWY</span>
+                      <span className="text-[11px] text-black font-bold font-mono">#{idx + 1}</span>
                     </div>
 
                     <div className="text-center py-2 space-y-1.5">
                       {printTargetBatch.type === 'WALLET' && (
-                        <div className="text-emerald-700 font-bold text-sm sm:text-base">
+                        <div className="text-black font-bold text-sm sm:text-base">
                           {isAr ? 'قيمة الكارت:' : 'Card Value:'} {printTargetBatch.amount} {isAr ? 'جنيه' : 'EGP'}
                         </div>
                       )}
                       {printTargetBatch.type === 'DISCOUNT' && (
-                        <div className="text-emerald-700 font-bold text-sm sm:text-base">
+                        <div className="text-black font-bold text-sm sm:text-base">
                           {isAr ? 'كوبون خصم:' : 'Coupon Discount:'} {printTargetBatch.discountValue}{' '}
                           {printTargetBatch.discountType === 'PERCENTAGE' ? '%' : 'ج.م'} {isAr ? 'خصم' : 'OFF'}
                         </div>
@@ -2175,17 +2217,17 @@ export default function StaffCodesManagementPage() {
                         </span>
                       </div>
 
-                      <p className="text-[10px] font-bold text-emerald-700 pt-0.5">
+                      <p className="text-[10px] font-bold text-black pt-0.5">
                         {printTargetBatch.type === 'DISCOUNT'
                           ? isAr ? 'استخدم الكوبون عند إتمام الشراء' : 'ENTER COUPON CODE AT CHECKOUT'
                           : isAr ? 'اشحن الكود للاستفادة بالرصيد' : 'SCRATCH OR ENTER CODE TO REDEEM'}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-900 font-medium border-t border-slate-200 pt-2">
-                      <span className="font-bold">omarmeckawy.com</span>
+                    <div className="flex items-center justify-between text-[11px] text-black font-bold border-t border-black/40 pt-2">
+                      <span>omarmeckawy.com</span>
                       {c.expires_at && (
-                        <span className="text-slate-600">
+                        <span>
                           {isAr ? 'صالح حتى:' : 'Exp:'} {new Date(c.expires_at).toLocaleDateString('en-GB')}
                         </span>
                       )}
