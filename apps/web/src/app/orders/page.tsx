@@ -16,13 +16,10 @@ export default function OrdersPage() {
     async function fetchOrders() {
       setLoading(true);
       try {
-        const res = await apiClient.get<any[]>('/bookstore/my-orders').catch(() => []);
+        const res: any = await apiClient.get('/orders').catch(() => null);
+        const list = res?.data || (Array.isArray(res) ? res : []);
         if (isMounted) {
-          if (Array.isArray(res)) {
-            setOrders(res);
-          } else {
-            setOrders([]);
-          }
+          setOrders(Array.isArray(list) ? list : []);
         }
       } catch {
         if (isMounted) setOrders([]);
