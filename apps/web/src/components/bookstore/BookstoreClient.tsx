@@ -80,9 +80,11 @@ export default function BookstoreClient() {
     async function loadBooks() {
       setLoading(true);
       try {
-        const res = await fetch('/api/books').then((r) => r.json()).catch(() => []);
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.omarmeckawy.com/api/v1';
+        const res = await fetch(`${baseUrl}/books?is_active=true`).then((r) => r.json()).catch(() => []);
+        const list = res?.data || (Array.isArray(res) ? res : []);
         if (isMounted) {
-          setAvailableBooks(Array.isArray(res) ? res : []);
+          setAvailableBooks(list);
         }
       } catch {
         if (isMounted) setAvailableBooks([]);
