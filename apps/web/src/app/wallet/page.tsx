@@ -1,10 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAuth } from '@/context/AuthContext';
-import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, ShieldCheck } from 'lucide-react';
+import {
+  Wallet,
+  Plus,
+  ArrowUpRight,
+  ArrowDownLeft,
+  ShieldCheck,
+  CreditCard,
+  Ticket,
+  Copy,
+  Check,
+  Upload,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  AlertCircle,
+  Smartphone,
+  Building2,
+} from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
 export default function WalletPage() {
@@ -12,11 +30,34 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number>(student?.walletBalance ?? 0);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rechargeCode, setRechargeCode] = useState('');
-  const [charging, setCharging] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fetchWallet = React.useCallback(async () => {
+  // Recharge method tab: 'code' | 'topup'
+  const [rechargeMethod, setRechargeMethod] = useState<'code' | 'topup'>('topup');
+
+  // Recharge Code State
+  const [rechargeCode, setRechargeCode] = useState('');
+  const [codeCharging, setCodeCharging] = useState(false);
+  const [codeMessage, setCodeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Top-Up Request State
+  const [receivingAccounts, setReceivingAccounts] = useState<any[]>([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
+  const [reference, setReference] = useState<string>('');
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
+  const [submittingTopup, setSubmittingTopup] = useState(false);
+  const [topupMessage, setTopupMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Student's Top-Up Requests History
+  const [topupRequests, setTopupRequests] = useState<any[]>([]);
+  const [topupRequestsLoading, setTopupRequestsLoading] = useState(false);
+
+  // Copy state helper
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const fetchWallet = useCallback(async () => {
     setLoading(true);
     try {
       // 1. Fetch real current balance from backend
@@ -36,7 +77,7 @@ export default function WalletPage() {
         setBalance(student.walletBalance);
       }
 
-      // 2. Fetch real immutable transaction history
+      // 2. Fetch real transaction history
       let txRes: any = await apiClient.get<any>('/wallet/transactions?limit=50').catch(() => null);
       if (!txRes || !Array.isArray(txRes.data)) {
         txRes = await apiClient.get<any>('/api/v1/wallet/transactions?limit=50').catch(() => null);
@@ -52,7 +93,7 @@ export default function WalletPage() {
             description:
               tx.description ||
               (tx.type === 'RECHARGE'
-                ? 'شحن رصيد كارت'
+                ? 'شحن رصيد محفظة'
                 : tx.type === 'ORDER_PAYMENT'
                 ? 'شراء محتوى تعليمي'
                 : 'حركة مالية'),
@@ -78,16 +119,50 @@ export default function WalletPage() {
     }
   }, [student?.walletBalance]);
 
+  // Fetch receiving accounts
+  const fetchReceivingAccounts = useCallback(async () => {
+    setAccountsLoading(true);
+    try {
+      const res: any = await apiClient.get('/api/v1/student/wallet/receiving-accounts');
+      const list = res?.data || (Array.isArray(res) ? res : []);
+      setReceivingAccounts(list);
+      if (list.length > 0 && !selectedAccountId) {
+        setSelectedAccountId(list[0].id);
+      }
+    } catch {
+      setReceivingAccounts([]);
+    } finally {
+      setAccountsLoading(false);
+    }
+  }, [selectedAccountId]);
+
+  // Fetch student topup requests
+  const fetchTopupRequests = useCallback(async () => {
+    setTopupRequestsLoading(true);
+    try {
+      const res: any = await apiClient.get('/api/v1/student/wallet/top-up-requests');
+      const list = res?.data || (Array.isArray(res) ? res : []);
+      setTopupRequests(list);
+    } catch {
+      setTopupRequests([]);
+    } finally {
+      setTopupRequestsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchWallet();
-  }, [fetchWallet]);
+    fetchReceivingAccounts();
+    fetchTopupRequests();
+  }, [fetchWallet, fetchReceivingAccounts, fetchTopupRequests]);
 
-  const handleChargeWallet = async (e: React.FormEvent) => {
+  // Handle Recharge Code Submission
+  const handleRedeemCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rechargeCode.trim()) return;
 
-    setCharging(true);
-    setMessage(null);
+    setCodeCharging(true);
+    setCodeMessage(null);
 
     try {
       let res: any = null;
@@ -108,7 +183,7 @@ export default function WalletPage() {
           ? Number(balanceAfter)
           : balance + (Number(creditedAmount) || 0);
 
-      setMessage({
+      setCodeMessage({
         type: 'success',
         text: res?.message || `تم شحن المحفظة بنجاح${creditedAmount ? ` بمبلغ ${creditedAmount} ج.م` : ''}!`,
       });
@@ -116,11 +191,10 @@ export default function WalletPage() {
       setBalance(newBal);
       setRechargeCode('');
 
-      // Refresh global and local wallet state
       await refreshWallet();
       await fetchWallet();
     } catch (err: any) {
-      setMessage({
+      setCodeMessage({
         type: 'error',
         text:
           err?.response?.data?.message ||
@@ -128,92 +202,446 @@ export default function WalletPage() {
           'كود الشحن غير صحيح أو تم استخدامه من قبل أو منتهي الصلاحية',
       });
     } finally {
-      setCharging(false);
+      setCodeCharging(false);
+    }
+  };
+
+  // Handle File Selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setTopupMessage({ type: 'error', text: 'حجم صورة إيصال التحويل يجب ألا يتجاوز 10 ميجابايت' });
+      return;
+    }
+
+    setProofFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProofPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle Top-Up Request Submission
+  const handleSubmitTopup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || Number(amount) <= 0) {
+      setTopupMessage({ type: 'error', text: 'يرجى إدخال مبلغ شحن صحيح' });
+      return;
+    }
+    if (!proofFile) {
+      setTopupMessage({ type: 'error', text: 'يرجى رفع صورة إيصال أو تحويل المبلغ' });
+      return;
+    }
+
+    setSubmittingTopup(true);
+    setTopupMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('amount', amount);
+      if (selectedAccountId) formData.append('receiving_account_id', selectedAccountId);
+      if (reference.trim()) formData.append('transaction_reference', reference.trim());
+      formData.append('proof_file', proofFile);
+
+      await apiClient.post('/api/v1/student/wallet/top-up-requests', formData);
+
+      setTopupMessage({
+        type: 'success',
+        text: 'تم إرسال طلب الشحن بنجاح! سيتم مراجعته واعتماد الرصيد بمحفظتك فوراً.',
+      });
+
+      setAmount('');
+      setReference('');
+      setProofFile(null);
+      setProofPreviewUrl(null);
+
+      await fetchTopupRequests();
+    } catch (err: any) {
+      setTopupMessage({
+        type: 'error',
+        text: err?.response?.data?.message || err?.message || 'فشل إرسال طلب الشحن، يرجى المحاولة مرة أخرى',
+      });
+    } finally {
+      setSubmittingTopup(false);
+    }
+  };
+
+  // Copy helper
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const getAccountIcon = (type: string) => {
+    switch (type) {
+      case 'INSTAPAY':
+        return <Smartphone className="w-5 h-5 text-purple-400" />;
+      case 'VODAFONE_CASH':
+      case 'ORANGE_CASH':
+      case 'ETISALAT_CASH':
+      case 'WE_PAY':
+        return <Smartphone className="w-5 h-5 text-emerald-400" />;
+      case 'BANK_ACCOUNT':
+        return <Building2 className="w-5 h-5 text-blue-400" />;
+      default:
+        return <CreditCard className="w-5 h-5 text-neutral-400" />;
     }
   };
 
   return (
     <StudentLayout>
-      <div className="space-y-8 animate-fade-in max-w-4xl">
+      <div className="space-y-8 animate-fade-in max-w-4xl pb-12">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
+            <div className="p-2 rounded-2xl bg-emerald-500/10 text-emerald-500">
+              <Wallet className="w-7 h-7" />
+            </div>
             المحفظة الإلكترونية
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            متابعة رصيد حسابك وشحن رصيد المحفظة عبر كروت الشحن
+            متابعة رصيد حسابك وشحن المحفظة عبر كروت الشحن أو تحويلات فودافون كاش وانستا باي
           </p>
         </div>
 
         {/* Balance Display Card */}
-        <div className="p-8 rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-900 text-white shadow-xl shadow-emerald-900/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <span className="text-xs text-emerald-200 font-bold uppercase tracking-wider flex items-center gap-1.5">
+        <div className="p-8 rounded-3xl bg-gradient-to-br from-black via-[#0d1612] to-emerald-950 text-white shadow-xl shadow-emerald-950/20 border border-emerald-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="space-y-2 relative z-10">
+            <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Wallet className="w-4 h-4" />
-              رصيدك الحالي
+              رصيدك الحالي بالمحفظة
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl sm:text-5xl font-extrabold">{loading ? '...' : balance}</span>
-              <span className="text-lg text-emerald-200 font-bold">جنيه مصري</span>
+              <span className="text-4xl sm:text-5xl font-black">{loading ? '...' : balance}</span>
+              <span className="text-lg text-emerald-400 font-bold">جنيه مصري</span>
             </div>
-            <p className="text-xs text-emerald-100/80">
-              يمكنك استخدام رصيد المحفظة لشراء الكورسات والباقات والمذكرات الدراسية.
+            <p className="text-xs text-emerald-200/80">
+              يمكنك استخدام رصيد المحفظة لشراء الكورسات والباقات والمحاضرات والمذكرات الدراسية.
             </p>
           </div>
 
-          <div className="w-full md:w-auto">
-            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-xs text-emerald-100 space-y-1">
-              <div className="flex items-center gap-1.5 font-bold">
-                <ShieldCheck className="w-4 h-4 text-emerald-300" />
+          <div className="w-full md:w-auto relative z-10">
+            <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-emerald-500/30 text-xs text-emerald-100 space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-400">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 شحن آمن وفوري
               </div>
-              <p className="text-[11px] text-emerald-200">ادخل كود الشحن المكون من أرقام لشحن رصيدك فوراً.</p>
+              <p className="text-[11px] text-neutral-300">
+                شحن رصيدك عبر إرسال تحويل أو إدخال كود الكارت المكون من أرقام.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Charge Wallet Form */}
-        <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="w-2 h-5 bg-emerald-600 rounded-full inline-block" />
-            شحن المحفظة
-          </h2>
+        {/* Recharge Options Section */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-6">
+          {/* Tabs */}
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="w-2 h-5 bg-emerald-500 rounded-full inline-block" />
+              إضافة شحن للمحفظة
+            </h2>
 
-          {message && (
-            <div
-              className={`p-4 rounded-2xl text-xs font-bold ${
-                message.type === 'success'
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200'
-                  : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-200'
-              }`}
-            >
-              {message.text}
+            <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setRechargeMethod('topup')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  rechargeMethod === 'topup'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-white'
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                تحويل خارجي (كاش / انستا باي)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRechargeMethod('code')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  rechargeMethod === 'code'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-white'
+                }`}
+              >
+                <Ticket className="w-3.5 h-3.5" />
+                كروت الشحن والأكواد
+              </button>
+            </div>
+          </div>
+
+          {/* METHOD 1: TOP-UP REQUEST (INSTAPAY / VODAFONE CASH) */}
+          {rechargeMethod === 'topup' && (
+            <div className="space-y-6">
+              {/* Receiving Accounts Cards */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  1. اختر رقم / حساب التحويل المناسب لك:
+                </label>
+
+                {accountsLoading ? (
+                  <div className="h-20 rounded-2xl bg-gray-100 dark:bg-gray-900 animate-pulse" />
+                ) : receivingAccounts.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {receivingAccounts.map((acc) => {
+                      const isSelected = selectedAccountId === acc.id;
+                      return (
+                        <div
+                          key={acc.id}
+                          onClick={() => setSelectedAccountId(acc.id)}
+                          className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                            isSelected
+                              ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-md'
+                              : 'bg-gray-50 dark:bg-gray-900/60 border-gray-200 dark:border-gray-800 text-gray-300 hover:border-emerald-500/50'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2.5">
+                              <div className="p-2 rounded-xl bg-gray-200 dark:bg-gray-800">
+                                {getAccountIcon(acc.type)}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-sm text-gray-900 dark:text-white">
+                                  {acc.display_name}
+                                </h4>
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400">{acc.provider_name}</p>
+                              </div>
+                            </div>
+
+                            {isSelected && <Check className="w-5 h-5 text-emerald-500" />}
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-gray-200/50 dark:bg-gray-800/80 flex items-center justify-between text-xs">
+                            <span className="font-mono font-bold text-emerald-400 dir-ltr">{acc.account_number}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyToClipboard(acc.account_number, acc.id);
+                              }}
+                              className="px-2 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 font-bold text-[10px] hover:bg-emerald-600/30 transition-colors flex items-center gap-1"
+                            >
+                              {copiedId === acc.id ? (
+                                <>
+                                  <Check className="w-3 h-3" /> تم النسخ
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" /> نسخ الرقم
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">لا تتوفر حسابات تحويل حالياً.</p>
+                )}
+              </div>
+
+              {/* Form Submission */}
+              <form onSubmit={handleSubmitTopup} className="space-y-4 pt-2">
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  2. أدخل بيانات التحويل وارفع صورة الإيصال:
+                </label>
+
+                {topupMessage && (
+                  <div
+                    className={`p-4 rounded-2xl text-xs font-bold border ${
+                      topupMessage.type === 'success'
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-500/30'
+                        : 'bg-red-50 text-red-700 dark:bg-red-950/80 dark:text-red-300 border-red-500/30'
+                    }`}
+                  >
+                    {topupMessage.text}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
+                      المبلغ المحوّل (جنيه مصري): *
+                    </span>
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="مثال: 150"
+                      min="1"
+                      required
+                      className="w-full h-11 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
+                      الرقم المرجعي أو رقم العملية (اختياري):
+                    </span>
+                    <input
+                      type="text"
+                      value={reference}
+                      onChange={(e) => setReference(e.target.value)}
+                      placeholder="رقم عملية تحويل الكاش أو انستا باي"
+                      className="w-full h-11 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Proof File Input */}
+                <div>
+                  <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
+                    صورة إيصال التحويل / سكرين شوت الشاشة: *
+                  </span>
+                  <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-2xl cursor-pointer transition-colors bg-gray-50/50 dark:bg-gray-900/40">
+                    {proofPreviewUrl ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <img
+                          src={proofPreviewUrl}
+                          alt="Preview"
+                          className="max-h-36 rounded-xl object-contain border border-gray-200 dark:border-gray-800"
+                        />
+                        <span className="text-[11px] text-emerald-500 font-bold">تغيير الصورة</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-gray-400">
+                        <Upload className="w-6 h-6 text-emerald-500" />
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                          اضغط هنا لاختيار صورة إيصال التحويل
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          يدعم صور JPG, PNG, WEBP حتى 10 ميجابايت
+                        </span>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,application/pdf"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingTopup || !amount || !proofFile}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  {submittingTopup ? 'جاري إرسال طلب الشحن...' : 'تأكيد وإرسال طلب الشحن'}
+                </button>
+              </form>
             </div>
           )}
 
-          <form onSubmit={handleChargeWallet} className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              value={rechargeCode}
-              onChange={(e) => setRechargeCode(e.target.value)}
-              placeholder="أدخل كود الشحن..."
-              className="flex-1 h-12 px-4 rounded-xl bg-gray-50 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
-            />
-            <button
-              type="submit"
-              disabled={charging || !rechargeCode.trim()}
-              className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              {charging ? 'جاري الشحن...' : 'تأكيد الشحن'}
-            </button>
-          </form>
+          {/* METHOD 2: RECHARGE CODE */}
+          {rechargeMethod === 'code' && (
+            <div className="space-y-4">
+              {codeMessage && (
+                <div
+                  className={`p-4 rounded-2xl text-xs font-bold border ${
+                    codeMessage.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-500/30'
+                      : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-500/30'
+                  }`}
+                >
+                  {codeMessage.text}
+                </div>
+              )}
+
+              <form onSubmit={handleRedeemCode} className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={rechargeCode}
+                  onChange={(e) => setRechargeCode(e.target.value)}
+                  placeholder="أدخل كود الشحن..."
+                  className="flex-1 h-12 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                />
+                <button
+                  type="submit"
+                  disabled={codeCharging || !rechargeCode.trim()}
+                  className="h-12 px-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  {codeCharging ? 'جاري الشحن...' : 'تأكيد الشحن'}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
+
+        {/* Student's Top-Up Requests History */}
+        {topupRequests.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="w-2 h-5 bg-emerald-500 rounded-full inline-block" />
+              سجل طلبات الشحن السابقة
+            </h2>
+
+            <div className="space-y-3">
+              {topupRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className="p-4 rounded-2xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-sm text-gray-900 dark:text-white">
+                        طلب شحن بمبلغ {Number(req.amount).toLocaleString()} ج.م
+                      </span>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          req.status === 'PENDING'
+                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                            : req.status === 'APPROVED'
+                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                            : 'bg-red-500/10 text-red-500 border-red-500/20'
+                        }`}
+                      >
+                        {req.status === 'PENDING'
+                          ? 'قيد المراجعة'
+                          : req.status === 'APPROVED'
+                          ? 'تمت الموافقة'
+                          : 'مرفوض'}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      الحساب: {req.receiving_display_name || req.receiving_type || 'تحويل خارجي'} | التاريخ:{' '}
+                      {new Date(req.created_at).toLocaleDateString('ar-EG', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+
+                    {req.status === 'REJECTED' && req.rejection_reason && (
+                      <p className="text-[11px] text-red-500 font-bold">
+                        سبب الرفض: {req.rejection_reason}
+                      </p>
+                    )}
+                  </div>
+
+                  <span className="font-mono text-xs text-gray-400 dir-ltr">
+                    Ref: {req.transaction_reference || req.id.slice(0, 8)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Transaction History Section */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="w-2 h-5 bg-emerald-600 rounded-full inline-block" />
-            سجل الحركات المالية
+            <span className="w-2 h-5 bg-emerald-500 rounded-full inline-block" />
+            سجل الحركات المالية المعتمدة
           </h2>
 
           {loading ? (

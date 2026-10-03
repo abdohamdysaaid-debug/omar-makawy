@@ -1,4 +1,4 @@
-import { LayoutDashboard, BookOpen, Package, Video, Users, Settings, Ticket } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Package, Video, Users, Settings, Ticket, Wallet } from 'lucide-react';
 import { SystemPermissions, SystemPermissionCode, UserRole } from '@omar-makawy/shared';
 
 export interface NavItemConfig {
@@ -50,6 +50,12 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         key: 'nav.activation_and_recharge',
         href: '/staff/codes',
         icon: Ticket,
+      },
+      {
+        key: 'nav.platform_wallet',
+        href: '/staff/wallet',
+        icon: Wallet,
+        permission: SystemPermissions.WALLET_READ,
       },
     ],
   },
