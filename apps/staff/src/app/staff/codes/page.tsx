@@ -35,6 +35,7 @@ import {
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/FeedbackStates';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { generateBatchPDF } from '@/lib/pdf-generator';
 
 type TabType = 'wallet' | 'discounts';
 type ViewMode = 'batches' | 'table';
@@ -924,26 +925,28 @@ export default function StaffCodesManagementPage() {
 
                     <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                       <button
+                        onClick={() =>
+                          generateBatchPDF({
+                            title: batch.title,
+                            type: batch.type,
+                            amount: batch.amount,
+                            discountType: batch.discountType,
+                            discountValue: batch.discountValue,
+                            codes: batch.codes,
+                          })
+                        }
+                        title={isAr ? 'تحميل مباشر كملف PDF' : 'Download PDF File'}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 font-semibold text-xs transition-colors border border-emerald-200 dark:border-emerald-800"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'تحميل PDF' : 'PDF'}</span>
+                      </button>
+                      <button
                         onClick={() => openBatchPrint(batch)}
-                        title={isAr ? 'تحميل وطباعة PDF (كروت A4)' : 'Print/Download PDF Cards'}
+                        title={isAr ? 'معاينة وطباعة A4' : 'Print A4 Sheet'}
                         className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-primary-50 dark:hover:bg-primary-950/60 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                       >
                         <Printer className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() =>
-                          exportCodesCSV(
-                            batch.codes,
-                            batch.type,
-                            batch.amount,
-                            batch.discountValue,
-                            batch.discountType,
-                          )
-                        }
-                        title={isAr ? 'تصدير Excel/CSV' : 'Export CSV'}
-                        className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setSelectedBatch(batch)}
@@ -1224,6 +1227,23 @@ export default function StaffCodesManagementPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
+                    generateBatchPDF({
+                      title: selectedBatch.title,
+                      type: selectedBatch.type,
+                      amount: selectedBatch.amount,
+                      discountType: selectedBatch.discountType,
+                      discountValue: selectedBatch.discountValue,
+                      codes: selectedBatch.codes,
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'تحميل ملف PDF' : 'Download PDF'}</span>
+                </button>
+
+                <button
+                  onClick={() =>
                     exportCodesCSV(
                       selectedBatch.codes,
                       selectedBatch.type,
@@ -1235,15 +1255,15 @@ export default function StaffCodesManagementPage() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>{isAr ? 'تصدير Excel/CSV' : 'Export CSV'}</span>
+                  <span>{isAr ? 'تصدير CSV' : 'CSV'}</span>
                 </button>
 
                 <button
                   onClick={() => openBatchPrint(selectedBatch)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary-600 text-white font-semibold text-xs hover:bg-primary-700 transition-colors shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>{isAr ? 'تحميل وطباعة PDF (كروت A4)' : 'Download & Print PDF'}</span>
+                  <span>{isAr ? 'معاينة الطباعة' : 'Print'}</span>
                 </button>
               </div>
             </div>
@@ -1949,6 +1969,23 @@ export default function StaffCodesManagementPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() =>
+                      generateBatchPDF({
+                        title: batchResult.title,
+                        type: batchResult.type,
+                        amount: batchResult.amount,
+                        discountType: batchResult.discountType,
+                        discountValue: batchResult.discountValue,
+                        codes: batchResult.codes,
+                      })
+                    }
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'تحميل ملف PDF' : 'Download PDF'}</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
                       exportCodesCSV(
                         batchResult.codes,
                         batchResult.type,
@@ -1957,11 +1994,12 @@ export default function StaffCodesManagementPage() {
                         batchResult.discountType,
                       )
                     }
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-semibold hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-semibold hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>{isAr ? 'تحميل الأكواد (CSV)' : 'Export CSV'}</span>
+                    <span>{isAr ? 'تصدير CSV' : 'CSV'}</span>
                   </button>
+
                   <button
                     onClick={() => {
                       setPrintTargetBatch({
@@ -1974,10 +2012,10 @@ export default function StaffCodesManagementPage() {
                       });
                       setIsPrintModeOpen(true);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 font-semibold text-xs transition-colors"
                   >
                     <Printer className="w-3.5 h-3.5" />
-                    <span>{isAr ? 'معاينة وطباعة كروت PDF' : 'Print PDF Cards'}</span>
+                    <span>{isAr ? 'معاينة الطباعة' : 'Print'}</span>
                   </button>
                 </div>
               </div>
