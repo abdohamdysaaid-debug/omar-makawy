@@ -91,6 +91,11 @@ export function StudentLectureViewClient({
 
   // 1. Fetch Lecture Details and Initial Progress
   const fetchLectureData = useCallback(async () => {
+    if (!lectureId || lectureId === 'detail' || lectureId.trim() === '') {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
