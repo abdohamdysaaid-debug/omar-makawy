@@ -45,7 +45,12 @@ export function StaffTicketDetailsClient({ ticketId: propTicketId }: { ticketId?
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchTicketDetails = useCallback(async () => {
-    if (!apiClient || !ticketId) return;
+    if (!apiClient) return;
+    if (!ticketId || ticketId === 'detail') {
+      setLoading(false);
+      setError('لم يتم تحديد التذكرة المطلوب عرض تفاصيلها');
+      return;
+    }
     setLoading(true);
     setError(null);
 
