@@ -25,6 +25,10 @@ import {
   ChevronLeft,
   ChevronRight,
   TrendingUp,
+  BarChart3,
+  BookOpen,
+  Package,
+  Book,
 } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { LoadingState, ErrorState, EmptyState } from '@/components/ui/FeedbackStates';
@@ -33,7 +37,7 @@ export default function StaffWalletPage() {
   const { t, language } = useLanguage();
   const { hasPermission, isTeacher } = usePermissions();
 
-  const [activeTab, setActiveTab] = useState<'requests' | 'accounts' | 'ledger'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'accounts' | 'ledger' | 'revenue'>('requests');
 
   // Summary state
   const [summary, setSummary] = useState<{
@@ -62,6 +66,24 @@ export default function StaffWalletPage() {
   // Financial Ledger state
   const [ledger, setLedger] = useState<any[]>([]);
   const [ledgerLoading, setLedgerLoading] = useState(false);
+
+  // Revenue Analytics state
+  const [revenuePeriod, setRevenuePeriod] = useState<'ALL_TIME' | 'MONTHLY' | 'WEEKLY'>('ALL_TIME');
+  const [revenueCategory, setRevenueCategory] = useState<'ALL' | 'COURSES' | 'PACKAGES' | 'BOOKS'>('ALL');
+  const [revenueData, setRevenueData] = useState<{
+    total_revenue: number;
+    courses_revenue: number;
+    packages_revenue: number;
+    books_revenue: number;
+    top_selling_items: any[];
+  }>({
+    total_revenue: 0,
+    courses_revenue: 0,
+    packages_revenue: 0,
+    books_revenue: 0,
+    top_selling_items: [],
+  });
+  const [revenueLoading, setRevenueLoading] = useState(false);
 
   // Modals & Detail state
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
@@ -152,6 +174,25 @@ export default function StaffWalletPage() {
     }
   }, []);
 
+  // Fetch revenue analytics
+  const fetchRevenue = useCallback(async () => {
+    setRevenueLoading(true);
+    try {
+      const res: any = await apiClient.get(
+        `/api/v1/admin/wallet/revenue-analytics?period=${revenuePeriod}&category=${revenueCategory}`,
+      );
+      if (res?.data) {
+        setRevenueData(res.data);
+      } else if (res) {
+        setRevenueData(res);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setRevenueLoading(false);
+    }
+  }, [revenuePeriod, revenueCategory]);
+
   useEffect(() => {
     fetchSummary();
   }, [fetchSummary]);
@@ -163,8 +204,10 @@ export default function StaffWalletPage() {
       fetchAccounts();
     } else if (activeTab === 'ledger') {
       fetchLedger();
+    } else if (activeTab === 'revenue') {
+      fetchRevenue();
     }
-  }, [activeTab, fetchRequests, fetchAccounts, fetchLedger]);
+  }, [activeTab, fetchRequests, fetchAccounts, fetchLedger, fetchRevenue]);
 
   // Inspect Proof Image safely via authorization
   const openRequestDetail = async (req: any) => {
@@ -284,6 +327,32 @@ export default function StaffWalletPage() {
     }
   };
 
+  const formatEventType = (type: string) => {
+    switch (type) {
+      case 'PLATFORM_INCOMING_TOPUP':
+        return 'شحن محفظة (موافق عليه)';
+      case 'CREDIT':
+      case 'ADJUSTMENT_CREDIT':
+        return 'إضافة رصيد (إداري)';
+      case 'DEBIT':
+      case 'ADJUSTMENT_DEBIT':
+        return 'خصم رصيد (إداري)';
+      case 'RECHARGE':
+        return 'شحن كارت كود';
+      case 'PURCHASE':
+      case 'COURSE_PURCHASE':
+        return 'شراء كورس';
+      case 'PACKAGE_PURCHASE':
+        return 'شراء باقة';
+      case 'LECTURE_PURCHASE':
+        return 'شراء محاضرة';
+      case 'BOOK_ORDER':
+        return 'طلب كتب دفتري';
+      default:
+        return type;
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
@@ -306,6 +375,7 @@ export default function StaffWalletPage() {
             if (activeTab === 'requests') fetchRequests();
             if (activeTab === 'accounts') fetchAccounts();
             if (activeTab === 'ledger') fetchLedger();
+            if (activeTab === 'revenue') fetchRevenue();
           }}
           className="self-start sm:self-auto h-10 px-4 rounded-xl bg-neutral-900 border border-neutral-800 text-xs font-bold text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors flex items-center gap-2"
         >
@@ -343,7 +413,7 @@ export default function StaffWalletPage() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-black text-white">
-              {(Number(summary?.total_incoming_credited) || 0).toLocaleString()}
+              {(Number(summary?.total_incoming_credited || summary?.total_incoming_topups) || 0).toLocaleString()}
             </span>
             <span className="text-xs font-bold text-blue-400">ج.م</span>
           </div>
@@ -369,10 +439,10 @@ export default function StaffWalletPage() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex border-b border-neutral-800/80 space-x-2 space-x-reverse">
+      <div className="flex border-b border-neutral-800/80 space-x-2 space-x-reverse overflow-x-auto pb-0.5 scrollbar-none">
         <button
           onClick={() => setActiveTab('requests')}
-          className={`px-4 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
+          className={`px-4 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'requests'
               ? 'border-emerald-500 text-white bg-neutral-900/60'
               : 'border-transparent text-neutral-400 hover:text-white hover:bg-neutral-900/30'
@@ -389,7 +459,7 @@ export default function StaffWalletPage() {
 
         <button
           onClick={() => setActiveTab('accounts')}
-          className={`px-4 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
+          className={`px-4 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'accounts'
               ? 'border-emerald-500 text-white bg-neutral-900/60'
               : 'border-transparent text-neutral-400 hover:text-white hover:bg-neutral-900/30'
@@ -401,7 +471,7 @@ export default function StaffWalletPage() {
 
         <button
           onClick={() => setActiveTab('ledger')}
-          className={`px-4 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 flex items-center gap-2 ${
+          className={`px-4 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'ledger'
               ? 'border-emerald-500 text-white bg-neutral-900/60'
               : 'border-transparent text-neutral-400 hover:text-white hover:bg-neutral-900/30'
@@ -409,6 +479,18 @@ export default function StaffWalletPage() {
         >
           <FileText className="w-4 h-4" />
           سجل الحركات المالية للخزنة
+        </button>
+
+        <button
+          onClick={() => setActiveTab('revenue')}
+          className={`px-4 py-3 text-xs font-bold rounded-t-xl transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'revenue'
+              ? 'border-emerald-500 text-white bg-neutral-900/60'
+              : 'border-transparent text-neutral-400 hover:text-white hover:bg-neutral-900/30'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 text-emerald-400" />
+          الإيرادات والأكثر مبيعاً
         </button>
       </div>
 
@@ -680,7 +762,7 @@ export default function StaffWalletPage() {
       {activeTab === 'ledger' && (
         <div className="space-y-4">
           <p className="text-xs text-neutral-400">
-            سجل تاريخي غير قابل للتعديل لكل الحركة المالية المعتمدة بخزنة المنصة
+            سجل حركة المعاملات المالية المعتمدة والمحفظة بالمنصة (تلقائي وشامل)
           </p>
 
           {ledgerLoading ? (
@@ -700,32 +782,47 @@ export default function StaffWalletPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800/60">
-                    {ledger.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-neutral-900/50 transition-colors">
-                        <td className="p-4">
-                          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            {entry.event_type}
-                          </span>
-                        </td>
-                        <td className="p-4 font-black text-sm text-emerald-400">
-                          +{(Number(entry?.amount) || 0).toLocaleString()} ج.م
-                        </td>
-                        <td className="p-4 text-white font-semibold">
-                          {entry.student_name || entry.user_id || '—'}
-                        </td>
-                        <td className="p-4 text-neutral-300">{entry.description || '—'}</td>
-                        <td className="p-4 text-neutral-400">{entry.actor_name || entry.actor_user_id || 'النظام'}</td>
-                        <td className="p-4 text-neutral-400 text-[11px]">
-                          {new Date(entry.created_at).toLocaleDateString('ar-EG', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </td>
-                      </tr>
-                    ))}
+                    {ledger.map((entry) => {
+                      const amountNum = Number(entry?.amount) || 0;
+                      const isPositive = amountNum >= 0;
+
+                      return (
+                        <tr key={entry.id} className="hover:bg-neutral-900/50 transition-colors">
+                          <td className="p-4">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                                isPositive
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                  : 'bg-red-500/10 text-red-400 border-red-500/20'
+                              }`}
+                            >
+                              {formatEventType(entry.event_type)}
+                            </span>
+                          </td>
+                          <td
+                            className={`p-4 font-black text-sm ${
+                              isPositive ? 'text-emerald-400' : 'text-red-400'
+                            }`}
+                          >
+                            {isPositive ? `+${amountNum.toLocaleString()}` : amountNum.toLocaleString()} ج.م
+                          </td>
+                          <td className="p-4 text-white font-semibold">
+                            {entry.student_name || entry.user_id || '—'}
+                          </td>
+                          <td className="p-4 text-neutral-300">{entry.description || '—'}</td>
+                          <td className="p-4 text-neutral-400">{entry.actor_name || entry.actor_user_id || 'النظام'}</td>
+                          <td className="p-4 text-neutral-400 text-[11px]">
+                            {new Date(entry.created_at).toLocaleDateString('ar-EG', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -733,9 +830,194 @@ export default function StaffWalletPage() {
           ) : (
             <EmptyState
               title="سجل الحركة المالية فارغ"
-              description="لم يتم تسريب أو تسجيل أي حركة مالية في الخزنة حتى الآن."
+              description="لم يتم تسجيل أو إجراء أي حركة مالية في السجل حتى الآن."
             />
           )}
+        </div>
+      )}
+
+      {/* TAB 4: REVENUE ANALYTICS & TOP SELLING */}
+      {activeTab === 'revenue' && (
+        <div className="space-y-6">
+          {/* Controls Bar */}
+          <div className="p-4 rounded-2xl bg-[#111813] border border-neutral-800/80 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            {/* Period Filter */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-neutral-400">النطاق الزمني:</span>
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                {[
+                  { value: 'ALL_TIME', label: 'كل الأوقات' },
+                  { value: 'MONTHLY', label: 'شهرياً (آخر 30 يوم)' },
+                  { value: 'WEEKLY', label: 'أسبوعياً (آخر 7 أيام)' },
+                ].map((p) => (
+                  <button
+                    key={p.value}
+                    onClick={() => setRevenuePeriod(p.value as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                      revenuePeriod === p.value
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-neutral-900 text-neutral-400 border border-neutral-800 hover:text-white'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-neutral-400">نوع الإيرادات:</span>
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                {[
+                  { value: 'ALL', label: 'الكل' },
+                  { value: 'COURSES', label: 'الكورسات' },
+                  { value: 'PACKAGES', label: 'الباقات' },
+                  { value: 'BOOKS', label: 'الكتب' },
+                ].map((c) => (
+                  <button
+                    key={c.value}
+                    onClick={() => setRevenueCategory(c.value as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                      revenueCategory === c.value
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-neutral-900 text-neutral-400 border border-neutral-800 hover:text-white'
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Breakdown Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl bg-[#111813] border border-emerald-500/30 shadow-sm relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-300">إجمالي الإيرادات</span>
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">
+                  {(Number(revenueData?.total_revenue) || 0).toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-emerald-400">ج.م</span>
+              </div>
+              <p className="text-[11px] text-neutral-400 mt-1">المبلغ الإجمالي المحقق</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#111813] border border-neutral-800/80 shadow-sm relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-400">إيرادات الكورسات</span>
+                <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">
+                  {(Number(revenueData?.courses_revenue) || 0).toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-blue-400">ج.م</span>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-1">مبيعات اشتراكات الكورسات</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#111813] border border-neutral-800/80 shadow-sm relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-400">إيرادات الباقات</span>
+                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+                  <Package className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">
+                  {(Number(revenueData?.packages_revenue) || 0).toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-purple-400">ج.م</span>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-1">مبيعات الحزم والمجموعات</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#111813] border border-neutral-800/80 shadow-sm relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-400">إيرادات الكتب</span>
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+                  <Book className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">
+                  {(Number(revenueData?.books_revenue) || 0).toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-amber-400">ج.م</span>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-1">مبيعات متجر الكتب والملزمات</p>
+            </div>
+          </div>
+
+          {/* Top Selling Products Table */}
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-emerald-400" />
+              قائمة المنتجات والكورسات الأكثر مبيعاً
+            </h2>
+
+            {revenueLoading ? (
+              <LoadingState message="جاري تحميل الإحصائيات والأكثر مبيعاً..." />
+            ) : revenueData?.top_selling_items?.length > 0 ? (
+              <div className="rounded-2xl bg-[#111813] border border-neutral-800/80 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-start text-xs">
+                    <thead>
+                      <tr className="border-b border-neutral-800/80 bg-neutral-900/40 text-neutral-400 font-bold">
+                        <th className="p-4 text-start">المنتج / الكورس</th>
+                        <th className="p-4 text-start">التصنيف</th>
+                        <th className="p-4 text-center">عدد المبيعات</th>
+                        <th className="p-4 text-start">إجمالي الإيرادات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800/60">
+                      {revenueData.top_selling_items.map((item, idx) => {
+                        const catBadge =
+                          item.category === 'COURSES'
+                            ? { label: 'كورس', bg: 'bg-blue-950 text-blue-400 border-blue-800' }
+                            : item.category === 'PACKAGES'
+                            ? { label: 'باقة', bg: 'bg-purple-950 text-purple-300 border-purple-800' }
+                            : { label: 'كتاب', bg: 'bg-amber-950 text-amber-400 border-amber-800' };
+
+                        return (
+                          <tr key={item.id || idx} className="hover:bg-neutral-900/50 transition-colors">
+                            <td className="p-4">
+                              <div className="font-bold text-white text-sm">{item.title}</div>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${catBadge.bg}`}>
+                                {catBadge.label}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center font-mono font-bold text-sm text-emerald-400">
+                              {item.sales_count} عملية
+                            </td>
+                            <td className="p-4 font-black text-sm text-white">
+                              {(Number(item.total_revenue) || 0).toLocaleString()} ج.م
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <EmptyState
+                title="لا توجد بيانات مبيعات"
+                description="لم يتم تسريب أو تسجيل أي عمليات شراء للكورسات أو الباقات أو الكتب خلال النطاق الزمني المحدد."
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -798,34 +1080,35 @@ export default function StaffWalletPage() {
             <div className="space-y-2">
               <span className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-emerald-400" />
-                إيصال / سكرين شوت التحويل المستلم:
+                صورة إيصال التحويل المعزز:
               </span>
 
-              <div className="min-h-[220px] rounded-2xl bg-neutral-950 border border-neutral-800 flex items-center justify-center p-4">
+              <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-2 min-h-[220px] flex items-center justify-center relative overflow-hidden">
                 {proofLoading ? (
-                  <LoadingState message="جاري تحميل صورة التحويل المحمية..." />
+                  <LoadingState message="جاري إحضار صورة الإيصال المشفّرة..." />
                 ) : proofBlobUrl ? (
                   <img
                     src={proofBlobUrl}
-                    alt="Proof Screenshot"
-                    className="max-h-[350px] w-auto object-contain rounded-xl shadow-md border border-neutral-800"
+                    alt="صورة إيصال التحويل"
+                    className="max-h-[350px] w-auto object-contain rounded-xl"
                   />
                 ) : (
-                  <div className="text-center p-4 text-neutral-500 text-xs">
-                    تعذر عرض الصورة المستلمة أو أن الملف غير متوفر.
+                  <div className="text-center p-6 space-y-2 text-neutral-500">
+                    <AlertCircle className="w-8 h-8 mx-auto text-amber-500/60" />
+                    <p className="text-xs font-semibold">تعذر عرض المعاينة المباشرة للإيصال</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Action Buttons */}
-            {selectedRequest.status === 'PENDING' ? (
+            {/* Actions Footer */}
+            {selectedRequest.status === 'PENDING' && (
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
                 <button
                   type="button"
                   onClick={() => setRejectingRequest(selectedRequest)}
                   disabled={actionProcessing}
-                  className="h-11 px-5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 font-bold text-xs transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 font-bold text-xs transition-colors border border-red-500/20"
                 >
                   رفض الطلب
                 </button>
@@ -834,169 +1117,188 @@ export default function StaffWalletPage() {
                   type="button"
                   onClick={() => handleApprove(selectedRequest.id)}
                   disabled={actionProcessing}
-                  className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors flex items-center gap-2 shadow-sm"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  {actionProcessing ? 'جاري الاعتماد...' : 'اعتماد الشحن وإضافة الرصيد'}
+                  {actionProcessing && <RefreshCw className="w-4 h-4 animate-spin" />}
+                  اعتماد الطلب وإضافة الرصيد للطالب
                 </button>
-              </div>
-            ) : (
-              <div className="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-400 text-center font-bold">
-                حالة الطلب الحالية: {selectedRequest.status === 'APPROVED' ? 'تمت الموافقة والإيداع' : 'تم الرفض'}
-                {selectedRequest.rejection_reason && (
-                  <p className="text-red-400 mt-1 font-normal">سبب الرفض: {selectedRequest.rejection_reason}</p>
-                )}
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* REJECTION REASON MODAL */}
+      {/* REJECT MODAL */}
       {rejectingRequest && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl bg-[#111813] border border-neutral-800 text-white p-6 space-y-4">
-            <h3 className="text-base font-bold text-red-400 flex items-center gap-2">
+          <form
+            onSubmit={handleRejectSubmit}
+            className="w-full max-w-md rounded-3xl bg-[#111813] border border-neutral-800 text-white p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200"
+          >
+            <h3 className="text-lg font-bold text-red-400 flex items-center gap-2">
               <XCircle className="w-5 h-5" />
-              سبب رفض طلب الشحن
+              تأكيد رفض طلب الشحن
             </h3>
             <p className="text-xs text-neutral-400">
-              يرجى إدخال سبب واضح للرفض ليظهر للطالب في محفظته.
+              يرجى إدخال سبب الرفض بوضوح ليتم توضيحه للطالب في الإشعارات وفي سجل حسابه.
             </p>
 
-            <form onSubmit={handleRejectSubmit} className="space-y-4">
-              <textarea
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="مثال: الصورة غير واضحة أو المبلغ المستلم لا يطابق المبلغ المدخل..."
-                rows={3}
-                required
-                className="w-full p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none focus:border-red-500"
-              />
+            <textarea
+              required
+              rows={3}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="مثال: رقم العملية المرجعي غير صحيح أو الصورة غير واضحة..."
+              className="w-full p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none focus:border-red-500 resize-none"
+            />
 
-              <div className="flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRejectingRequest(null)}
-                  className="h-10 px-4 rounded-xl bg-neutral-800 text-neutral-300 font-bold text-xs"
-                >
-                  إلغاء
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={actionProcessing || !rejectionReason.trim()}
-                  className="h-10 px-5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs"
-                >
-                  تأكيد الرفض
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setRejectingRequest(null)}
+                className="px-4 py-2 rounded-xl bg-neutral-900 text-neutral-400 hover:text-white text-xs font-bold"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={actionProcessing || !rejectionReason.trim()}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition-colors shadow-sm"
+              >
+                تأكيد الرفض
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      {/* RECEIVING ACCOUNT FORM MODAL */}
+      {/* RECEIVING ACCOUNT CREATION / EDIT MODAL */}
       {showAccountModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-[#111813] border border-neutral-800 text-white p-6 space-y-4">
-            <h3 className="text-base font-bold">
-              {editingAccount ? 'تعديل حساب استلام' : 'إضافة حساب استلام جديد'}
-            </h3>
+          <form
+            onSubmit={handleAccountSubmit}
+            className="w-full max-w-lg rounded-3xl bg-[#111813] border border-neutral-800 text-white p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+              <h3 className="text-lg font-bold">
+                {editingAccount ? 'تعديل حساب الاستلام' : 'إضافة حساب استلام جديد'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowAccountModal(false)}
+                className="p-1 text-neutral-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            <form onSubmit={handleAccountSubmit} className="space-y-4 text-xs">
+            <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-neutral-400 mb-1">نوع الحساب / المحفظة:</label>
+                <label className="block text-neutral-400 mb-1">نوع الحساب / المحفظة</label>
                 <select
                   value={accountForm.type}
-                  onChange={(e) => setAccountForm({ ...accountForm, type: e.target.value })}
-                  className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
+                  onChange={(e) =>
+                    setAccountForm({ ...accountForm, type: e.target.value })
+                  }
+                  className="w-full p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-bold"
                 >
-                  <option value="INSTAPAY">انستا باي (InstaPay)</option>
-                  <option value="VODAFONE_CASH">فودافون كاش</option>
+                  <option value="INSTAPAY">InstaPay</option>
+                  <option value="VODAFONE_CASH">Vodafone Cash</option>
+                  <option value="ORANGE_CASH">Orange Cash</option>
+                  <option value="ETISALAT_CASH">Etisalat Cash</option>
+                  <option value="WE_PAY">WE Pay</option>
                   <option value="BANK_ACCOUNT">حساب بنكي</option>
-                  <option value="ORANGE_CASH">أورنج كاش</option>
-                  <option value="ETISALAT_CASH">اتصالات كاش</option>
-                  <option value="WE_PAY">وي باي (We Pay)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-neutral-400 mb-1">اسم المزود (Provider Name):</label>
+                <label className="block text-neutral-400 mb-1">مزود الخدمة</label>
                 <input
                   type="text"
+                  required
                   value={accountForm.provider_name}
-                  onChange={(e) => setAccountForm({ ...accountForm, provider_name: e.target.value })}
-                  required
-                  placeholder="InstaPay, Vodafone, CIB..."
-                  className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
+                  onChange={(e) =>
+                    setAccountForm({ ...accountForm, provider_name: e.target.value })
+                  }
+                  placeholder="مثال: InstaPay / CIB"
+                  className="w-full p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
                 />
               </div>
+            </div>
 
+            <div className="text-xs">
+              <label className="block text-neutral-400 mb-1">الاسم الظاهر للطالب</label>
+              <input
+                type="text"
+                required
+                value={accountForm.display_name}
+                onChange={(e) =>
+                  setAccountForm({ ...accountForm, display_name: e.target.value })
+                }
+                placeholder="مثال: محفظة انستا باي الرسمية - مستر عمر مكاوي"
+                className="w-full p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-bold"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-neutral-400 mb-1">الاسم المعروض للطالب:</label>
+                <label className="block text-neutral-400 mb-1">رقم الحساب / المحفظة</label>
                 <input
                   type="text"
-                  value={accountForm.display_name}
-                  onChange={(e) => setAccountForm({ ...accountForm, display_name: e.target.value })}
                   required
-                  placeholder="InstaPay - مستر عمر مكاوي"
-                  className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-neutral-400 mb-1">رقم المحفظة / الحساب / المعرف:</label>
-                <input
-                  type="text"
                   value={accountForm.account_number}
-                  onChange={(e) => setAccountForm({ ...accountForm, account_number: e.target.value })}
-                  required
-                  placeholder="010xxxxxxx أو username@instapay"
-                  className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white dir-ltr text-start"
+                  onChange={(e) =>
+                    setAccountForm({ ...accountForm, account_number: e.target.value })
+                  }
+                  placeholder="01000000000 / username@instapay"
+                  className="w-full p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono dir-ltr"
                 />
               </div>
 
               <div>
-                <label className="block text-neutral-400 mb-1">اسم صاحب الحساب (اختياري):</label>
+                <label className="block text-neutral-400 mb-1">اسم صاحب الحساب</label>
                 <input
                   type="text"
                   value={accountForm.account_holder_name}
-                  onChange={(e) => setAccountForm({ ...accountForm, account_holder_name: e.target.value })}
+                  onChange={(e) =>
+                    setAccountForm({ ...accountForm, account_holder_name: e.target.value })
+                  }
                   placeholder="عمر مكاوي"
-                  className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
+                  className="w-full p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-neutral-400 mb-1">تعليمات التحويل للطالب:</label>
-                <textarea
-                  value={accountForm.instructions}
-                  onChange={(e) => setAccountForm({ ...accountForm, instructions: e.target.value })}
-                  rows={2}
-                  placeholder="قم بتحويل المبلغ ثم ارفع صورة إيصال التحويل..."
-                  className="w-full p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
-                />
-              </div>
+            <div className="text-xs">
+              <label className="block text-neutral-400 mb-1">تعليمات التحويل للطالب</label>
+              <textarea
+                rows={2}
+                value={accountForm.instructions}
+                onChange={(e) =>
+                  setAccountForm({ ...accountForm, instructions: e.target.value })
+                }
+                placeholder="تعليمات إضافية تظهر للطالب..."
+                className="w-full p-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white resize-none"
+              />
+            </div>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAccountModal(false)}
-                  className="h-10 px-4 rounded-xl bg-neutral-800 text-neutral-300 font-bold"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  disabled={actionProcessing}
-                  className="h-10 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
-                >
-                  حفظ الحساب
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-800">
+              <button
+                type="button"
+                onClick={() => setShowAccountModal(false)}
+                className="px-4 py-2 rounded-xl bg-neutral-900 text-neutral-400 hover:text-white text-xs font-bold"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={actionProcessing}
+                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-sm"
+              >
+                حفظ الحساب
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
