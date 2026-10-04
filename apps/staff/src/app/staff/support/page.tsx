@@ -254,7 +254,7 @@ export default function StaffSupportPage() {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-left">
                         <Link
-                          href={`/staff/support/${ticket.id}`}
+                          href={`/staff/support/detail?id=${ticket.id}`}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 hover:bg-emerald-900 transition-colors font-semibold text-xs"
                         >
                           عرض التفاصيل

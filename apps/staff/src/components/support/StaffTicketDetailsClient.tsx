@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowRight,
   Send,
@@ -22,8 +22,12 @@ import { useStaffAuth } from '@/context/StaffAuthContext';
 
 export function StaffTicketDetailsClient({ ticketId: propTicketId }: { ticketId?: string }) {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const ticketId = propTicketId || (params?.id as string);
+  
+  const queryId = searchParams ? searchParams.get('id') : null;
+  const paramId = params?.id as string;
+  const ticketId = propTicketId || (paramId && paramId !== 'detail' ? paramId : null) || queryId;
   const { apiClient, user } = useStaffAuth();
 
   const [ticket, setTicket] = useState<TicketDetailsResponse | null>(null);
