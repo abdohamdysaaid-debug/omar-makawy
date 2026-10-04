@@ -39,6 +39,8 @@ export const translations: Translations = {
   'nav.orders': { ar: 'طلبات الكتب', en: 'Orders' },
   'nav.shipping': { ar: 'المحافظات والشحن', en: 'Shipping' },
   'nav.notifications': { ar: 'الإشعارات والتنبيهات', en: 'Notifications' },
+  'nav.support': { ar: 'خدمة العملاء', en: 'Customer Service' },
+  'nav.contact': { ar: 'السوشيال ميديا والتواصل', en: 'Social Media & Contact' },
   'nav.analytics': { ar: 'التقارير والإحصائيات', en: 'Analytics' },
   'nav.administration': { ar: 'الإدارة والنظام', en: 'Administration' },
   'nav.supervisors': { ar: 'المشرفين والإدارة', en: 'Admins & Supervisors' },

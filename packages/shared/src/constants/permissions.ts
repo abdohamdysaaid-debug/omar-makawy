@@ -50,6 +50,10 @@ export const SystemPermissions = {
   DEVICES_READ: 'devices.read',
   DEVICES_MANAGE: 'devices.manage',
 
+  // Support
+  SUPPORT_READ: 'support.read',
+  SUPPORT_MANAGE: 'support.manage',
+
   // Analytics, Auditing & Settings
   ANALYTICS_READ: 'analytics.read',
   AUDIT_LOGS_READ: 'audit_logs.read',
@@ -356,6 +360,22 @@ export const ALL_SYSTEM_PERMISSIONS: PermissionDefinition[] = [
     name_ar: 'إدارة الإعدادات',
     module: 'SETTINGS',
     description: 'Update platform settings and runtime toggles',
+  },
+
+  // Support
+  {
+    code: SystemPermissions.SUPPORT_READ,
+    name_en: 'View Support Tickets',
+    name_ar: 'عرض تذاكر الدعم',
+    module: 'SUPPORT',
+    description: 'View student support tickets and messages',
+  },
+  {
+    code: SystemPermissions.SUPPORT_MANAGE,
+    name_en: 'Manage Support Tickets',
+    name_ar: 'إدارة تذاكر الدعم',
+    module: 'SUPPORT',
+    description: 'Reply to support tickets and change ticket status',
   },
 
   // Tenancy Global Override (Teacher level only)

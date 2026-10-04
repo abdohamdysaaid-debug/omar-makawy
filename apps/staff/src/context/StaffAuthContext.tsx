@@ -32,6 +32,7 @@ export interface StaffAuthContextType {
   isLoading: boolean;
   permissions: string[];
   assignedAcademicYears: string[];
+  apiClient: typeof staffApiClient;
   login: (phone: string, password: string) => Promise<LoginResponse>;
   verifyTwoFactor: (challengeToken: string, code: string) => Promise<AuthSuccessResponse>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
@@ -260,6 +261,7 @@ export function StaffAuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         permissions,
         assignedAcademicYears,
+        apiClient: staffApiClient,
         login,
         verifyTwoFactor,
         changePassword,

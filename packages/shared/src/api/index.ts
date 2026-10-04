@@ -8,3 +8,4 @@ export * from './attachments';
 export * from './books';
 export * from './supervisors';
 export * from './packages';
+export * from './support';
