@@ -32,6 +32,12 @@ interface SidebarProps {
 
 export const navSections = [
   {
+    category: 'لوحة الإدارة والتحكم',
+    items: [
+      { labelKey: 'nav.staffNotifications', label: 'الإشعارات (الإدارة)', href: '/staff/notifications', aliases: ['/staff/notifications'], icon: Bell },
+    ],
+  },
+  {
     category: 'التعليم والمحتوى الدراسي',
     items: [
       { labelKey: 'nav.home', label: 'الرئيسية', href: '/student', aliases: ['/', '/student'], icon: Home },
