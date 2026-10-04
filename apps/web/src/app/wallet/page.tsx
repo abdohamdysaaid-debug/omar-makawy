@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Smartphone,
   Building2,
+  X,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
@@ -30,6 +31,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number>(student?.walletBalance ?? 0);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTopupModal, setShowTopupModal] = useState(false);
 
   // Recharge method tab: 'code' | 'topup'
   const [rechargeMethod, setRechargeMethod] = useState<'code' | 'topup'>('topup');
@@ -308,273 +310,317 @@ export default function WalletPage() {
         </div>
 
         {/* Balance Display Card */}
-        <div className="p-8 rounded-3xl bg-gradient-to-br from-black via-[#0d1612] to-emerald-950 text-white shadow-xl shadow-emerald-950/20 border border-emerald-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-          <div className="space-y-2 relative z-10">
-            <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Wallet className="w-4 h-4" />
-              رصيدك الحالي بالمحفظة
-            </span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl sm:text-5xl font-black">{loading ? '...' : balance}</span>
-              <span className="text-lg text-emerald-400 font-bold">جنيه مصري</span>
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-black via-[#0d1612] to-emerald-950 text-white shadow-xl shadow-emerald-950/20 border border-emerald-500/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="space-y-3 relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold backdrop-blur-md">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>شحن آمن وفوري</span>
             </div>
-            <p className="text-xs text-emerald-200/80">
+
+            <div className="space-y-1">
+              <span className="text-xs text-neutral-400 font-bold uppercase tracking-wider block">
+                رصيدك الحالي بالمحفظة
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl sm:text-5xl font-black text-white">{loading ? '...' : balance}</span>
+                <span className="text-lg text-emerald-400 font-bold">جنيه مصري</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-emerald-200/80 max-w-md">
               يمكنك استخدام رصيد المحفظة لشراء الكورسات والباقات والمحاضرات والمذكرات الدراسية.
             </p>
           </div>
 
           <div className="w-full md:w-auto relative z-10">
-            <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-emerald-500/30 text-xs text-emerald-100 space-y-1">
-              <div className="flex items-center gap-1.5 font-bold text-emerald-400">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                شحن آمن وفوري
-              </div>
-              <p className="text-[11px] text-neutral-300">
-                شحن رصيدك عبر إرسال تحويل أو إدخال كود الكارت المكون من أرقام.
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowTopupModal(true)}
+              className="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-2xl transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer hover:scale-105 active:scale-95"
+            >
+              <Plus className="w-5 h-5" />
+              <span>إضافة رصيد</span>
+            </button>
           </div>
         </div>
 
-        {/* Recharge Options Section */}
-        <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-6">
-          {/* Tabs */}
-          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <span className="w-2 h-5 bg-emerald-500 rounded-full inline-block" />
-              إضافة شحن للمحفظة
-            </h2>
-
-            <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-xl">
+        {/* TOP-UP MODAL DIALOG */}
+        {showTopupModal && (
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+            <div className="w-full max-w-2xl rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white p-6 sm:p-8 space-y-6 relative max-h-[90vh] overflow-y-auto shadow-2xl">
               <button
-                type="button"
-                onClick={() => setRechargeMethod('topup')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  rechargeMethod === 'topup'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-white'
-                }`}
+                onClick={() => setShowTopupModal(false)}
+                className="absolute top-5 left-5 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                title="إغلاق"
               >
-                <CreditCard className="w-3.5 h-3.5" />
-                تحويل خارجي (كاش / انستا باي)
+                <X className="w-5 h-5" />
               </button>
 
-              <button
-                type="button"
-                onClick={() => setRechargeMethod('code')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  rechargeMethod === 'code'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-white'
-                }`}
-              >
-                <Ticket className="w-3.5 h-3.5" />
-                كروت الشحن والأكواد
-              </button>
-            </div>
-          </div>
-
-          {/* METHOD 1: TOP-UP REQUEST (INSTAPAY / VODAFONE CASH) */}
-          {rechargeMethod === 'topup' && (
-            <div className="space-y-6">
-              {/* Receiving Accounts Cards */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  1. اختر رقم / حساب التحويل المناسب لك:
-                </label>
-
-                {accountsLoading ? (
-                  <div className="h-20 rounded-2xl bg-gray-100 dark:bg-gray-900 animate-pulse" />
-                ) : receivingAccounts.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {receivingAccounts.map((acc) => {
-                      const isSelected = selectedAccountId === acc.id;
-                      return (
-                        <div
-                          key={acc.id}
-                          onClick={() => setSelectedAccountId(acc.id)}
-                          className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                            isSelected
-                              ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-md'
-                              : 'bg-gray-50 dark:bg-gray-900/60 border-gray-200 dark:border-gray-800 text-gray-300 hover:border-emerald-500/50'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2.5">
-                              <div className="p-2 rounded-xl bg-gray-200 dark:bg-gray-800">
-                                {getAccountIcon(acc.type)}
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-sm text-gray-900 dark:text-white">
-                                  {acc.display_name}
-                                </h4>
-                                <p className="text-[11px] text-gray-500 dark:text-gray-400">{acc.provider_name}</p>
-                              </div>
-                            </div>
-
-                            {isSelected && <Check className="w-5 h-5 text-emerald-500" />}
-                          </div>
-
-                          <div className="p-2.5 rounded-xl bg-gray-200/50 dark:bg-gray-800/80 flex items-center justify-between text-xs">
-                            <span className="font-mono font-bold text-emerald-400 dir-ltr">{acc.account_number}</span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                copyToClipboard(acc.account_number, acc.id);
-                              }}
-                              className="px-2 py-1 rounded-lg bg-emerald-600/20 text-emerald-400 font-bold text-[10px] hover:bg-emerald-600/30 transition-colors flex items-center gap-1"
-                            >
-                              {copiedId === acc.id ? (
-                                <>
-                                  <Check className="w-3 h-3" /> تم النسخ
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3 h-3" /> نسخ الرقم
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500">لا تتوفر حسابات تحويل حالياً.</p>
-                )}
+              <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+                <div className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-500">
+                  <CreditCard className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white">
+                    إضافة رصيد للمحفظة الإلكترونية
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    اختر طريقة الشحن، أدخل المبلغ المحوّل، وارفق صورة الإيصال لتأكيد الشحن
+                  </p>
+                </div>
               </div>
 
-              {/* Form Submission */}
-              <form onSubmit={handleSubmitTopup} className="space-y-4 pt-2">
-                <label className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  2. أدخل بيانات التحويل وارفع صورة الإيصال:
-                </label>
-
-                {topupMessage && (
-                  <div
-                    className={`p-4 rounded-2xl text-xs font-bold border ${
-                      topupMessage.type === 'success'
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-500/30'
-                        : 'bg-red-50 text-red-700 dark:bg-red-950/80 dark:text-red-300 border-red-500/30'
-                    }`}
-                  >
-                    {topupMessage.text}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      المبلغ المحوّل (جنيه مصري): *
-                    </span>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="مثال: 150"
-                      min="1"
-                      required
-                      className="w-full h-11 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                      الرقم المرجعي أو رقم العملية (اختياري):
-                    </span>
-                    <input
-                      type="text"
-                      value={reference}
-                      onChange={(e) => setReference(e.target.value)}
-                      placeholder="رقم عملية تحويل الكاش أو انستا باي"
-                      className="w-full h-11 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Proof File Input */}
-                <div>
-                  <span className="block text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-                    صورة إيصال التحويل / سكرين شوت الشاشة: *
-                  </span>
-                  <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-2xl cursor-pointer transition-colors bg-gray-50/50 dark:bg-gray-900/40">
-                    {proofPreviewUrl ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <img
-                          src={proofPreviewUrl}
-                          alt="Preview"
-                          className="max-h-36 rounded-xl object-contain border border-gray-200 dark:border-gray-800"
-                        />
-                        <span className="text-[11px] text-emerald-500 font-bold">تغيير الصورة</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 text-gray-400">
-                        <Upload className="w-6 h-6 text-emerald-500" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                          اضغط هنا لاختيار صورة إيصال التحويل
-                        </span>
-                        <span className="text-[10px] text-gray-500">
-                          يدعم صور JPG, PNG, WEBP حتى 10 ميجابايت
-                        </span>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,application/pdf"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-
+              {/* Tabs inside Modal */}
+              <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl">
                 <button
-                  type="submit"
-                  disabled={submittingTopup || !amount || !proofFile}
-                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  {submittingTopup ? 'جاري إرسال طلب الشحن...' : 'تأكيد وإرسال طلب الشحن'}
-                </button>
-              </form>
-            </div>
-          )}
-
-          {/* METHOD 2: RECHARGE CODE */}
-          {rechargeMethod === 'code' && (
-            <div className="space-y-4">
-              {codeMessage && (
-                <div
-                  className={`p-4 rounded-2xl text-xs font-bold border ${
-                    codeMessage.type === 'success'
-                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-500/30'
-                      : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-500/30'
+                  type="button"
+                  onClick={() => setRechargeMethod('topup')}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    rechargeMethod === 'topup'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
-                  {codeMessage.text}
+                  <CreditCard className="w-4 h-4" />
+                  <span>تحويل خارجي (كاش / انستا باي)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRechargeMethod('code')}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    rechargeMethod === 'code'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Ticket className="w-4 h-4" />
+                  <span>كروت الشحن والأكواد</span>
+                </button>
+              </div>
+
+              {/* METHOD 1: TOP-UP REQUEST (INSTAPAY / VODAFONE CASH) */}
+              {rechargeMethod === 'topup' && (
+                <div className="space-y-5">
+                  {/* Receiving Accounts Cards */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
+                      1. اختر رقم / حساب التحويل المناسب لك:
+                    </label>
+
+                    {accountsLoading ? (
+                      <div className="h-20 rounded-2xl bg-gray-100 dark:bg-gray-900 animate-pulse" />
+                    ) : receivingAccounts.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {receivingAccounts.map((acc) => {
+                          const isSelected = selectedAccountId === acc.id;
+                          return (
+                            <div
+                              key={acc.id}
+                              onClick={() => setSelectedAccountId(acc.id)}
+                              className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
+                                isSelected
+                                  ? 'bg-emerald-500/10 border-emerald-500 text-gray-900 dark:text-white shadow-md'
+                                  : 'bg-gray-50 dark:bg-gray-900/60 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:border-emerald-500/50'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className="p-1.5 rounded-xl bg-gray-200 dark:bg-gray-800">
+                                    {getAccountIcon(acc.type)}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-xs text-gray-900 dark:text-white">
+                                      {acc.display_name}
+                                    </h4>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400">{acc.provider_name}</p>
+                                  </div>
+                                </div>
+
+                                {isSelected && <Check className="w-4 h-4 text-emerald-500" />}
+                              </div>
+
+                              <div className="p-2 rounded-xl bg-gray-200/50 dark:bg-gray-800/80 flex items-center justify-between text-xs">
+                                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 dir-ltr">{acc.account_number}</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    copyToClipboard(acc.account_number, acc.id);
+                                  }}
+                                  className="px-2 py-1 rounded-lg bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] hover:bg-emerald-600/30 transition-colors flex items-center gap-1 cursor-pointer"
+                                >
+                                  {copiedId === acc.id ? (
+                                    <>
+                                      <Check className="w-3 h-3" /> تم النسخ
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3 h-3" /> نسخ الرقم
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">لا تتوفر حسابات تحويل حالياً.</p>
+                    )}
+                  </div>
+
+                  {/* Form Submission */}
+                  <form onSubmit={handleSubmitTopup} className="space-y-4 pt-1">
+                    <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
+                      2. أدخل بيانات التحويل وارفع صورة الإيصال:
+                    </label>
+
+                    {topupMessage && (
+                      <div
+                        className={`p-3.5 rounded-2xl text-xs font-bold border ${
+                          topupMessage.type === 'success'
+                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-500/30'
+                            : 'bg-red-50 text-red-700 dark:bg-red-950/80 dark:text-red-300 border-red-500/30'
+                        }`}
+                      >
+                        {topupMessage.text}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <span className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">
+                          المبلغ المحوّل (جنيه مصري): *
+                        </span>
+                        <input
+                          type="number"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="مثال: 150"
+                          min="1"
+                          required
+                          className="w-full h-11 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+
+                      <div>
+                        <span className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">
+                          الرقم المرجعي / رقم العملية (اختياري):
+                        </span>
+                        <input
+                          type="text"
+                          value={reference}
+                          onChange={(e) => setReference(e.target.value)}
+                          placeholder="رقم عملية تحويل الكاش أو انستا باي"
+                          className="w-full h-11 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Proof File Input */}
+                    <div>
+                      <span className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">
+                        صورة إيصال التحويل / سكرين شوت الشاشة: *
+                      </span>
+                      <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-2xl cursor-pointer transition-colors bg-gray-50/50 dark:bg-gray-900/40">
+                        {proofPreviewUrl ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <img
+                              src={proofPreviewUrl}
+                              alt="Preview"
+                              className="max-h-36 rounded-xl object-contain border border-gray-200 dark:border-gray-800"
+                            />
+                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">تغيير الصورة</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 text-gray-400">
+                            <Upload className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                              اضغط هنا لاختيار صورة إيصال التحويل
+                            </span>
+                            <span className="text-[10px] text-gray-500">
+                              يدعم صور JPG, PNG, WEBP حتى 10 ميجابايت
+                            </span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,application/pdf"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowTopupModal(false)}
+                        className="h-11 px-5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-200 transition-colors"
+                      >
+                        إلغاء
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submittingTopup || !amount || !proofFile}
+                        className="h-11 px-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>{submittingTopup ? 'جاري إرسال طلب الشحن...' : 'تأكيد وإرسال طلب الشحن'}</span>
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
 
-              <form onSubmit={handleRedeemCode} className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  value={rechargeCode}
-                  onChange={(e) => setRechargeCode(e.target.value)}
-                  placeholder="أدخل كود الشحن..."
-                  className="flex-1 h-12 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
-                />
-                <button
-                  type="submit"
-                  disabled={codeCharging || !rechargeCode.trim()}
-                  className="h-12 px-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  {codeCharging ? 'جاري الشحن...' : 'تأكيد الشحن'}
-                </button>
-              </form>
+              {/* METHOD 2: RECHARGE CODE */}
+              {rechargeMethod === 'code' && (
+                <div className="space-y-4">
+                  {codeMessage && (
+                    <div
+                      className={`p-3.5 rounded-2xl text-xs font-bold border ${
+                        codeMessage.type === 'success'
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-500/30'
+                          : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-500/30'
+                      }`}
+                    >
+                      {codeMessage.text}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleRedeemCode} className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={rechargeCode}
+                      onChange={(e) => setRechargeCode(e.target.value)}
+                      placeholder="أدخل كود الشحن..."
+                      className="flex-1 h-12 px-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={codeCharging || !rechargeCode.trim()}
+                      className="h-12 px-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{codeCharging ? 'جاري الشحن...' : 'تأكيد الشحن'}</span>
+                    </button>
+                  </form>
+
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowTopupModal(false)}
+                      className="h-10 px-4 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold text-xs"
+                    >
+                      إغلاق
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Student's Top-Up Requests History */}
         {topupRequests.length > 0 && (
