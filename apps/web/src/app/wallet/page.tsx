@@ -81,30 +81,89 @@ export default function WalletPage() {
 
       // 2. Fetch real transaction history
       let txRes: any = await apiClient.get<any>('/wallet/transactions?limit=50').catch(() => null);
-      if (!txRes || !Array.isArray(txRes.data)) {
+      if (!txRes) {
         txRes = await apiClient.get<any>('/api/v1/wallet/transactions?limit=50').catch(() => null);
       }
 
-      const rawTxList = Array.isArray(txRes?.data) ? txRes.data : Array.isArray(txRes) ? txRes : [];
+      let rawTxList: any[] = [];
+      if (Array.isArray(txRes)) {
+        rawTxList = txRes;
+      } else if (txRes && Array.isArray(txRes.data)) {
+        rawTxList = txRes.data;
+      } else if (txRes && Array.isArray(txRes.items)) {
+        rawTxList = txRes.items;
+      }
+
       if (rawTxList.length > 0) {
         const mapped = rawTxList.map((tx: any) => {
-          const isDeposit = tx.type === 'RECHARGE' || tx.type === 'ADJUSTMENT_CREDIT' || Number(tx.amount) > 0;
+          const isDeposit =
+            tx.type === 'RECHARGE' ||
+            tx.type === 'CREDIT' ||
+            tx.type === 'TOPUP_CREDIT' ||
+            tx.type === 'ADJUSTMENT_CREDIT' ||
+            tx.type === 'ORDER_REFUND' ||
+            tx.type === 'REFUND' ||
+            Number(tx.amount) > 0;
+
+          let defaultArabicDesc = 'حركة مالية';
+          switch (tx.type) {
+            case 'RECHARGE':
+              defaultArabicDesc = 'شحن رصيد (كارت شحن)';
+              break;
+            case 'CREDIT':
+            case 'TOPUP_CREDIT':
+              defaultArabicDesc = 'شحن رصيد (تحويل خارجي)';
+              break;
+            case 'BOOK_PURCHASE':
+              defaultArabicDesc = 'شراء كتاب / مذكرة دراسية';
+              break;
+            case 'PURCHASE':
+              defaultArabicDesc = 'شراء كورس / باقة تعليمية';
+              break;
+            case 'ORDER_PAYMENT':
+              defaultArabicDesc = 'خصم مقابل طلب شراء';
+              break;
+            case 'ORDER_REFUND':
+            case 'REFUND':
+              defaultArabicDesc = 'استرداد مبلغ إلى المحفظة';
+              break;
+            case 'ADJUSTMENT_CREDIT':
+              defaultArabicDesc = 'إضافة رصيد من الإدارة';
+              break;
+            case 'ADJUSTMENT_DEBIT':
+              defaultArabicDesc = 'خصم رصيد من الإدارة';
+              break;
+          }
+
+          let displayDescription = defaultArabicDesc;
+          if (tx.description && typeof tx.description === 'string') {
+            if (tx.description.startsWith('Recharge voucher redemption')) {
+              displayDescription = 'شحن رصيد عبر كارت شحن';
+            } else if (tx.description.startsWith('Purchase:')) {
+              const itemTitle = tx.description.replace(/^Purchase:\s*/, '');
+              displayDescription = `شراء محتوى: ${itemTitle}`;
+            } else if (tx.description.startsWith('Top-up request approved')) {
+              displayDescription = 'تم اعتماد طلب الشحن';
+            } else if (tx.description.startsWith('Admin adjustment:')) {
+              const reason = tx.description.replace(/^Admin adjustment:\s*/, '');
+              displayDescription = `تعديل رصيد من الإدارة: ${reason}`;
+            } else {
+              displayDescription = tx.description;
+            }
+          }
+
           return {
             id: tx.id || String(Math.random()),
             type: isDeposit ? 'DEPOSIT' : 'WITHDRAWAL',
-            description:
-              tx.description ||
-              (tx.type === 'RECHARGE'
-                ? 'شحن رصيد محفظة'
-                : tx.type === 'ORDER_PAYMENT'
-                ? 'شراء محتوى تعليمي'
-                : 'حركة مالية'),
+            description: displayDescription,
             amount: `${Math.abs(Number(tx.amount) || 0)}`,
             date: tx.created_at
               ? new Date(tx.created_at).toLocaleDateString('ar-EG', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
                 })
               : new Date().toLocaleDateString('ar-EG'),
           };
