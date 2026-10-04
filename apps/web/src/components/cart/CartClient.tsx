@@ -24,14 +24,47 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
+const FALLBACK_GOVERNORATES = [
+  { id: 'b0000000-0000-0000-0000-000000000001', code: 'CAIRO', name_ar: 'القاهرة', base_cost: 45.0 },
+  { id: 'b0000000-0000-0000-0000-000000000002', code: 'GIZA', name_ar: 'الجيزة', base_cost: 45.0 },
+  { id: 'b0000000-0000-0000-0000-000000000003', code: 'ALEXANDRIA', name_ar: 'الإسكندرية', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000004', code: 'QUALYUBIA', name_ar: 'القليوبية', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000005', code: 'SHARQIA', name_ar: 'الشرقية', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000006', code: 'DAKAHLIA', name_ar: 'الدقهلية', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000007', code: 'GHARBIA', name_ar: 'الغربية', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000008', code: 'MONUFIA', name_ar: 'المنوفية', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000009', code: 'BEHEIRA', name_ar: 'البحيرة', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000010', code: 'KAFR_EL_SHEIKH', name_ar: 'كفر الشيخ', base_cost: 50.0 },
+  { id: 'b0000000-0000-0000-0000-000000000011', code: 'DAMIETTA', name_ar: 'دمياط', base_cost: 55.0 },
+  { id: 'b0000000-0000-0000-0000-000000000012', code: 'PORT_SAID', name_ar: 'بورسعيد', base_cost: 55.0 },
+  { id: 'b0000000-0000-0000-0000-000000000013', code: 'ISMAILIA', name_ar: 'الإسماعيلية', base_cost: 55.0 },
+  { id: 'b0000000-0000-0000-0000-000000000014', code: 'SUEZ', name_ar: 'السويس', base_cost: 55.0 },
+  { id: 'b0000000-0000-0000-0000-000000000015', code: 'BENI_SUEF', name_ar: 'بني سويف', base_cost: 60.0 },
+  { id: 'b0000000-0000-0000-0000-000000000016', code: 'FAYOUM', name_ar: 'الفيوم', base_cost: 60.0 },
+  { id: 'b0000000-0000-0000-0000-000000000017', code: 'MINYA', name_ar: 'المنيا', base_cost: 65.0 },
+  { id: 'b0000000-0000-0000-0000-000000000018', code: 'ASYUT', name_ar: 'أسيوط', base_cost: 65.0 },
+  { id: 'b0000000-0000-0000-0000-000000000019', code: 'SOHAG', name_ar: 'سوهاج', base_cost: 70.0 },
+  { id: 'b0000000-0000-0000-0000-000000000020', code: 'QENA', name_ar: 'قنا', base_cost: 70.0 },
+  { id: 'b0000000-0000-0000-0000-000000000021', code: 'LUXOR', name_ar: 'الأقصر', base_cost: 75.0 },
+  { id: 'b0000000-0000-0000-0000-000000000022', code: 'ASWAN', name_ar: 'أسوان', base_cost: 75.0 },
+  { id: 'b0000000-0000-0000-0000-000000000023', code: 'RED_SEA', name_ar: 'البحر الأحمر', base_cost: 80.0 },
+  { id: 'b0000000-0000-0000-0000-000000000024', code: 'NEW_VALLEY', name_ar: 'الوادي الجديد', base_cost: 80.0 },
+  { id: 'b0000000-0000-0000-0000-000000000025', code: 'MATROUH', name_ar: 'مطروح', base_cost: 80.0 },
+  { id: 'b0000000-0000-0000-0000-000000000026', code: 'NORTH_SINAI', name_ar: 'شمال سيناء', base_cost: 85.0 },
+  { id: 'b0000000-0000-0000-0000-000000000027', code: 'SOUTH_SINAI', name_ar: 'جنوب سيناء', base_cost: 85.0 },
+];
+
+const isValidUUID = (str?: string) =>
+  !!str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
 export default function CartClient() {
   const { items, totalPrice, removeItem, updateQuantity, clearCart } = useCart();
   const { isAuthenticated, student } = useAuth();
 
   // Shipping Form State
-  const [governorates, setGovernorates] = useState<any[]>([]);
+  const [governorates, setGovernorates] = useState<any[]>(FALLBACK_GOVERNORATES);
   const [loadingGovs, setLoadingGovs] = useState(true);
-  const [selectedGovId, setSelectedGovId] = useState<string>('');
+  const [selectedGovId, setSelectedGovId] = useState<string>(FALLBACK_GOVERNORATES[0].id);
   const [recipientName, setRecipientName] = useState<string>('');
   const [recipientPhone, setRecipientPhone] = useState<string>('');
   const [shippingAddress, setShippingAddress] = useState<string>('');
@@ -50,6 +83,10 @@ export default function CartClient() {
     if (student) {
       setRecipientName((prev) => prev || student.fullName || '');
       setRecipientPhone((prev) => prev || student.phone || '');
+      const studentGovId = (student as any).governorateId || (student as any).governorate_id;
+      if (isValidUUID(studentGovId)) {
+        setSelectedGovId(studentGovId);
+      }
     }
   }, [student]);
 
@@ -62,13 +99,23 @@ export default function CartClient() {
         const res: any = await apiClient.get('/orders/governorates');
         const list = Array.isArray(res) ? res : res?.data || [];
         if (isMounted) {
-          setGovernorates(list);
-          if (list.length > 0) {
-            setSelectedGovId(list[0].id);
+          const validList = list.filter((g: any) => isValidUUID(g.id));
+          const finalGovs = validList.length > 0 ? validList : FALLBACK_GOVERNORATES;
+          setGovernorates(finalGovs);
+
+          const studentGovId = (student as any)?.governorateId || (student as any)?.governorate_id;
+          if (isValidUUID(studentGovId) && finalGovs.some((g: any) => g.id === studentGovId)) {
+            setSelectedGovId(studentGovId);
+          } else if (finalGovs.length > 0) {
+            setSelectedGovId(finalGovs[0].id);
           }
         }
       } catch (err) {
         console.error('Failed to load governorates', err);
+        if (isMounted) {
+          setGovernorates(FALLBACK_GOVERNORATES);
+          setSelectedGovId(FALLBACK_GOVERNORATES[0].id);
+        }
       } finally {
         if (isMounted) setLoadingGovs(false);
       }
@@ -77,7 +124,7 @@ export default function CartClient() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [student]);
 
   const selectedGov = governorates.find((g) => g.id === selectedGovId);
   const shippingFee = Number(selectedGov?.base_cost || 0);
