@@ -15,7 +15,6 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
-import LanguageToggle from '@/components/ui/LanguageToggle';
 import { academicYears } from '@/data/mock';
 
 interface HeaderProps {
@@ -92,7 +91,6 @@ export default function Header({
 
         {/* Right Side: Theme toggle, Notifications, Student Profile */}
         <div className="flex items-center gap-2 sm:gap-4">
-          <LanguageToggle />
           <ThemeToggle />
 
           {/* Notifications Icon Button */}

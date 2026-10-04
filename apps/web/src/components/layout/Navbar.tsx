@@ -7,7 +7,6 @@ import { Menu, X, User, Bell, LogOut, GraduationCap, Home, Package, BookOpen, Vi
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
-import LanguageToggle from '@/components/ui/LanguageToggle';
 
 // Scalloped Blue Verified Badge Icon matching Twitter/X style
 const VerifiedBadge = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -152,9 +151,6 @@ export default function Navbar() {
 
         {/* Left Side Actions (Mobile & Desktop) */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Language Toggle Badge (EN 🌐) */}
-          <LanguageToggle />
-
           {/* Theme Switcher */}
           <ThemeToggle />
 
