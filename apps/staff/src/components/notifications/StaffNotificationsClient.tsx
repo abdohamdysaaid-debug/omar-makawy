@@ -152,16 +152,28 @@ export default function StaffNotificationsClient() {
     const timer = setTimeout(async () => {
       setIsSearchingStudents(true);
       try {
-        const res: any = await staffApiClient
-          .get(`/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=8`)
+        let res: any = await staffApiClient
+          .get(`/admin/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=8`)
           .catch(() => null);
+
+        if (!res) {
+          res = await staffApiClient
+            .get(`/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=8`)
+            .catch(() => null);
+        }
+
+        if (!res) {
+          res = await staffApiClient
+            .get(`/api/v1/admin/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=8`)
+            .catch(() => null);
+        }
 
         const items = Array.isArray(res?.items) ? res.items : Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
         const mapped: StudentSearchResult[] = items.map((st: any) => ({
           id: st.id,
-          full_name: st.full_name || st.fullName || 'طالب',
-          phone: st.phone || '',
-          academic_year_name_ar: st.academic_year_name_ar || st.academicYearNameAr || 'الصف الدراسي',
+          full_name: st.full_name || st.fullName || st.name || 'طالب',
+          phone: st.phone || st.phoneNumber || '',
+          academic_year_name_ar: st.academic_year_name_ar || st.academicYearNameAr || st.academic_year?.name_ar || '',
         }));
 
         setStudentSearchResults(mapped);
