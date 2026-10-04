@@ -76,6 +76,7 @@ export default function CartClient() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isInsufficientBalance, setIsInsufficientBalance] = useState(false);
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<any | null>(null);
 
   // Initialize form default values from student context
@@ -179,8 +180,12 @@ export default function CartClient() {
       clearCart();
       setCreatedOrder(order);
     } catch (err: any) {
+      const status = err?.response?.status;
       const msg = err?.response?.data?.message || err?.message || 'حدث خطأ أثناء تنفيذ الطلب.';
-      if (
+      if (status === 401 || msg.includes('Unauthorized') || msg.includes('unauthorized')) {
+        setIsUnauthorized(true);
+        setErrorMsg('جلسة الدخول الخاصة بك انتهت أو غير متاحة. يرجى تسجيل الدخول مجدداً لإتمام الشراء.');
+      } else if (
         msg.includes('WALLET_BALANCE') ||
         msg.includes('balance') ||
         err?.response?.data?.error_code === 'INSUFFICIENT_WALLET_BALANCE'
@@ -353,6 +358,17 @@ export default function CartClient() {
                         >
                           <Wallet className="w-3.5 h-3.5" />
                           <span>الانتقال لشحن المحفظة</span>
+                        </Link>
+                      </div>
+                    )}
+                    {isUnauthorized && (
+                      <div className="pt-2">
+                        <Link
+                          href="/login?redirect=/cart"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs transition-colors"
+                        >
+                          <User className="w-3.5 h-3.5" />
+                          <span>تسجيل الدخول الآن</span>
                         </Link>
                       </div>
                     )}
