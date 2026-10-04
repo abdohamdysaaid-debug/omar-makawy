@@ -75,8 +75,23 @@ function mapUserToStudent(user: User): Student {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [student, setStudent] = useState<Student | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const token = getStoredAccessToken();
+    const cachedUser = getStoredUser();
+    return !!token && cachedUser?.role === 'STUDENT';
+  });
+
+  const [student, setStudent] = useState<Student | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const token = getStoredAccessToken();
+    const cachedUser = getStoredUser();
+    if (token && cachedUser && cachedUser.role === 'STUDENT') {
+      return mapUserToStudent(cachedUser);
+    }
+    return null;
+  });
+
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);

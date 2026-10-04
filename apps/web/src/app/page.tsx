@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { getStoredAccessToken } from '@/lib/api/client';
 import StudentHomeClient from '@/components/home/StudentHomeClient';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -17,9 +18,14 @@ export default function HomePage() {
   const { isAuthenticated, isInitialized } = useAuth();
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | null>(null);
 
-  // When student is authenticated and auth is initialized on client, render Student Dashboard
-  if (isInitialized && isAuthenticated) {
+  // If student is authenticated (optimistically or verified), render Student Dashboard immediately
+  if (isAuthenticated) {
     return <StudentHomeClient />;
+  }
+
+  // If initial auth check is running and a stored token exists, show clean dark background to prevent guest landing flash
+  if (!isInitialized && typeof window !== 'undefined' && getStoredAccessToken()) {
+    return <div className="min-h-screen bg-[#0c1017]" />;
   }
 
   // Statically exported HTML & guest visitor view
