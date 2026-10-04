@@ -21,6 +21,8 @@
     "dev:admin": "npm run dev --workspace=@omar-makawy/admin",
     "dev:supervisor": "npm run dev --workspace=@omar-makawy/supervisor",
     "dev:staff": "npm run dev --workspace=@omar-makawy/staff",
+    "dev:mobile": "npm run start --workspace=@omar-makawy/mobile",
+    "start:mobile": "npm run start --workspace=@omar-makawy/mobile",
     "build": "npm run build --workspaces",
     "build:web": "npm run build --workspace=@omar-makawy/web",
     "build:admin": "npm run build --workspace=@omar-makawy/staff",
