@@ -32,7 +32,7 @@ export default function StaffContactPage() {
   const [secondaryPhone, setSecondaryPhone] = useState('');
   const [emailAddress, setEmailAddress] = useState('');
 
-  const fetchContactSettings = async () => {
+  const fetchContactSettings = React.useCallback(async () => {
     if (!apiClient) return;
     setLoading(true);
     setError(null);
@@ -64,11 +64,11 @@ export default function StaffContactPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiClient]);
 
   useEffect(() => {
     fetchContactSettings();
-  }, [apiClient]);
+  }, [fetchContactSettings]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

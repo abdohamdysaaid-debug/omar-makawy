@@ -1,17 +1,13 @@
+'use client';
+
 import React, { Suspense } from 'react';
 import { StaffTicketDetailsClient } from '@/components/support/StaffTicketDetailsClient';
 import { LoadingState } from '@/components/ui/FeedbackStates';
 
-export function generateStaticParams() {
-  return [
-    { id: 'detail' },
-  ];
-}
-
-export default function StaffTicketDetailPage({ params }: { params: { id: string } }) {
+export default function StaffTicketDetailPage() {
   return (
     <Suspense fallback={<LoadingState message="جاري تحميل تفاصيل تذكرة الدعم..." />}>
-      <StaffTicketDetailsClient ticketId={params.id} />
+      <StaffTicketDetailsClient />
     </Suspense>
   );
 }
