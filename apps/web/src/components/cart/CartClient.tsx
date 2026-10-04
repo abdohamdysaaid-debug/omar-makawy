@@ -178,6 +178,10 @@ export default function CartClient() {
         landmark: landmark.trim() || undefined,
         secondary_phone: secondaryPhone.trim() || undefined,
         notes: notes.trim() || undefined,
+        items: items.map((it) => ({
+          book_id: String(it.book.id),
+          quantity: Number(it.quantity) || 1,
+        })),
       };
 
       const res: any = await apiClient.post('/orders/checkout', payload);
