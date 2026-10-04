@@ -818,7 +818,10 @@ export default function StaffBooksPage() {
                         <td className="p-4 font-mono font-bold text-emerald-300">{ord.order_number}</td>
                         <td className="p-4">
                           <p className="font-bold text-white">{ord.recipient_name}</p>
-                          <p className="text-[11px] text-neutral-400 dir-ltr text-start">{ord.recipient_phone}</p>
+                          <p className="text-[11px] text-neutral-400 font-mono" dir="ltr">{ord.recipient_phone}</p>
+                          <p className="text-[11px] text-emerald-400/90 font-medium truncate max-w-[200px]" title={ord.shipping_address}>
+                            {ord.shipping_address}
+                          </p>
                         </td>
                         <td className="p-4 text-neutral-300">
                           {ord.governorate_name_snapshot || ord.governorate_id || 'المحافظة'}

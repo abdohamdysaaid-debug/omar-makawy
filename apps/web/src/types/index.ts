@@ -101,7 +101,8 @@ export interface Book {
   id: number;
   title: string;
   academicYearId: number;
-  imageUrl: string;
+  imageUrl?: string;
+  cover_image_url?: string;
   description: string;
   price: number;
   stock: number;
