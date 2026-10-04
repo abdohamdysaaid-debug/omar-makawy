@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, User, Bell, LogOut, GraduationCap, Home, Package, BookOpen, Video, LogIn, UserPlus, ChevronLeft, Wallet, HelpCircle, CheckCircle2, Award, ShoppingBag, TrendingUp, Sparkles } from 'lucide-react';
+import { Menu, X, User, Bell, LogOut, GraduationCap, Home, Package, BookOpen, Video, LogIn, UserPlus, ChevronLeft, Wallet, HelpCircle, CheckCircle2, Award, ShoppingBag, TrendingUp, Sparkles, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useCart } from '@/context/CartContext';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
 // Scalloped Blue Verified Badge Icon matching Twitter/X style
@@ -35,6 +36,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { isAuthenticated, student, logout } = useAuth();
   const { t, language } = useLanguage();
+  const { totalItems } = useCart();
   const isRtl = language === 'ar';
 
   useEffect(() => {
@@ -151,6 +153,20 @@ export default function Navbar() {
 
         {/* Left Side Actions (Mobile & Desktop) */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Cart Icon Link */}
+          <Link
+            href="/cart"
+            className="relative p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-stone-800 transition-colors"
+            title="سلة التسوق"
+          >
+            <ShoppingCart className="w-5 h-5 text-[#0d6e4f] dark:text-emerald-400" />
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -end-1 min-w-[18px] h-4.5 px-1 bg-emerald-600 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center shadow-xs">
+                {totalItems}
+              </span>
+            )}
+          </Link>
+
           {/* Theme Switcher */}
           <ThemeToggle />
 

@@ -21,7 +21,8 @@ import {
   CheckCircle2,
   Award,
   Video,
-  Sparkles
+  Sparkles,
+  ShoppingCart
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,6 +52,7 @@ export const navSections = [
     category: 'المتجر والخدمات المالية',
     items: [
       { labelKey: 'nav.books', label: 'متجر الكتب', href: '/bookstore', aliases: ['/bookstore', '/student/books'], icon: BookOpen },
+      { labelKey: 'nav.cart', label: 'سلة التسوق', href: '/cart', aliases: ['/cart'], icon: ShoppingCart },
       { labelKey: 'nav.orders', label: 'طلباتي', href: '/student/orders', aliases: ['/orders', '/student/orders'], icon: ShoppingBag },
       { labelKey: 'nav.wallet', label: 'المحفظة', href: '/student/wallet', aliases: ['/wallet', '/student/wallet'], icon: Wallet },
       { labelKey: 'nav.notifications', label: 'الإشعارات', href: '/student/notifications', aliases: ['/notifications', '/student/notifications'], icon: Bell },
