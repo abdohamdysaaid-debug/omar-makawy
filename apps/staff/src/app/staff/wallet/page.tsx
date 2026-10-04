@@ -413,7 +413,7 @@ export default function StaffWalletPage() {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl font-black text-white">
-              {(Number(summary?.total_incoming_credited || summary?.total_incoming_topups) || 0).toLocaleString()}
+              {(Number(summary?.total_incoming_credited) || 0).toLocaleString()}
             </span>
             <span className="text-xs font-bold text-blue-400">ج.م</span>
           </div>
