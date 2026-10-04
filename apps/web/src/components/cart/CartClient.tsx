@@ -163,8 +163,15 @@ export default function CartClient() {
 
     try {
       setSubmitting(true);
+      let finalGovId = selectedGovId;
+      if (!isValidUUID(finalGovId)) {
+        const fallbackGov = governorates.find((g: any) => isValidUUID(g.id)) || FALLBACK_GOVERNORATES[0];
+        finalGovId = fallbackGov.id;
+        setSelectedGovId(finalGovId);
+      }
+
       const payload = {
-        governorate_id: selectedGovId,
+        governorate_id: finalGovId,
         recipient_name: recipientName.trim(),
         recipient_phone: recipientPhone.trim(),
         shipping_address: shippingAddress.trim(),
