@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
@@ -212,20 +211,24 @@ export default function CartClient() {
   };
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark font-cairo flex flex-col text-gray-900 dark:text-gray-100">
-      <Navbar />
-
-      <main className="container mx-auto px-4 py-8 flex-1 pt-24 max-w-6xl">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold">سلة التسوق وإتمام الشحن</h1>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
-              مراجعة محتويات السلة وتحديد بيانات التوصيل
+    <StudentLayout>
+      <div className="space-y-6 animate-fade-in font-cairo">
+        {/* Page Header */}
+        <div className="flex items-center justify-between border-b border-gray-200/60 dark:border-gray-800 pb-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-7 bg-emerald-600 rounded-full inline-block" />
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+                سلة التسوق وإتمام الشحن
+              </h1>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              مراجعة محتويات السلة وتحديد بيانات التوصيل وإتمام الشراء
             </p>
           </div>
           <Link
             href="/bookstore"
-            className="flex items-center gap-1.5 text-xs font-bold text-[#0d6e4f] dark:text-emerald-400 hover:underline"
+            className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-2.5 rounded-2xl border border-emerald-500/20"
           >
             <span>متابعة التسوق</span>
             <ArrowLeft className="w-4 h-4" />
@@ -280,7 +283,7 @@ export default function CartClient() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left Column: Cart Items List */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="bg-white dark:bg-surface-dark rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-gray-800/80">
+              <div className="bg-white dark:bg-[#131b2e] rounded-3xl p-5 shadow-xs border border-gray-200/80 dark:border-gray-800">
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                   <span>محتويات السلة ({items.length})</span>
@@ -348,7 +351,7 @@ export default function CartClient() {
             <div className="lg:col-span-5 space-y-6">
               <form
                 onSubmit={handleCheckoutSubmit}
-                className="bg-white dark:bg-surface-dark rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800/80 space-y-5"
+                className="bg-white dark:bg-[#131b2e] rounded-3xl p-6 shadow-xs border border-gray-200/80 dark:border-gray-800 space-y-5"
               >
                 <div className="flex items-center gap-2 pb-3 border-b border-gray-100 dark:border-gray-800">
                   <Truck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -526,7 +529,7 @@ export default function CartClient() {
                 <button
                   type="submit"
                   disabled={submitting || items.length === 0}
-                  className="w-full h-12 rounded-2xl font-black text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2"
+                  className="w-full h-12 rounded-2xl font-black text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -544,9 +547,7 @@ export default function CartClient() {
             </div>
           </div>
         )}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </StudentLayout>
   );
 }

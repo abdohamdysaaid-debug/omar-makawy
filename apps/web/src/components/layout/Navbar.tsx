@@ -153,19 +153,21 @@ export default function Navbar() {
 
         {/* Left Side Actions (Mobile & Desktop) */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Cart Icon Link */}
-          <Link
-            href="/cart"
-            className="relative p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-stone-800 transition-colors"
-            title="سلة التسوق"
-          >
-            <ShoppingCart className="w-5 h-5 text-[#0d6e4f] dark:text-emerald-400" />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -end-1 min-w-[18px] h-4.5 px-1 bg-emerald-600 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center shadow-xs">
-                {totalItems}
-              </span>
-            )}
-          </Link>
+          {/* Cart Icon Link (Only shown when authenticated) */}
+          {isAuthenticated && (
+            <Link
+              href="/cart"
+              className="relative p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-stone-800 transition-colors"
+              title="سلة التسوق"
+            >
+              <ShoppingCart className="w-5 h-5 text-[#0d6e4f] dark:text-emerald-400" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -end-1 min-w-[18px] h-4.5 px-1 bg-emerald-600 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center shadow-xs">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Theme Switcher */}
           <ThemeToggle />

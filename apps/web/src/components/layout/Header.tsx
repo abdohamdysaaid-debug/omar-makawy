@@ -96,19 +96,21 @@ export default function Header({
         <div className="flex items-center gap-2 sm:gap-4">
           <ThemeToggle />
 
-          {/* Cart Icon Button */}
-          <Link
-            href="/cart"
-            className="relative p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 transition-colors"
-            title="سلة التسوق"
-          >
-            <ShoppingCart className="w-5 h-5" />
-            {totalItems > 0 && (
-              <span className="absolute top-1.5 end-1.5 min-w-[18px] h-4 px-1 bg-emerald-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
-          </Link>
+          {/* Cart Icon Button (Only shown when authenticated) */}
+          {isAuthenticated && (
+            <Link
+              href="/cart"
+              className="relative p-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-800 transition-colors"
+              title="سلة التسوق"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {totalItems > 0 && (
+                <span className="absolute top-1.5 end-1.5 min-w-[18px] h-4 px-1 bg-emerald-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Notifications Icon Button */}
           <Link
