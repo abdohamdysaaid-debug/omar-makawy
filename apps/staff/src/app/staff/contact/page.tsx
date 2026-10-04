@@ -70,6 +70,15 @@ export default function StaffContactPage() {
     fetchContactSettings();
   }, [fetchContactSettings]);
 
+  const normalizeSocialUrl = (url: string) => {
+    let trimmed = url.trim();
+    if (!trimmed) return '';
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      trimmed = 'https://' + trimmed;
+    }
+    return trimmed;
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!apiClient) return;
@@ -77,16 +86,21 @@ export default function StaffContactPage() {
     setError(null);
     setSuccess(null);
 
+    const normFb = normalizeSocialUrl(facebookUrl);
+    const normYt = normalizeSocialUrl(youtubeUrl);
+    const normIg = normalizeSocialUrl(instagramUrl);
+    const normX = normalizeSocialUrl(xUrl);
+
     // Client-side URL Security Validation
     const urls = [
-      { key: 'Facebook', value: facebookUrl },
-      { key: 'YouTube', value: youtubeUrl },
-      { key: 'Instagram', value: instagramUrl },
-      { key: 'X / Twitter', value: xUrl },
+      { key: 'Facebook', value: normFb },
+      { key: 'YouTube', value: normYt },
+      { key: 'Instagram', value: normIg },
+      { key: 'X / Twitter', value: normX },
     ];
 
     for (const u of urls) {
-      const val = u.value.trim();
+      const val = u.value;
       if (val !== '' && !val.startsWith('https://')) {
         setError(`رابط ${u.key} يجب أن يبدأ بـ https:// لضمان الأمان.`);
         return;
@@ -97,10 +111,10 @@ export default function StaffContactPage() {
 
     try {
       const settingsPayload = [
-        { key: 'social_facebook', value: facebookUrl.trim() },
-        { key: 'social_youtube', value: youtubeUrl.trim() },
-        { key: 'social_instagram', value: instagramUrl.trim() },
-        { key: 'social_x', value: xUrl.trim() },
+        { key: 'social_facebook', value: normFb },
+        { key: 'social_youtube', value: normYt },
+        { key: 'social_instagram', value: normIg },
+        { key: 'social_x', value: normX },
         { key: 'support_whatsapp', value: whatsappNumber.trim() },
         { key: 'support_phone', value: phoneNumber.trim() },
         { key: 'contact_phone_secondary', value: secondaryPhone.trim() },
