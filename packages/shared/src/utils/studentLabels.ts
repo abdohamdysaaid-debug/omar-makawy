@@ -9,7 +9,7 @@ export function formatSectionLabel(
   isArabic: boolean = true
 ): string {
   if (!section || !section.trim()) {
-    return isArabic ? 'غير محدد / عام' : 'General / None';
+    return isArabic ? 'عام (شعبة عامة)' : 'General';
   }
 
   const s = section.toUpperCase().trim();
@@ -26,7 +26,7 @@ export function formatSectionLabel(
     case 'LITERARY':
       return isArabic ? 'أدبي' : 'Literature';
     case 'GENERAL':
-      return isArabic ? 'عام' : 'General';
+      return isArabic ? 'عام (شعبة عامة)' : 'General';
     default:
       return section;
   }

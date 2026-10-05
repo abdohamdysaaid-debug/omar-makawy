@@ -50,8 +50,95 @@ export interface RegisterData {
   address?: string;
 }
 
+const ACADEMIC_YEAR_NAMES: Record<string, string> = {
+  'a0000000-0000-0000-0000-000000000001': 'الصف الثالث الإعدادي',
+  'THIRD_PREPARATORY': 'الصف الثالث الإعدادي',
+  '1': 'الصف الثالث الإعدادي',
+  'a0000000-0000-0000-0000-000000000002': 'الصف الأول الثانوي',
+  'FIRST_SECONDARY': 'الصف الأول الثانوي',
+  '2': 'الصف الأول الثانوي',
+  'a0000000-0000-0000-0000-000000000003': 'الصف الثاني الثانوي',
+  'SECOND_SECONDARY': 'الصف الثاني الثانوي',
+  '3': 'الصف الثاني الثانوي',
+  'a0000000-0000-0000-0000-000000000004': 'الصف الثالث الثانوي',
+  'THIRD_SECONDARY': 'الصف الثالث الثانوي',
+  '4': 'الصف الثالث الثانوي',
+};
+
+const GOVERNORATE_NAMES: Record<string, string> = {
+  'b0000000-0000-0000-0000-000000000001': 'القاهرة',
+  'CAIRO': 'القاهرة',
+  'b0000000-0000-0000-0000-000000000002': 'الجيزة',
+  'GIZA': 'الجيزة',
+  'b0000000-0000-0000-0000-000000000003': 'الإسكندرية',
+  'ALEXANDRIA': 'الإسكندرية',
+  'b0000000-0000-0000-0000-000000000004': 'القليوبية',
+  'QALYUBIA': 'القليوبية',
+  'QUALYUBIA': 'القليوبية',
+  'b0000000-0000-0000-0000-000000000005': 'الشرقية',
+  'SHARQIA': 'الشرقية',
+  'b0000000-0000-0000-0000-000000000006': 'الدقهلية',
+  'DAKAHLIA': 'الدقهلية',
+  'b0000000-0000-0000-0000-000000000007': 'الغربية',
+  'GHARBIA': 'الغربية',
+  'b0000000-0000-0000-0000-000000000008': 'المنوفية',
+  'MONUFIA': 'المنوفية',
+  'b0000000-0000-0000-0000-000000000009': 'البحيرة',
+  'BEHEIRA': 'البحيرة',
+  'b0000000-0000-0000-0000-000000000010': 'كفر الشيخ',
+  'KAFR_EL_SHEIKH': 'كفر الشيخ',
+  'b0000000-0000-0000-0000-000000000011': 'دمياط',
+  'DAMIETTA': 'دمياط',
+  'b0000000-0000-0000-0000-000000000012': 'بورسعيد',
+  'PORT_SAID': 'بورسعيد',
+  'b0000000-0000-0000-0000-000000000013': 'الإسماعيلية',
+  'ISMAILIA': 'الإسماعيلية',
+  'b0000000-0000-0000-0000-000000000014': 'السويس',
+  'SUEZ': 'السويس',
+  'b0000000-0000-0000-0000-000000000015': 'بني سويف',
+  'BENI_SUEF': 'بني سويف',
+  'b0000000-0000-0000-0000-000000000016': 'الفيوم',
+  'FAYOUM': 'الفيوم',
+  'b0000000-0000-0000-0000-000000000017': 'المنيا',
+  'MINYA': 'المنيا',
+  'b0000000-0000-0000-0000-000000000018': 'أسيوط',
+  'ASYUT': 'أسيوط',
+  'b0000000-0000-0000-0000-000000000019': 'سوهاج',
+  'SOHAG': 'سوهاج',
+  'b0000000-0000-0000-0000-000000000020': 'قنا',
+  'QENA': 'قنا',
+  'b0000000-0000-0000-0000-000000000021': 'الأقصر',
+  'LUXOR': 'الأقصر',
+  'b0000000-0000-0000-0000-000000000022': 'أسوان',
+  'ASWAN': 'أسوان',
+  'b0000000-0000-0000-0000-000000000023': 'البحر الأحمر',
+  'RED_SEA': 'البحر الأحمر',
+  'b0000000-0000-0000-0000-000000000024': 'الوادي الجديد',
+  'NEW_VALLEY': 'الوادي الجديد',
+  'b0000000-0000-0000-0000-000000000025': 'مطروح',
+  'MATROUH': 'مطروح',
+  'b0000000-0000-0000-0000-000000000026': 'شمال سيناء',
+  'NORTH_SINAI': 'شمال سيناء',
+  'b0000000-0000-0000-0000-000000000027': 'جنوب سيناء',
+  'SOUTH_SINAI': 'جنوب سيناء',
+};
+
 function mapUserToStudent(user: User): Student {
   const profile = user.student_profile || {};
+  const yearId = user.academic_year_id || profile.academic_year_id || '';
+  const govId = profile.governorate_id || undefined;
+
+  const academicYearName =
+    profile.academic_year_name_ar ||
+    profile.academic_year_name_en ||
+    ACADEMIC_YEAR_NAMES[String(yearId)] ||
+    undefined;
+
+  const governorateName =
+    profile.governorate_name_ar ||
+    profile.governorate_name_en ||
+    (govId ? GOVERNORATE_NAMES[String(govId)] : undefined);
+
   return {
     id: user.id,
     fullName: user.full_name,
@@ -59,8 +146,10 @@ function mapUserToStudent(user: User): Student {
     whatsapp: profile.whatsapp_phone || user.phone,
     parentPhone: profile.parent_phone || '',
     email: user.email || '',
-    academicYearId: user.academic_year_id || profile.academic_year_id || '',
-    governorateId: profile.governorate_id || undefined,
+    academicYearId: yearId,
+    academicYearName,
+    governorateId: govId,
+    governorateName,
     schoolName: profile.school_name || undefined,
     educationType: profile.education_type || undefined,
     studyType: profile.study_type || undefined,
