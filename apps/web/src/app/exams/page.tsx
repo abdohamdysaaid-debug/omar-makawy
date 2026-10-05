@@ -118,7 +118,7 @@ export default function ExamsPage() {
 
                 {!exam.isCompleted && (
                   <Link
-                    href={`/student/exams/${exam.id}`}
+                    href={`/student/exams/detail?id=${exam.id}`}
                     className="block text-center w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
                   >
                     ابدأ الاختبار

@@ -856,7 +856,7 @@ export function StudentLectureViewClient({
                   <Link
                     href={
                       lectureExam?.id
-                        ? `/student/exams/${lectureExam.id}`
+                        ? `/student/exams/detail?id=${lectureExam.id}`
                         : `/student/exams${queryCourseId ? `?courseId=${queryCourseId}` : ''}`
                     }
                     className="w-full py-2 px-3 rounded-xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white text-[11px] font-black transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-[#0d6e4f]/20"

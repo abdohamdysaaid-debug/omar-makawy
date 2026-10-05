@@ -254,7 +254,7 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               {exam.lecture_id && (
                 <button
-                  onClick={() => router.push(`/student/lectures/${exam.lecture_id}`)}
+                  onClick={() => router.push(`/student/lectures/detail?id=${exam.lecture_id}`)}
                   className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-md flex items-center gap-2"
                 >
                   <BookOpen className="w-4 h-4" />
