@@ -1,4 +1,19 @@
-import { LayoutDashboard, BookOpen, Package, Video, Users, Settings, Ticket, Wallet, Bell, Headset, Share2, GraduationCap, ShieldCheck } from 'lucide-react';
+import {
+  LayoutDashboard,
+  BookOpen,
+  Package,
+  Video,
+  Users,
+  Settings,
+  Ticket,
+  Wallet,
+  Bell,
+  Headset,
+  Share2,
+  GraduationCap,
+  ShieldCheck,
+  BookMarked,
+} from 'lucide-react';
 import { SystemPermissions, SystemPermissionCode, UserRole } from '@omar-makawy/shared';
 
 export interface NavItemConfig {
@@ -16,6 +31,7 @@ export interface NavSectionConfig {
 }
 
 export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
+  // 1. Overview
   {
     items: [
       {
@@ -25,8 +41,9 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
       },
     ],
   },
+  // 2. Educational & LMS
   {
-    sectionKey: 'nav.academic',
+    sectionKey: 'nav.section_academic',
     items: [
       {
         key: 'nav.courses',
@@ -47,6 +64,24 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         permission: SystemPermissions.LECTURES_READ,
       },
       {
+        key: 'nav.exams',
+        href: '/staff/exams',
+        icon: GraduationCap,
+        permission: SystemPermissions.LECTURES_READ,
+      },
+      {
+        key: 'nav.books_and_notes',
+        href: '/staff/books',
+        icon: BookMarked,
+        permission: SystemPermissions.BOOKS_READ,
+      },
+    ],
+  },
+  // 3. Operations & Finance
+  {
+    sectionKey: 'nav.section_operations',
+    items: [
+      {
         key: 'nav.activation_and_recharge',
         href: '/staff/codes',
         icon: Ticket,
@@ -57,11 +92,17 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         icon: Wallet,
         permission: SystemPermissions.WALLET_READ,
       },
+    ],
+  },
+  // 4. Students & Communications
+  {
+    sectionKey: 'nav.section_students_comms',
+    items: [
       {
-        key: 'nav.books_and_notes',
-        href: '/staff/books',
-        icon: BookOpen,
-        permission: SystemPermissions.BOOKS_READ,
+        key: 'nav.students',
+        href: '/staff/students',
+        icon: Users,
+        permission: SystemPermissions.STUDENTS_READ,
       },
       {
         key: 'nav.notifications',
@@ -81,22 +122,12 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         icon: Share2,
         permission: SystemPermissions.SETTINGS_READ,
       },
-      {
-        key: 'nav.exams',
-        href: '/staff/exams',
-        icon: GraduationCap,
-        permission: SystemPermissions.LECTURES_READ,
-      },
     ],
   },
+  // 5. Administration & System
   {
+    sectionKey: 'nav.section_admin',
     items: [
-      {
-        key: 'nav.students',
-        href: '/staff/students',
-        icon: Users,
-        permission: SystemPermissions.STUDENTS_READ,
-      },
       {
         key: 'nav.supervisors',
         href: '/staff/supervisors',

@@ -97,12 +97,12 @@ export function StaffSidebar({
       </div>
 
       {/* Navigation List — Grouped Sections */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {authorizedSections.map((section, sIdx) => (
-          <div key={sIdx} className="space-y-1">
+          <div key={sIdx} className={`space-y-1 ${sIdx > 0 ? 'pt-2 border-t border-neutral-800/50' : ''}`}>
             {section.sectionKey && (
-              <div className={`px-3.5 pt-2 pb-1 ${isCollapsed ? 'sr-only' : ''}`}>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+              <div className={`px-3 pt-1 pb-1 flex items-center justify-between ${isCollapsed ? 'sr-only' : ''}`}>
+                <span className="text-[10px] font-bold tracking-wider text-neutral-500">
                   {t(section.sectionKey)}
                 </span>
               </div>
@@ -120,9 +120,9 @@ export function StaffSidebar({
                   prefetch={false}
                   onClick={() => setIsMobileOpen(false)}
                   title={isCollapsed ? t(item.key) : undefined}
-                  className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all ${
+                  className={`flex items-center gap-3 rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-emerald-950/70 text-emerald-300 border-s-4 border-emerald-500 shadow-xs'
+                      ? 'bg-emerald-950/60 text-emerald-300 border-s-2 border-emerald-500 shadow-xs'
                       : 'text-neutral-400 hover:bg-neutral-850 hover:text-neutral-200'
                   }`}
                 >
