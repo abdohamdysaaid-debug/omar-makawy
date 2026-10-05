@@ -4,6 +4,8 @@ import React from 'react';
 import { BookOpen, Star, Globe, EyeOff, Tag } from 'lucide-react';
 import { StatusBadge } from '../ui/StatusBadge';
 
+import { resolveMediaUrl } from '@omar-makawy/shared';
+
 export interface CourseCardPreviewProps {
   titleAr?: string;
   titleEn?: string;
@@ -37,17 +39,21 @@ export function CourseCardPreview({
   const displayTitle = (isArabic ? titleAr : titleEn) || titleAr || (isArabic ? 'عنوان الكورس التعليمي' : 'Course Title');
   const hasDiscount = typeof discountPrice === 'number' && discountPrice > 0 && discountPrice < price;
 
+  const resolvedUrl = React.useMemo(() => {
+    return resolveMediaUrl(thumbnailUrl);
+  }, [thumbnailUrl]);
+
   React.useEffect(() => {
     setImgError(false);
-  }, [thumbnailUrl]);
+  }, [resolvedUrl]);
 
   return (
     <div className="w-full max-w-sm mx-auto rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col transition-all">
       {/* 16:9 Image / Banner Container */}
       <div className="relative aspect-video w-full bg-neutral-950 flex items-center justify-center overflow-hidden border-b border-neutral-100 dark:border-neutral-800">
-        {thumbnailUrl && !imgError ? (
+        {resolvedUrl && !imgError ? (
           <img
-            src={thumbnailUrl}
+            src={resolvedUrl}
             alt={displayTitle}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover"
