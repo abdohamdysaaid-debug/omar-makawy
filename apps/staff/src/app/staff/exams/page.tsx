@@ -18,6 +18,11 @@ import {
   Loader2,
   Award,
   Lock,
+  Calendar,
+  Eye,
+  FileCheck,
+  User,
+  Phone,
 } from 'lucide-react';
 import { staffApiClient as apiClient } from '@/context/StaffAuthContext';
 
@@ -57,6 +62,10 @@ interface Exam {
   show_in_student_menu?: boolean;
   duration_minutes: number;
   is_published: boolean;
+  allow_retake?: boolean;
+  retake_policy?: string;
+  max_retakes?: number;
+  available_at?: string;
   question_count?: number;
   submission_count?: number;
   questions?: Question[];
@@ -92,6 +101,7 @@ interface Lecture {
 }
 
 export default function StaffExamsPage() {
+  const [activeTab, setActiveTab] = useState<'exams' | 'results'>('exams');
   const [exams, setExams] = useState<Exam[]>([]);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -117,6 +127,14 @@ export default function StaffExamsPage() {
   const [isRequiredForNext, setIsRequiredForNext] = useState<boolean>(false);
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [showInStudentMenu, setShowInStudentMenu] = useState<boolean>(true);
+
+  // Retake & Availability states
+  const [allowRetake, setAllowRetake] = useState<boolean>(true);
+  const [retakePolicy, setRetakePolicy] = useState<string>('ALWAYS');
+  const [maxRetakes, setMaxRetakes] = useState<number | ''>('');
+  const [availabilityType, setAvailabilityType] = useState<'NOW' | 'SCHEDULED'>('NOW');
+  const [availableAt, setAvailableAt] = useState<string>('');
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -127,6 +145,14 @@ export default function StaffExamsPage() {
   const [aiCourseId, setAiCourseId] = useState<string>('');
   const [aiLectureId, setAiLectureId] = useState<string>('');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
+
+  // Student Results Dashboard State
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [resultsLoading, setResultsLoading] = useState<boolean>(false);
+  const [resultsSearch, setResultsSearch] = useState<string>('');
+  const [resultsExamFilter, setResultsExamFilter] = useState<string>('');
+  const [resultsPassedFilter, setResultsPassedFilter] = useState<string>('ALL');
+  const [selectedSubmissionDetails, setSelectedSubmissionDetails] = useState<any | null>(null);
 
   useEffect(() => {
     fetchExams();
@@ -148,6 +174,30 @@ export default function StaffExamsPage() {
       setLoading(false);
     }
   };
+
+  const fetchSubmissions = async () => {
+    setResultsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (resultsSearch) params.set('search', resultsSearch);
+      if (resultsExamFilter) params.set('exam_id', resultsExamFilter);
+      if (resultsPassedFilter !== 'ALL') params.set('passed', resultsPassedFilter === 'PASSED' ? 'true' : 'false');
+
+      const res: any = await apiClient.get(`/exams/submissions?${params.toString()}`).catch(() => null);
+      setSubmissions(res?.data || (Array.isArray(res) ? res : []));
+    } catch (e) {
+      console.error('Failed to fetch submissions:', e);
+      setSubmissions([]);
+    } finally {
+      setResultsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'results') {
+      fetchSubmissions();
+    }
+  }, [activeTab, resultsSearch, resultsExamFilter, resultsPassedFilter]);
 
   const fetchAcademicYears = async () => {
     try {
@@ -226,26 +276,23 @@ export default function StaffExamsPage() {
   const handleOpenManualModal = (exam?: Exam) => {
     if (exam) {
       setEditingExamId(exam.id);
-      setTitleAr(exam.title_ar || '');
+      setTitleAr(exam.title_ar);
       setDescriptionAr(exam.description_ar || '');
       setSelectedAcademicYearId(exam.academic_year_id || '');
 
-      const cIds =
-        exam.course_ids && exam.course_ids.length > 0
-          ? exam.course_ids
-          : exam.course_id
+      const cIds = Array.isArray(exam.course_ids) && exam.course_ids.length > 0
+        ? exam.course_ids
+        : exam.course_id
           ? [exam.course_id]
           : [];
-      const pIds =
-        exam.package_ids && exam.package_ids.length > 0
-          ? exam.package_ids
-          : exam.package_id
+      const pIds = Array.isArray(exam.package_ids) && exam.package_ids.length > 0
+        ? exam.package_ids
+        : exam.package_id
           ? [exam.package_id]
           : [];
-      const lIds =
-        exam.lecture_ids && exam.lecture_ids.length > 0
-          ? exam.lecture_ids
-          : exam.lecture_id
+      const lIds = Array.isArray(exam.lecture_ids) && exam.lecture_ids.length > 0
+        ? exam.lecture_ids
+        : exam.lecture_id
           ? [exam.lecture_id]
           : [];
 
@@ -257,6 +304,11 @@ export default function StaffExamsPage() {
       setIsRequiredForNext(Boolean(exam.is_required_for_next));
       setDurationMinutes(exam.duration_minutes || 30);
       setShowInStudentMenu(exam.show_in_student_menu !== false);
+      setAllowRetake(exam.allow_retake !== false);
+      setRetakePolicy(exam.retake_policy || 'ALWAYS');
+      setMaxRetakes(exam.max_retakes !== undefined && exam.max_retakes !== null ? exam.max_retakes : '');
+      setAvailabilityType(exam.available_at ? 'SCHEDULED' : 'NOW');
+      setAvailableAt(exam.available_at ? new Date(exam.available_at).toISOString().slice(0, 16) : '');
       setQuestions(exam.questions || []);
     } else {
       setEditingExamId(null);
@@ -270,6 +322,11 @@ export default function StaffExamsPage() {
       setIsRequiredForNext(false);
       setDurationMinutes(30);
       setShowInStudentMenu(true);
+      setAllowRetake(true);
+      setRetakePolicy('ALWAYS');
+      setMaxRetakes('');
+      setAvailabilityType('NOW');
+      setAvailableAt('');
       setQuestions([
         {
           question_text_ar: '',
@@ -355,6 +412,10 @@ export default function StaffExamsPage() {
         is_required_for_next: isRequiredForNext,
         duration_minutes: durationMinutes,
         show_in_student_menu: showInStudentMenu,
+        allow_retake: allowRetake,
+        retake_policy: retakePolicy,
+        max_retakes: maxRetakes !== '' ? Number(maxRetakes) : null,
+        available_at: availabilityType === 'SCHEDULED' && availableAt ? availableAt : null,
         is_published: true,
         questions,
       };
@@ -419,7 +480,6 @@ export default function StaffExamsPage() {
     }
   };
 
-  // Modal cascading filtering options
   const filteredCoursesForModal = courses.filter(
     (c) => !selectedAcademicYearId || c.academic_year_id === selectedAcademicYearId
   );
@@ -472,9 +532,9 @@ export default function StaffExamsPage() {
             <GraduationCap className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">إدارة الامتحانات والاختبارات</h1>
+            <h1 className="text-2xl font-bold tracking-tight">إدارة الامتحانات والنتائج</h1>
             <p className="text-sm text-gray-500 dark:text-neutral-400">
-              إنشاء امتحانات عامة، أو ربطها بكورسات، باقات، أو محاضرات محددة ✨
+              إنشاء امتحانات عامة، تخصيص وقت ومحاولات الإعادة، ومتابعة نتائج الطلاب ✨
             </p>
           </div>
         </div>
@@ -498,6 +558,36 @@ export default function StaffExamsPage() {
         </div>
       </div>
 
+      {/* Main Tabs Navigation */}
+      <div className="flex items-center gap-2 border-b border-gray-200 dark:border-neutral-800">
+        <button
+          onClick={() => setActiveTab('exams')}
+          className={`px-5 py-3 font-bold text-xs border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'exams'
+              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <GraduationCap className="h-4 w-4" />
+          <span>قائمة الامتحانات والواجبات</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('results');
+            fetchSubmissions();
+          }}
+          className={`px-5 py-3 font-bold text-xs border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === 'results'
+              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <Award className="h-4 w-4" />
+          <span>نتائج وتقارير الطلاب ({submissions.length})</span>
+        </button>
+      </div>
+
       {/* Notifications */}
       {successMsg && (
         <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-900 dark:text-emerald-300 flex items-center justify-between">
@@ -511,280 +601,418 @@ export default function StaffExamsPage() {
         </div>
       )}
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-            <GraduationCap className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-xs text-gray-500 dark:text-neutral-400 block">إجمالي الامتحانات</span>
-            <span className="text-xl font-bold">{exams.length}</span>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-            <BookOpen className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-xs text-gray-500 dark:text-neutral-400 block">مرتبطة بمحاضرات</span>
-            <span className="text-xl font-bold">
-              {exams.filter((e) => e.lecture_id || (e.lecture_ids && e.lecture_ids.length > 0)).length}
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-            <Lock className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-xs text-gray-500 dark:text-neutral-400 block">امتحانات إجبارية للمحاضرة</span>
-            <span className="text-xl font-bold text-amber-600">
-              {exams.filter((e) => e.is_required_for_next).length}
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
-          <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <Award className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-xs text-gray-500 dark:text-neutral-400 block">امتحانات عامة (في امتحاناتي)</span>
-            <span className="text-xl font-bold text-emerald-600">
-              {exams.filter((e) => e.show_in_student_menu !== false).length}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter and Search */}
-      <div className="flex items-center justify-between gap-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-gray-200/80 dark:border-neutral-800">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث باسم الامتحان، الصف، الكورس، الباقة، أو المحاضرة..."
-            className="w-full pl-4 pr-9 py-2 text-sm rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-      </div>
-
-      {/* Table List */}
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200/80 dark:border-neutral-800 overflow-hidden shadow-sm">
-        {loading ? (
-          <div className="p-12 text-center space-y-3">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-600" />
-            <p className="text-sm text-gray-500">جاري تحميل قائمة الامتحانات...</p>
-          </div>
-        ) : filteredExams.length === 0 ? (
-          <div className="p-12 text-center space-y-4">
-            <GraduationCap className="h-12 w-12 mx-auto text-gray-400" />
-            <div className="space-y-1">
-              <h3 className="font-bold text-base">لا توجد امتحانات حتى الآن</h3>
-              <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                قم بإضافة امتحان يدوي أو اضغط على Create AI Exam لتوليد أسئلة اختيار من متعدد في ثوانٍ.
-              </p>
+      {/* Tab 1: Exams List & Creator */}
+      {activeTab === 'exams' && (
+        <div className="space-y-6">
+          {/* Stats Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <GraduationCap className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 dark:text-neutral-400 block">إجمالي الامتحانات</span>
+                <span className="text-xl font-bold">{exams.length}</span>
+              </div>
             </div>
-            <button
-              onClick={() => setIsAiModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold text-xs shadow-md hover:bg-amber-600"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>إنشاء بواسطة AI ✨</span>
-            </button>
+
+            <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 dark:text-neutral-400 block">مرتبطة بمحاضرات</span>
+                <span className="text-xl font-bold">
+                  {exams.filter((e) => e.lecture_id || (e.lecture_ids && e.lecture_ids.length > 0)).length}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 dark:text-neutral-400 block">إعادة غير مسموحة</span>
+                <span className="text-xl font-bold text-amber-600">
+                  {exams.filter((e) => e.allow_retake === false || e.retake_policy === 'NEVER').length}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-neutral-900 p-5 rounded-xl border border-gray-200/80 dark:border-neutral-800 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <Award className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 dark:text-neutral-400 block">امتحانات متاحة للطالب</span>
+                <span className="text-xl font-bold text-emerald-600">
+                  {exams.filter((e) => e.show_in_student_menu !== false).length}
+                </span>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead className="bg-gray-50 dark:bg-neutral-800/60 border-b border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-400 font-semibold uppercase">
-                <tr>
-                  <th className="py-3.5 px-4">عنوان الامتحان</th>
-                  <th className="py-3.5 px-4">الصف الدراسي (المرحلة)</th>
-                  <th className="py-3.5 px-4">الكورس / الباقة / المحاضرة (مكان النشر)</th>
-                  <th className="py-3.5 px-4">نسبة النجاح المطلوبة</th>
-                  <th className="py-3.5 px-4">شرط المحاضرة</th>
-                  <th className="py-3.5 px-4">الأسئلة والمدة</th>
-                  <th className="py-3.5 px-4 text-center">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-neutral-800 font-medium">
-                {filteredExams.map((exam) => {
-                  const hasLectures = (exam.lecture_ids && exam.lecture_ids.length > 0) || exam.lecture_title_ar;
-                  const hasCourses = (exam.course_ids && exam.course_ids.length > 0) || exam.course_title_ar;
-                  const hasPackages = (exam.package_ids && exam.package_ids.length > 0) || exam.package_title_ar;
 
-                  return (
-                    <tr key={exam.id} className="hover:bg-gray-50/70 dark:hover:bg-neutral-800/40 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-gray-900 dark:text-neutral-100 text-sm">{exam.title_ar}</div>
-                        {exam.description_ar && (
-                          <div className="text-[11px] text-gray-500 dark:text-neutral-400 truncate max-w-xs">
-                            {exam.description_ar}
-                          </div>
-                        )}
-                      </td>
+          {/* Filter and Search */}
+          <div className="flex items-center justify-between gap-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-gray-200/80 dark:border-neutral-800">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="بحث باسم الامتحان، الصف، الكورس، الباقة، أو المحاضرة..."
+                className="w-full pl-4 pr-9 py-2 text-sm rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
 
-                      {/* Academic Year Column */}
-                      <td className="py-3.5 px-4">
-                        {exam.academic_year_name_ar ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-bold text-[11px]">
-                            <GraduationCap className="h-3.5 w-3.5 text-purple-600" />
-                            {exam.academic_year_name_ar}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400 font-medium text-[11px]">
-                            عام (كافة الصفوف)
-                          </span>
-                        )}
-                      </td>
+          {/* Table List */}
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200/80 dark:border-neutral-800 overflow-hidden shadow-sm">
+            {loading ? (
+              <div className="p-12 text-center space-y-3">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-600" />
+                <p className="text-sm text-gray-500">جاري تحميل قائمة الامتحانات...</p>
+              </div>
+            ) : filteredExams.length === 0 ? (
+              <div className="p-12 text-center space-y-4">
+                <GraduationCap className="h-12 w-12 mx-auto text-gray-400" />
+                <div className="space-y-1">
+                  <h3 className="font-bold text-base">لا توجد امتحانات حتى الآن</h3>
+                  <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                    قم بإضافة امتحان يدوي أو اضغط على Create AI Exam لتوليد أسئلة اختيار من متعدد في ثوانٍ.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsAiModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-white font-semibold text-xs shadow-md hover:bg-amber-600"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>إنشاء بواسطة AI ✨</span>
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-right text-xs">
+                  <thead className="bg-gray-50 dark:bg-neutral-800/60 border-b border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-400 font-semibold uppercase">
+                    <tr>
+                      <th className="py-3.5 px-4">عنوان الامتحان</th>
+                      <th className="py-3.5 px-4">الصف الدراسي (المرحلة)</th>
+                      <th className="py-3.5 px-4">مكان النشر</th>
+                      <th className="py-3.5 px-4">سياسة الإعادة والإتاحة</th>
+                      <th className="py-3.5 px-4">نسبة النجاح والمدة</th>
+                      <th className="py-3.5 px-4 text-center">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-neutral-800 font-medium">
+                    {filteredExams.map((exam) => {
+                      const hasLectures = (exam.lecture_ids && exam.lecture_ids.length > 0) || exam.lecture_title_ar;
+                      const hasCourses = (exam.course_ids && exam.course_ids.length > 0) || exam.course_title_ar;
+                      const hasPackages = (exam.package_ids && exam.package_ids.length > 0) || exam.package_title_ar;
 
-                      {/* Course, Package & Lecture Column */}
-                      <td className="py-3.5 px-4 space-y-1">
-                        {hasLectures ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 font-semibold text-[11px]">
-                            <BookOpen className="h-3.5 w-3.5" />
-                            {exam.lecture_ids && exam.lecture_ids.length > 1
-                              ? `${exam.lecture_ids.length} محاضرات`
-                              : `محاضرة: ${exam.lecture_title_ar || 'محددة'}`}
-                          </span>
-                        ) : hasCourses ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 font-semibold text-[11px]">
-                            <Layers className="h-3.5 w-3.5" />
-                            {exam.course_ids && exam.course_ids.length > 1
-                              ? `${exam.course_ids.length} كورسات`
-                              : `كورس: ${exam.course_title_ar || 'محدد'}`}
-                          </span>
-                        ) : hasPackages ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold text-[11px]">
-                            <Layers className="h-3.5 w-3.5" />
-                            {exam.package_ids && exam.package_ids.length > 1
-                              ? `${exam.package_ids.length} باقات`
-                              : `باقة: ${exam.package_title_ar || 'محددة'}`}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 font-semibold text-[11px]">
-                            <Award className="h-3.5 w-3.5" />
-                            امتحان عام
-                          </span>
-                        )}
+                      return (
+                        <tr key={exam.id} className="hover:bg-gray-50/70 dark:hover:bg-neutral-800/40 transition-colors">
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-gray-900 dark:text-neutral-100 text-sm">{exam.title_ar}</div>
+                            {exam.description_ar && (
+                              <div className="text-[11px] text-gray-500 dark:text-neutral-400 truncate max-w-xs">
+                                {exam.description_ar}
+                              </div>
+                            )}
+                          </td>
 
-                        <div>
-                          {exam.show_in_student_menu !== false ? (
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                              • يظهر في قائمة (امتحاناتي)
+                          <td className="py-3.5 px-4">
+                            {exam.academic_year_name_ar ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-bold text-[11px]">
+                                <GraduationCap className="h-3.5 w-3.5 text-purple-600" />
+                                {exam.academic_year_name_ar}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400 font-medium text-[11px]">
+                                عام (كافة الصفوف)
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 px-4 space-y-1">
+                            {hasLectures ? (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 font-semibold text-[11px]">
+                                <BookOpen className="h-3.5 w-3.5" />
+                                {exam.lecture_ids && exam.lecture_ids.length > 1
+                                  ? `${exam.lecture_ids.length} محاضرات`
+                                  : `محاضرة: ${exam.lecture_title_ar || 'محددة'}`}
+                              </span>
+                            ) : hasCourses ? (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 font-semibold text-[11px]">
+                                <Layers className="h-3.5 w-3.5" />
+                                {exam.course_ids && exam.course_ids.length > 1
+                                  ? `${exam.course_ids.length} كورسات`
+                                  : `كورس: ${exam.course_title_ar || 'محدد'}`}
+                              </span>
+                            ) : hasPackages ? (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold text-[11px]">
+                                <Layers className="h-3.5 w-3.5" />
+                                {exam.package_ids && exam.package_ids.length > 1
+                                  ? `${exam.package_ids.length} باقات`
+                                  : `باقة: ${exam.package_title_ar || 'محددة'}`}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 font-semibold text-[11px]">
+                                <Award className="h-3.5 w-3.5" />
+                                امتحان عام
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Retake & Availability Info */}
+                          <td className="py-3.5 px-4 space-y-1">
+                            <div>
+                              {exam.retake_policy === 'NEVER' || exam.allow_retake === false ? (
+                                <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold text-[10px]">
+                                  محاولة واحدة (لا يعاد)
+                                </span>
+                              ) : exam.retake_policy === 'UNTIL_PASS' ? (
+                                <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold text-[10px]">
+                                  إعادة عند الرسوب فقط
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-[10px]">
+                                  إعادة مسموحة دائماً
+                                </span>
+                              )}
+                            </div>
+
+                            {exam.available_at && (
+                              <div className="text-[10px] text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                متاح: {new Date(exam.available_at).toLocaleString('ar-EG')}
+                              </div>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 px-4 space-y-1">
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-xs">
+                              {exam.pass_percentage}%
                             </span>
-                          ) : (
-                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
-                              • مخفي من القائمة العامة (داخل المادة فقط)
+                            <div className="text-[10px] text-gray-500">
+                              {exam.question_count || exam.questions?.length || 0} أسئلة • {exam.duration_minutes} دقيقة
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleOpenManualModal(exam)}
+                                className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 hover:bg-blue-100 transition-all cursor-pointer"
+                                title="تعديل الامتحان"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteExam(exam.id)}
+                                className="p-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 hover:bg-red-100 transition-all cursor-pointer"
+                                title="حذف الامتحان"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: Student Exam Results & Reports */}
+      {activeTab === 'results' && (
+        <div className="space-y-6">
+          {/* Filter and Search Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-gray-200/80 dark:border-neutral-800">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={resultsSearch}
+                onChange={(e) => setResultsSearch(e.target.value)}
+                placeholder="بحث باسم الطالب، الهاتف، أو الامتحان..."
+                className="w-full pl-4 pr-9 py-2 text-xs rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
+              />
+            </div>
+
+            {/* Exam Filter */}
+            <div>
+              <select
+                value={resultsExamFilter}
+                onChange={(e) => setResultsExamFilter(e.target.value)}
+                className="w-full p-2 text-xs rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-bold"
+              >
+                <option value="">كل الامتحانات ({exams.length})</option>
+                {exams.map((ex) => (
+                  <option key={ex.id} value={ex.id}>
+                    {ex.title_ar}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <select
+                value={resultsPassedFilter}
+                onChange={(e) => setResultsPassedFilter(e.target.value)}
+                className="w-full p-2 text-xs rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-bold text-emerald-600"
+              >
+                <option value="ALL">جميع نتائج الطلاب (الناجحون والراسبون)</option>
+                <option value="PASSED">الناجحون فقط ✓</option>
+                <option value="FAILED">الراسبون (بحاجة لإعادة) ✗</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Submissions Table */}
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200/80 dark:border-neutral-800 overflow-hidden shadow-sm">
+            {resultsLoading ? (
+              <div className="p-12 text-center space-y-3">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-600" />
+                <p className="text-sm text-gray-500">جاري تحميل نتائج الطلاب...</p>
+              </div>
+            ) : submissions.length === 0 ? (
+              <div className="p-12 text-center space-y-3">
+                <Award className="h-12 w-12 mx-auto text-gray-400" />
+                <h3 className="font-bold text-base">لا توجد نتائج مطابقة للتصفية الحالية</h3>
+                <p className="text-xs text-gray-500">جرب البحث باسم طالب آخر أو اختر امتحاناً آخر.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-right text-xs">
+                  <thead className="bg-gray-50 dark:bg-neutral-800/60 border-b border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-400 font-semibold uppercase">
+                    <tr>
+                      <th className="py-3.5 px-4">بيانات الطالب</th>
+                      <th className="py-3.5 px-4">اسم الامتحان</th>
+                      <th className="py-3.5 px-4">الدرجة المكتسبة</th>
+                      <th className="py-3.5 px-4">النسبة المئوية والحالة</th>
+                      <th className="py-3.5 px-4">تاريخ التسليم</th>
+                      <th className="py-3.5 px-4 text-center">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-neutral-800 font-medium">
+                    {submissions.map((sub, idx) => (
+                      <tr key={sub.id || idx} className="hover:bg-gray-50/70 dark:hover:bg-neutral-800/40 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="font-extrabold text-gray-900 dark:text-neutral-100 flex items-center gap-1.5">
+                            <User className="h-3.5 w-3.5 text-emerald-600" />
+                            {sub.student_name || 'طالب منصة'}
+                          </div>
+                          <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {sub.student_phone || sub.student_email || 'غير مسجل'}
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-4 font-bold text-gray-800 dark:text-neutral-200">
+                          {sub.exam_title || 'امتحان تقييمي'}
+                          {sub.academic_year_name_ar && (
+                            <span className="block text-[10px] text-gray-400 font-normal">
+                              ({sub.academic_year_name_ar})
                             </span>
                           )}
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-xs">
-                          {exam.pass_percentage}%
-                        </span>
-                      </td>
+                        <td className="py-3.5 px-4 font-black text-sm text-gray-900 dark:text-white">
+                          {sub.score} / {sub.total_points}
+                        </td>
 
-                      <td className="py-3.5 px-4">
-                        {exam.is_required_for_next ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold text-[11px]">
-                            <Lock className="h-3 w-3" />
-                            إجباري للمحاضرة التالية
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2.5 py-1 rounded-full font-bold text-xs inline-flex items-center gap-1 ${
+                            sub.is_passed
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                              : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                          }`}>
+                            {sub.is_passed ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                            {sub.percentage}% ({sub.is_passed ? 'ناجح' : 'راسب / بحاجة لإعادة'})
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300 text-[11px]">
-                            اختياري (بدون حظر)
-                          </span>
-                        )}
-                      </td>
+                        </td>
 
-                      <td className="py-3.5 px-4 space-y-0.5">
-                        <div className="font-bold text-sm">
-                          {exam.question_count || (exam.questions ? exam.questions.length : 0)} أسئلة
-                        </div>
-                        <div className="text-[11px] text-gray-500 flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {exam.duration_minutes} دقيقة
-                        </div>
-                      </td>
+                        <td className="py-3.5 px-4 text-gray-500 text-[11px]">
+                          {sub.submitted_at ? new Date(sub.submitted_at).toLocaleString('ar-EG') : 'تم التسليم'}
+                        </td>
 
-                      <td className="py-3.5 px-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
+                        <td className="py-3.5 px-4 text-center">
                           <button
-                            onClick={() => handleOpenManualModal(exam)}
-                            title="تعديل الامتحان والأسئلة"
-                            className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950 transition-colors cursor-pointer"
+                            onClick={() => setSelectedSubmissionDetails(sub)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-bold text-xs transition-all flex items-center gap-1 mx-auto cursor-pointer"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Eye className="h-3.5 w-3.5" />
+                            <span>معاينة إجابات الطالب</span>
                           </button>
-
-                          <button
-                            onClick={() => handleDeleteExam(exam.id)}
-                            title="حذف الامتحان"
-                            className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950 transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Manual Creation / Edit Modal */}
+      {/* Manual Add/Edit Exam Modal */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-3xl w-full p-6 space-y-6 shadow-2xl border border-gray-200 dark:border-neutral-800 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b pb-4 border-gray-100 dark:border-neutral-800">
-              <h2 className="text-lg font-bold flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-gray-200 dark:border-neutral-800 w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl my-8">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-neutral-800 pb-4">
+              <h2 className="text-lg font-extrabold flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-emerald-600" />
-                {editingExamId ? 'تعديل بيانات الامتحان' : 'إضافة امتحان جديد'}
+                {editingExamId ? 'تعديل الامتحان' : 'إضافة امتحان واختبار جديد'}
               </h2>
               <button
                 onClick={() => setIsManualModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-white"
               >
-                <XCircle className="h-5 w-5" />
+                <XCircle className="h-6 w-6" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveExam} className="space-y-5">
-              {/* Exam Basic Info */}
+            <form onSubmit={handleSaveExam} className="space-y-5 text-xs">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold">عنوان الامتحان *</label>
+                <label className="font-bold block">عنوان الامتحان *</label>
                 <input
                   type="text"
                   required
                   value={titleAr}
                   onChange={(e) => setTitleAr(e.target.value)}
-                  placeholder="مثال: امتحان شامل على زمن المضارع التام والقواعد"
-                  className="w-full p-2.5 text-xs rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
+                  placeholder="مثال: امتحان الشهر الأول على الوحدة الأولى - اللغة الإنجليزية"
+                  className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-semibold"
                 />
               </div>
 
-              {/* Target Placement: Selection of Grade, Courses, Packages, Lectures */}
-              <div className="bg-gradient-to-br from-emerald-50/60 to-teal-50/40 dark:from-neutral-800/80 dark:to-neutral-900 p-4 rounded-xl border border-emerald-200/60 dark:border-neutral-700 space-y-4">
-                <label className="text-xs font-bold block text-emerald-900 dark:text-emerald-300 flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-emerald-600" />
-                  تحديد التخصيص ومكان النشر (الصف، الكورسات، الباقات، أو المحاضرات)
-                </label>
+              <div className="space-y-1.5">
+                <label className="font-bold block">وصف الامتحان (اختياري)</label>
+                <textarea
+                  rows={2}
+                  value={descriptionAr}
+                  onChange={(e) => setDescriptionAr(e.target.value)}
+                  placeholder="ملاحظات أو توجيهات للطالب قبل البدء..."
+                  className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
+                />
+              </div>
 
-                {/* 1. Academic Year */}
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-gray-700 dark:text-neutral-300">
-                    1. الصف الدراسي (المرحلة)
+              {/* Placement settings */}
+              <div className="bg-gray-50/70 dark:bg-neutral-800/40 p-4 rounded-xl border border-gray-200/80 dark:border-neutral-800 space-y-4">
+                <h3 className="font-extrabold text-sm text-gray-800 dark:text-neutral-200">
+                  تحديد مكان نشر الامتحان والصفوف المخصصة لها:
+                </h3>
+
+                {/* 1. Academic Year Select */}
+                <div className="space-y-1.5">
+                  <label className="font-bold text-gray-700 dark:text-neutral-300 block">
+                    1. اختيار الصف الدراسي (المرحلة):
                   </label>
                   <select
                     value={selectedAcademicYearId}
@@ -794,9 +1022,9 @@ export default function StaffExamsPage() {
                       setSelectedPackageIds([]);
                       setSelectedLectureIds([]);
                     }}
-                    className="w-full p-2 text-xs rounded-xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 font-semibold"
+                    className="w-full p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 font-semibold"
                   >
-                    <option value="">كل الصفوف (امتحان عام لجميع الصفوف)</option>
+                    <option value="">جميع الصفوف والمراحل (عام)</option>
                     {academicYears.map((ay) => (
                       <option key={ay.id} value={ay.id}>
                         {ay.name_ar}
@@ -933,30 +1161,91 @@ export default function StaffExamsPage() {
                     </div>
                   )}
                 </div>
+              </div>
 
-                <div className="text-[11px] text-gray-600 dark:text-neutral-400 bg-white/80 dark:bg-neutral-900/80 p-2.5 rounded-lg border border-gray-200/60 dark:border-neutral-800 font-medium">
-                  {selectedLectureIds.length > 0 ? (
-                    <span className="text-blue-700 dark:text-blue-300 font-bold flex items-center gap-1">
-                      <BookOpen className="h-3.5 w-3.5" />
-                      مخصص لـ ({selectedLectureIds.length}) محاضرات محددة. سيظهر داخل تلك المحاضرات ويمكن اشتراطه للمحاضرة التالية.
-                    </span>
-                  ) : selectedCourseIds.length > 0 || selectedPackageIds.length > 0 ? (
-                    <span className="text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-1">
-                      <Award className="h-3.5 w-3.5" />
-                      مخصص لـ ({selectedCourseIds.length}) كورسات و ({selectedPackageIds.length}) باقات شهرية.
-                    </span>
-                  ) : selectedAcademicYearId ? (
-                    <span className="text-purple-700 dark:text-purple-300 font-bold flex items-center gap-1">
-                      <GraduationCap className="h-3.5 w-3.5" />
-                      امتحان عام لجميع طلاب {academicYears.find(ay => ay.id === selectedAcademicYearId)?.name_ar || 'الصف المحدد'}.
-                    </span>
-                  ) : (
-                    <span className="text-gray-700 dark:text-neutral-300 font-bold flex items-center gap-1">
-                      <Award className="h-3.5 w-3.5" />
-                      امتحان عام لكافة المراحل والكورسات.
-                    </span>
-                  )}
+              {/* Retake Policy Settings */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-purple-50/50 dark:bg-purple-950/20 p-4 rounded-xl border border-purple-100 dark:border-purple-900/40">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold block text-purple-900 dark:text-purple-300">
+                    سياسة إعادة الامتحان للطالب
+                  </label>
+                  <select
+                    value={retakePolicy}
+                    onChange={(e) => {
+                      setRetakePolicy(e.target.value);
+                      if (e.target.value === 'NEVER') {
+                        setAllowRetake(false);
+                      } else {
+                        setAllowRetake(true);
+                      }
+                    }}
+                    className="w-full p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-purple-200 dark:border-purple-800 font-bold"
+                  >
+                    <option value="ALWAYS">مسموح بالإعادة في أي وقت (بدون شروط)</option>
+                    <option value="UNTIL_PASS">مسموح بالإعادة عند الرسوب فقط (حتى الوصول لنسبة النجاح)</option>
+                    <option value="NEVER">غير مسموح بالإعادة (محاولة واحدة فقط لكل طالب)</option>
+                  </select>
                 </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold block text-purple-900 dark:text-purple-300">
+                    الحد الأقصى لعدد مرات الإعادة
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    placeholder="اتركه فارغاً لإعادة غير محدودة"
+                    value={maxRetakes}
+                    onChange={(e) => setMaxRetakes(e.target.value ? Number(e.target.value) : '')}
+                    disabled={retakePolicy === 'NEVER'}
+                    className="w-full p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-purple-200 dark:border-purple-800 disabled:opacity-50 font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Exam Availability Time Settings */}
+              <div className="bg-blue-50/50 dark:bg-blue-950/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/40 space-y-3">
+                <label className="text-xs font-bold block text-blue-900 dark:text-blue-300">
+                  توقيت إتاحة الامتحان للطالب
+                </label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
+                    <input
+                      type="radio"
+                      name="availability"
+                      checked={availabilityType === 'NOW'}
+                      onChange={() => {
+                        setAvailabilityType('NOW');
+                        setAvailableAt('');
+                      }}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>متاح الآن فوراً</span>
+                  </label>
+
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
+                    <input
+                      type="radio"
+                      name="availability"
+                      checked={availabilityType === 'SCHEDULED'}
+                      onChange={() => setAvailabilityType('SCHEDULED')}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>تحديد تاريخ ووقت مستقبلي</span>
+                  </label>
+                </div>
+
+                {availabilityType === 'SCHEDULED' && (
+                  <div className="pt-1">
+                    <input
+                      type="datetime-local"
+                      value={availableAt}
+                      onChange={(e) => setAvailableAt(e.target.value)}
+                      className="w-full sm:w-auto p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-blue-200 dark:border-blue-800 font-bold"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-neutral-800/50 p-4 rounded-xl border border-gray-200/60 dark:border-neutral-800">
@@ -1087,7 +1376,6 @@ export default function StaffExamsPage() {
                         className="w-full p-2.5 text-xs rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
                       />
 
-                      {/* Options Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {q.options.map((opt) => (
                           <div
@@ -1099,10 +1387,9 @@ export default function StaffExamsPage() {
                               name={`correct_${qIdx}`}
                               checked={q.correct_option_id === opt.id}
                               onChange={() => handleQuestionChange(qIdx, 'correct_option_id', opt.id)}
-                              className="text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                              title="حدد هذه الإجابة كإجابة صحيحة"
+                              className="text-emerald-600 focus:ring-emerald-500"
                             />
-                            <span className="font-bold text-xs w-5">{opt.id})</span>
+                            <span className="font-bold text-xs">{opt.id}.</span>
                             <input
                               type="text"
                               required
@@ -1119,8 +1406,8 @@ export default function StaffExamsPage() {
                         type="text"
                         value={q.explanation_ar || ''}
                         onChange={(e) => handleQuestionChange(qIdx, 'explanation_ar', e.target.value)}
-                        placeholder="توضيح وشرح سبب الإجابة الصحيحة للطلاب (اختياري)..."
-                        className="w-full p-2 text-[11px] rounded-lg bg-gray-50 dark:bg-neutral-800/70 border border-gray-200 dark:border-neutral-700"
+                        placeholder="شرح وتوضيح الإجابة الصحيحة للطلاب (اختياري)..."
+                        className="w-full p-2 text-xs rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-400"
                       />
                     </div>
                   ))}
@@ -1131,17 +1418,17 @@ export default function StaffExamsPage() {
                 <button
                   type="button"
                   onClick={() => setIsManualModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-neutral-800 dark:text-neutral-300 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-neutral-700 font-bold hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 text-xs font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 flex items-center gap-2 shadow-md cursor-pointer"
                 >
-                  {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  <span>حفظ الامتحان</span>
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  <span>{editingExamId ? 'حفظ التعديلات' : 'إنشاء ونشر الامتحان'}</span>
                 </button>
               </div>
             </form>
@@ -1149,42 +1436,39 @@ export default function StaffExamsPage() {
         </div>
       )}
 
-      {/* AI Exam Generator Modal */}
+      {/* AI Exam Creator Modal */}
       {isAiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl border border-gray-200 dark:border-neutral-800">
-            <div className="flex items-center justify-between border-b pb-4 border-gray-100 dark:border-neutral-800">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-amber-600 dark:text-amber-400">
-                <Sparkles className="h-5 w-5" />
-                توليد امتحان بالذكاء الاصطناعي ✨ (Create AI Exam)
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-gray-200 dark:border-neutral-800 w-full max-w-lg p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-neutral-800 pb-3">
+              <h2 className="text-base font-extrabold flex items-center gap-2 text-amber-600">
+                <Sparkles className="h-5 w-5 animate-pulse" />
+                توليد امتحان بالذكاء الاصطناعي (AI Generator)
               </h2>
-              <button
-                onClick={() => setIsAiModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
+              <button onClick={() => setIsAiModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <XCircle className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 text-xs">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold block">موضوع أو اسم الدرس *</label>
+                <label className="font-bold block">الدرس أو الموضوع المطلوب *</label>
                 <input
                   type="text"
                   required
                   value={aiTopic}
                   onChange={(e) => setAiTopic(e.target.value)}
-                  placeholder="مثال: Present Perfect Simple vs Past Simple"
-                  className="w-full p-2.5 text-xs rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700"
+                  placeholder="مثال: Present Perfect, Passive Voice, Grammar Unit 1..."
+                  className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-semibold"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold block">عدد الأسئلة المطلوبة</label>
+                <label className="font-bold block">عدد الأسئلة المطلوب توليدها</label>
                 <select
                   value={aiQuestionCount}
                   onChange={(e) => setAiQuestionCount(Number(e.target.value))}
-                  className="w-full p-2 text-xs rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-semibold"
+                  className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-bold text-amber-600"
                 >
                   <option value={5}>5 أسئلة</option>
                   <option value={10}>10 أسئلة (الافتراضي)</option>
@@ -1193,27 +1477,11 @@ export default function StaffExamsPage() {
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold block">الصف الدراسي (المرحلة)</label>
-                <select
-                  value={aiAcademicYearId}
-                  onChange={(e) => setAiAcademicYearId(e.target.value)}
-                  className="w-full p-2 text-xs rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-semibold"
-                >
-                  <option value="">كل الصفوف (عام)</option>
-                  {academicYears.map((ay) => (
-                    <option key={ay.id} value={ay.id}>
-                      {ay.name_ar}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-neutral-800">
+              <div className="flex items-center justify-end gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setIsAiModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-neutral-800 dark:text-neutral-300 cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 font-bold"
                 >
                   إلغاء
                 </button>
@@ -1221,14 +1489,65 @@ export default function StaffExamsPage() {
                   type="button"
                   onClick={handleGenerateAiExam}
                   disabled={isGeneratingAi}
-                  className="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:brightness-105 disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-md"
+                  className="px-5 py-2 rounded-xl bg-amber-500 text-white font-bold hover:bg-amber-600 flex items-center gap-2 shadow-md cursor-pointer"
                 >
-                  {isGeneratingAi ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  <span>توليد الأسئلة فوراً ✨</span>
+                  {isGeneratingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  <span>توليد الامتحان بالذكاء الاصطناعي</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Submission Breakdown Modal */}
+      {selectedSubmissionDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-gray-200 dark:border-neutral-800 w-full max-w-3xl max-h-[85vh] overflow-y-auto p-6 space-y-5 shadow-2xl my-8">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-neutral-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center">
+                  <FileCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-gray-900 dark:text-white">
+                    إجابات الطالب: {selectedSubmissionDetails.student_name}
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    امتحان: {selectedSubmissionDetails.exam_title} ({selectedSubmissionDetails.percentage}%)
+                  </p>
+                </div>
+              </div>
+
+              <button onClick={() => setSelectedSubmissionDetails(null)} className="text-gray-400 hover:text-gray-600">
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-neutral-800 flex items-center justify-between">
+                <div>
+                  <span className="text-gray-500 block">الدرجة المكتسبة</span>
+                  <span className="text-lg font-black text-gray-900 dark:text-white">
+                    {selectedSubmissionDetails.score} من {selectedSubmissionDetails.total_points}
+                  </span>
+                </div>
+
+                <div>
+                  <span className={`px-3 py-1 rounded-full font-bold text-xs ${
+                    selectedSubmissionDetails.is_passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                  }`}>
+                    {selectedSubmissionDetails.is_passed ? 'ناجح ✓' : 'راسب ✗'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 text-center">
+                <button
+                  onClick={() => setSelectedSubmissionDetails(null)}
+                  className="px-6 py-2 rounded-xl bg-gray-100 dark:bg-neutral-800 font-bold hover:bg-gray-200"
+                >
+                  إغلاق التقرير
                 </button>
               </div>
             </div>
