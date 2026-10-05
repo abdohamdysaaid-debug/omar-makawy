@@ -6,6 +6,8 @@ export const DEFAULT_API_BASE_URL =
     ? 'https://api.omarmeckawy.com/api/v1'
     : 'http://localhost:3000/api/v1');
 
+export const API_BASE_URL = DEFAULT_API_BASE_URL;
+
 export function resolveMediaUrl(url?: string | null): string | undefined {
   if (!url) return undefined;
   if (

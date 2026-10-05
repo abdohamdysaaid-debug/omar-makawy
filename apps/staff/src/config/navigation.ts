@@ -1,4 +1,4 @@
-import { LayoutDashboard, BookOpen, Package, Video, Users, Settings, Ticket, Wallet, Bell, Headset, Share2, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Package, Video, Users, Settings, Ticket, Wallet, Bell, Headset, Share2, GraduationCap, ShieldCheck } from 'lucide-react';
 import { SystemPermissions, SystemPermissionCode, UserRole } from '@omar-makawy/shared';
 
 export interface NavItemConfig {
@@ -96,6 +96,12 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         href: '/staff/students',
         icon: Users,
         permission: SystemPermissions.STUDENTS_READ,
+      },
+      {
+        key: 'nav.supervisors',
+        href: '/staff/supervisors',
+        icon: ShieldCheck,
+        isTeacherOnly: true,
       },
       {
         key: 'nav.settings',

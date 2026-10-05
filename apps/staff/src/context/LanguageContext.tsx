@@ -44,7 +44,7 @@ export const translations: Translations = {
   'nav.exams': { ar: 'الامتحانات والاختبارات', en: 'Exams & Quizzes' },
   'nav.analytics': { ar: 'التقارير والإحصائيات', en: 'Analytics' },
   'nav.administration': { ar: 'الإدارة والنظام', en: 'Administration' },
-  'nav.supervisors': { ar: 'المشرفين والإدارة', en: 'Admins & Supervisors' },
+  'nav.supervisors': { ar: 'المشرفين والصلاحيات', en: 'Supervisors & Permissions' },
   'nav.audit_logs': { ar: 'سجل العمليات والتدقيق', en: 'Audit Logs' },
   'nav.security_events': { ar: 'أحداث الأمان والتحذيرات', en: 'Security Events' },
   'nav.settings': { ar: 'إعدادات المنصة', en: 'Settings' },

@@ -10,9 +10,14 @@ import {
   CreateSupervisorPayload,
   UpdateSupervisorPayload,
 } from '../types/supervisor';
+import { PermissionDefinition } from '../types/permissions';
 
 export function createSupervisorsApi(client = defaultApiClient) {
   return {
+    async getPermissionsCatalog(): Promise<PermissionDefinition[]> {
+      return client.get<PermissionDefinition[]>('/admin/supervisors/permissions-catalog');
+    },
+
     async listSupervisors(
       query: SupervisorsListQuery = {},
       academicYearId?: string

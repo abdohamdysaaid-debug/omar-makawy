@@ -28,6 +28,7 @@ export interface SupervisorItem {
   updated_at: string;
   permissions?: SupervisorPermissionItem[];
   academic_years?: SupervisorAcademicYearItem[];
+  assigned_academic_years?: SupervisorAcademicYearItem[];
 }
 
 export interface SupervisorsListResponse {
