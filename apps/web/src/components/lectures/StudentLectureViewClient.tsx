@@ -237,7 +237,7 @@ export function StudentLectureViewClient({
 
   // 3. Heartbeat Tracking Loop (Every 15s)
   const sendHeartbeatUpdate = useCallback(async () => {
-    if (!watchSessionId || !isPlaying) return;
+    if (!watchSessionId) return;
 
     try {
       const payload: any = {
@@ -265,10 +265,11 @@ export function StudentLectureViewClient({
     } catch {
       // Non-blocking telemetry
     }
-  }, [watchSessionId, isPlaying]);
+  }, [watchSessionId]);
 
   useEffect(() => {
     if (isPlaying && watchSessionId) {
+      sendHeartbeatUpdate();
       heartbeatTimerRef.current = setInterval(() => {
         sendHeartbeatUpdate();
       }, 15000);
