@@ -1,10 +1,9 @@
 'use client';
 
 import React from 'react';
-import { LogOut, Globe, Moon, Sun, Menu } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import { useStaffAuth } from '@/context/StaffAuthContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { useTheme } from '@/context/ThemeContext';
 import { RoleBadge } from '../ui/RoleBadge';
 import { AcademicYearSelector } from './AcademicYearSelector';
 import { StaffNotificationBell } from './StaffNotificationBell';
@@ -15,8 +14,7 @@ interface StaffHeaderProps {
 
 export function StaffHeader({ onMenuToggle }: StaffHeaderProps) {
   const { user, role, logout } = useStaffAuth();
-  const { language, toggleLanguage, t } = useLanguage();
-  const { isDark, toggleTheme } = useTheme();
+  const { language, t } = useLanguage();
   const isAr = language === 'ar';
 
   return (
@@ -42,27 +40,6 @@ export function StaffHeader({ onMenuToggle }: StaffHeaderProps) {
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Academic Year Tenancy Selector */}
         <AcademicYearSelector />
-
-        {/* Language Switcher */}
-        <button
-          type="button"
-          onClick={toggleLanguage}
-          title={language === 'ar' ? 'Switch to English' : 'التحويل إلى العربية'}
-          className="flex h-8 items-center gap-1.5 rounded-xl border border-neutral-800 bg-[#141815] px-2.5 text-xs font-semibold text-neutral-200 hover:bg-neutral-800 hover:border-emerald-700 transition-colors"
-        >
-          <Globe className="h-3.5 w-3.5 text-emerald-400" />
-          <span>{language === 'ar' ? 'English' : 'عربي'}</span>
-        </button>
-
-        {/* Theme Switcher */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          title={isDark ? t('common.light_mode') : t('common.dark_mode')}
-          className="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-800 bg-[#141815] text-neutral-300 hover:bg-neutral-800 hover:border-emerald-700 transition-colors"
-        >
-          {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-emerald-400" />}
-        </button>
 
         {/* Notifications Bell */}
         <StaffNotificationBell />
