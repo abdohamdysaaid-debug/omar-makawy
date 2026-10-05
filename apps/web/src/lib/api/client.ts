@@ -147,59 +147,109 @@ export async function request<T>(
       headers,
     });
 
-    if (res.status === 401 && retry) {
-      const refreshToken = getStoredRefreshToken();
-      if (refreshToken && refreshToken.trim().length > 0) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-          try {
-            const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                'x-device-id': deviceUuid,
-              },
-              body: JSON.stringify({ refresh_token: refreshToken }),
-            });
+    if (res.status === 401) {
+      const rawError = await res.clone().json().catch(() => null);
+      const isEvicted =
+        rawError?.error_code === 'SESSION_EVICTED' ||
+        rawError?.message?.includes('SESSION_EVICTED') ||
+        rawError?.message?.includes('another device') ||
+        rawError?.message?.includes('login occurred on another device');
 
-            if (refreshRes.ok) {
-              const data = await refreshRes.json();
-              const newTokens: Tokens = data.data?.tokens || data.tokens || data.data || data;
-              if (newTokens && newTokens.access_token) {
-                storeTokens(newTokens);
-                isRefreshing = false;
-                onRefreshed(newTokens.access_token);
-                // Retry with new token
-                headers.set('Authorization', `Bearer ${newTokens.access_token}`);
-                return request<T>(endpoint, { ...options, headers }, false);
+      if (isEvicted) {
+        clearStoredAuth();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('session-evicted', {
+              detail: {
+                reason: 'SESSION_EVICTED',
+                message: rawError?.message || 'تم تسجيل الدخول إلى حسابك من جهاز آخر.',
+              },
+            })
+          );
+          try {
+            const bc = new BroadcastChannel('omar_auth_channel');
+            bc.postMessage({ type: 'SESSION_EVICTED' });
+            bc.close();
+          } catch {}
+        }
+
+        const error: ApiError = {
+          message: rawError?.message || 'تم تسجيل الدخول إلى حسابك من جهاز آخر.',
+          error_code: 'SESSION_EVICTED',
+          statusCode: 401,
+          details: rawError,
+        };
+        throw error;
+      }
+
+      if (retry) {
+        const refreshToken = getStoredRefreshToken();
+        if (refreshToken && refreshToken.trim().length > 0) {
+          if (!isRefreshing) {
+            isRefreshing = true;
+            try {
+              const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json',
+                  'x-device-id': deviceUuid,
+                },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+              });
+
+              if (refreshRes.ok) {
+                const data = await refreshRes.json();
+                const newTokens: Tokens = data.data?.tokens || data.tokens || data.data || data;
+                if (newTokens && newTokens.access_token) {
+                  storeTokens(newTokens);
+                  isRefreshing = false;
+                  onRefreshed(newTokens.access_token);
+                  // Retry with new token
+                  headers.set('Authorization', `Bearer ${newTokens.access_token}`);
+                  return request<T>(endpoint, { ...options, headers }, false);
+                } else {
+                  clearStoredAuth();
+                  isRefreshing = false;
+                }
               } else {
+                const refreshErr = await refreshRes.json().catch(() => null);
+                if (
+                  refreshErr?.error_code === 'SESSION_EVICTED' ||
+                  refreshErr?.message?.includes('another device')
+                ) {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(
+                      new CustomEvent('session-evicted', {
+                        detail: {
+                          reason: 'SESSION_EVICTED',
+                          message: refreshErr?.message || 'تم تسجيل الدخول إلى حسابك من جهاز آخر.',
+                        },
+                      })
+                    );
+                  }
+                }
                 clearStoredAuth();
                 isRefreshing = false;
               }
-            } else {
-              // Refresh failed, clear credentials
+            } catch {
               clearStoredAuth();
               isRefreshing = false;
             }
-          } catch {
-            clearStoredAuth();
-            isRefreshing = false;
+          } else {
+            // Wait for the active refresh to finish
+            return new Promise<T>((resolve, reject) => {
+              subscribeTokenRefresh((newToken) => {
+                headers.set('Authorization', `Bearer ${newToken}`);
+                request<T>(endpoint, { ...options, headers }, false)
+                  .then(resolve)
+                  .catch(reject);
+              });
+            });
           }
         } else {
-          // Wait for the active refresh to finish
-          return new Promise<T>((resolve, reject) => {
-            subscribeTokenRefresh((newToken) => {
-              headers.set('Authorization', `Bearer ${newToken}`);
-              request<T>(endpoint, { ...options, headers }, false)
-                .then(resolve)
-                .catch(reject);
-            });
-          });
+          clearStoredAuth();
         }
-      } else {
-        // No refresh token available, clear credentials immediately
-        clearStoredAuth();
       }
     }
 

@@ -147,9 +147,8 @@ export default function StaffDashboardPage() {
               {role && <RoleBadge role={role} size="sm" />}
             </div>
 
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white">
               <span>{isAr ? `أهلاً بك، ${user?.full_name || 'مستر عمر مكاوي'}` : `Welcome, ${user?.full_name || 'Mr. Omar Meckawy'}`}</span>
-              <Sparkles className="h-5 w-5 text-amber-400 inline shrink-0" />
             </h1>
 
             <p className="text-xs sm:text-sm text-neutral-400 font-medium leading-relaxed">

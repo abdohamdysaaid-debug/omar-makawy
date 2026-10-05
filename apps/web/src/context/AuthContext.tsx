@@ -243,6 +243,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Periodic Real-Time Session Health Check & Multi-Device Login Detection
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let isChecking = false;
+    const checkSessionLiveness = async () => {
+      if (isChecking) return;
+      const token = getStoredAccessToken();
+      if (!token) return;
+
+      isChecking = true;
+      try {
+        await apiClient.get('/auth/session-status');
+      } catch (err: any) {
+        if (
+          err?.error_code === 'SESSION_EVICTED' ||
+          err?.message?.includes('another device') ||
+          err?.message?.includes('SESSION_EVICTED')
+        ) {
+          setIsAuthenticated(false);
+          setStudent(null);
+          clearStoredAuth();
+        }
+      } finally {
+        isChecking = false;
+      }
+    };
+
+    // Check every 3.5 seconds for instant multi-device eviction detection
+    const interval = setInterval(checkSessionLiveness, 3500);
+
+    // Also check immediately on window focus or visibility change
+    const handleFocus = () => {
+      checkSessionLiveness();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkSessionLiveness();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAuthenticated]);
+
+  // Listen to global session eviction events
+  useEffect(() => {
+    const handleEvictedEvent = () => {
+      setIsAuthenticated(false);
+      setStudent(null);
+      clearStoredAuth();
+    };
+    window.addEventListener('session-evicted', handleEvictedEvent);
+    return () => {
+      window.removeEventListener('session-evicted', handleEvictedEvent);
+    };
+  }, []);
+
   const login = useCallback(async (phoneOrEmail: string, password: string): Promise<boolean> => {
     const res = await authApi.login({ phone: phoneOrEmail.trim(), password });
 

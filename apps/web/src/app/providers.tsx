@@ -7,6 +7,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import AuthenticationGate from '@/components/auth/AuthenticationGate';
 import FloatingAiWidget from '@/components/ui/FloatingAiWidget';
+import SessionEvictedModal from '@/components/auth/SessionEvictedModal';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
@@ -35,6 +36,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <CartProvider>
             {children}
             <AuthenticationGate />
+            <SessionEvictedModal />
             <FloatingAiWidget />
           </CartProvider>
         </AuthProvider>
