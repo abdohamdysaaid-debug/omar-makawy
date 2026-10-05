@@ -110,6 +110,7 @@ export function StudentLectureViewClient({
   const videoPlayerContainerRef = useRef<HTMLDivElement | null>(null);
   const heartbeatTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentPositionRef = useRef<number>(0);
+  const currentDurationRef = useRef<number>(0);
 
   // Back Navigation Icon
   const BackArrow = dir === 'rtl' ? ArrowRight : ArrowLeft;
@@ -141,7 +142,8 @@ export function StudentLectureViewClient({
         const progressData = await defaultVideosApi.getLectureProgress(lectureId);
         setProgress(progressData);
         setIsCompleted(progressData.is_completed || false);
-        const mainPct = Math.round((progressData.main_video?.percentage || 0) * 100);
+        const rawPct = progressData.main_video?.percentage || 0;
+        const mainPct = rawPct > 1 ? Math.round(rawPct) : Math.round(rawPct * 100);
         setCompletionPercentage(mainPct);
         if (progressData.main_video?.max_position) {
           setResumePosition(progressData.main_video.max_position);
@@ -238,12 +240,16 @@ export function StudentLectureViewClient({
     if (!watchSessionId || !isPlaying) return;
 
     try {
-      const payload = {
+      const payload: any = {
         heartbeat_id: generateUUID(),
         watch_session_id: watchSessionId,
         current_position: Math.max(0, Math.floor(currentPositionRef.current)),
         client_timestamp: Date.now(),
       };
+
+      if (currentDurationRef.current > 0) {
+        payload.video_duration = Math.floor(currentDurationRef.current);
+      }
 
       const res = await defaultVideosApi.sendHeartbeat(payload);
       if (res) {
@@ -251,7 +257,8 @@ export function StudentLectureViewClient({
           setIsCompleted(true);
         }
         if (typeof res.completion_percentage === 'number') {
-          const pct = Math.round(res.completion_percentage * 100);
+          const raw = res.completion_percentage;
+          const pct = raw > 1 ? Math.round(raw) : Math.round(raw * 100);
           setCompletionPercentage(pct);
         }
       }
@@ -263,7 +270,6 @@ export function StudentLectureViewClient({
   useEffect(() => {
     if (isPlaying && watchSessionId) {
       heartbeatTimerRef.current = setInterval(() => {
-        currentPositionRef.current += 15;
         sendHeartbeatUpdate();
       }, 15000);
     } else if (heartbeatTimerRef.current) {
@@ -561,8 +567,11 @@ export function StudentLectureViewClient({
               title={lecture.title_ar}
               studentName={student?.fullName}
               onStateChange={(playing) => setIsPlaying(playing)}
-              onTimeUpdate={(pos) => {
+              onTimeUpdate={(pos, dur) => {
                 currentPositionRef.current = pos;
+                if (dur > 0) {
+                  currentDurationRef.current = dur;
+                }
               }}
             />
           ) : (

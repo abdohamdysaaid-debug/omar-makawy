@@ -80,6 +80,7 @@ export interface TelemetryHeartbeatPayload {
   watch_session_id: string;
   current_position: number;
   client_timestamp?: number;
+  video_duration?: number;
 }
 
 export interface TelemetryHeartbeatResponse {
