@@ -163,6 +163,7 @@ export function StudentLectureViewClient({
       const code =
         err?.error_code ||
         err?.data?.error_code ||
+        err?.response?.data?.error_code ||
         (status === 404
           ? 'LECTURE_NOT_FOUND'
           : status === 403
@@ -170,15 +171,19 @@ export function StudentLectureViewClient({
           : 'UNKNOWN_ERROR');
       const message =
         err?.message ||
+        err?.data?.message ||
+        err?.response?.data?.message ||
         (isAr ? 'حدث خطأ أثناء تحميل المحاضرة' : 'An error occurred while loading lecture');
       const scheduledAt = err?.data?.scheduled_at || err?.scheduled_at;
+      const requiredExamId = err?.data?.required_exam_id || err?.response?.data?.required_exam_id || err?.data?.required_exam?.id;
 
       setError({
         status,
         code,
         message,
         scheduledAt,
-      });
+        requiredExamId,
+      } as any);
     } finally {
       setLoading(false);
     }
@@ -424,6 +429,58 @@ export function StudentLectureViewClient({
               >
                 <BackArrow className="w-4 h-4" />
                 <span>{backLabel}</span>
+              </Link>
+            </div>
+          </div>
+        </StudentLayout>
+      );
+    }
+
+    // Gating Exam Lock State (LECTURE_LOCKED_GATING_EXAM)
+    if (error?.code === 'LECTURE_LOCKED_GATING_EXAM' || error?.message?.includes('مغلقة:')) {
+      const requiredExamId = (error as any)?.requiredExamId || (error as any)?.required_exam_id || (error as any)?.required_exam?.id;
+      return (
+        <StudentLayout>
+          <div className="max-w-2xl mx-auto py-16 px-4 text-center space-y-6 animate-fade-in font-cairo">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-xl shadow-amber-500/10">
+              <Lock className="w-10 h-10" />
+            </div>
+
+            <div className="space-y-3">
+              <span className="px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-extrabold text-xs inline-block">
+                🔒 المحاضرة مغلقة مؤقتاً
+              </span>
+              <h1 className="text-2xl font-black text-gray-900 dark:text-white">
+                يرجى اجتياز امتحان المحاضرة السابقة أولاً
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto leading-relaxed font-bold">
+                {error.message || 'يجب اجتياز امتحان المحاضرة السابقة بنسبة النجاح المطلوبة لتتمكن من فتح هذه المحاضرة ودراستها.'}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+              {requiredExamId ? (
+                <Link
+                  href={`/student/exams/detail?id=${requiredExamId}`}
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all text-center flex items-center justify-center gap-2"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>انتقل للامتحان المطلوب وافتح المحاضرة</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/student/exams"
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all text-center flex items-center justify-center gap-2"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>انتقل لصفحة امتحاناتي</span>
+                </Link>
+              )}
+              <Link
+                href={backUrl}
+                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-black text-xs transition-all text-center"
+              >
+                {backLabel}
               </Link>
             </div>
           </div>
