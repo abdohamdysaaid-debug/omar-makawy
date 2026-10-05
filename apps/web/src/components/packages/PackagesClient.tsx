@@ -448,21 +448,20 @@ export default function PackagesClient() {
                 >
                   {/* Top Image / Banner Header Area Matching Homepage */}
                   <div className="relative h-36 bg-neutral-900 p-4 flex flex-col justify-between text-white overflow-hidden">
-                    {image && (
-                      <>
-                        <img
-                          src={image}
-                          alt={title}
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30 pointer-events-none" />
-                      </>
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={title}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a]" />
                     )}
                     <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
 
                     {/* Badges */}
                     <div className="flex items-center justify-between relative z-10">
-                      <span className="bg-white/20 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
+                      <span className="bg-black/60 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10 shadow-xs">
                         <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
                         <span>{pkg.academic_year_name_ar || 'باقة معتمدة'}</span>
                       </span>
@@ -612,11 +611,11 @@ export default function PackagesClient() {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
 
               {/* Close Button & Badge */}
               <div className="relative z-10 flex items-center justify-between">
-                <span className="bg-white/20 backdrop-blur-md text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/20">
+                <span className="bg-black/60 backdrop-blur-md text-white font-extrabold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 border border-white/20 shadow-xs">
                   <PackageIcon className="w-4 h-4 text-emerald-300" />
                   <span>{selectedPackage.academic_year_name_ar || 'باقة معتمدة'}</span>
                 </span>

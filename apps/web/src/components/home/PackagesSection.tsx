@@ -6,6 +6,7 @@ import { CheckCircle2, Package as PackageIcon, ChevronRight, ChevronLeft, ArrowL
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 import { apiClient } from '@/lib/api';
+import { resolveMediaUrl } from '@omar-makawy/shared';
 
 export interface PackagesSectionProps {
   selectedAcademicYearId?: number | string | null;
@@ -141,6 +142,9 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
               const hasDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < price;
               const isPurchased = isSubscribedToPackage(pkg.id);
 
+              const rawImage = pkg.thumbnail_url || (pkg as any).imageUrl;
+              const image = resolveMediaUrl(rawImage);
+
               return (
                 <motion.div
                   key={pkg.id}
@@ -160,12 +164,21 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
                   style={{ touchAction: 'pan-x pan-y' }}
                 >
                   {/* Top Image / Banner Header Area */}
-                  <div className="relative h-32 sm:h-36 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-4 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="relative h-36 bg-neutral-900 p-4 flex flex-col justify-between text-white overflow-hidden">
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={title}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a]" />
+                    )}
                     <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
                     
                     {/* Badges */}
                     <div className="flex items-center justify-between relative z-10">
-                      <span className="bg-white/20 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="bg-black/60 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10 shadow-xs">
                         <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
                         <span>{pkg.academic_year_name_ar || 'باقة معتمدة'}</span>
                       </span>
@@ -184,11 +197,11 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
 
                     {/* Title */}
                     <div className="relative z-10">
-                      <h3 className="text-base sm:text-lg font-black leading-snug line-clamp-1">
+                      <h3 className="text-base sm:text-lg font-black leading-snug line-clamp-1 drop-shadow-xs">
                         {title}
                       </h3>
                       {description && (
-                        <p className="text-emerald-100 text-[11px] font-medium line-clamp-1 opacity-90">
+                        <p className="text-emerald-100 text-[11px] font-medium line-clamp-1 opacity-90 drop-shadow-xs">
                           {description}
                         </p>
                       )}

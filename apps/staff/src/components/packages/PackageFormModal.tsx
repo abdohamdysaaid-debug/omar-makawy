@@ -84,6 +84,7 @@ export function PackageFormModal({
   // Initialize form
   useEffect(() => {
     if (isOpen) {
+      setIsSubmitting(false);
       setErrorMessage(null);
       setUploadProgressStatus(null);
       setPendingCropFile(null);
@@ -292,11 +293,12 @@ export function PackageFormModal({
 
       onClose();
     } catch (err: any) {
-      setIsSubmitting(false);
-      setUploadProgressStatus(null);
       setErrorMessage(
         err?.message || (isAr ? 'حدث خطأ أثناء حفظ الباقة' : 'Failed to save package')
       );
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgressStatus(null);
     }
   };
 

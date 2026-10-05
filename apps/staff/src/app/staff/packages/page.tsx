@@ -22,6 +22,7 @@ import {
   PackageItem,
   PackagesListQuery,
   SystemPermissions,
+  resolveMediaUrl,
 } from '@omar-makawy/shared';
 import { staffApiClient } from '@/context/StaffAuthContext';
 import { createPackagesApi } from '@omar-makawy/shared';
@@ -274,7 +275,7 @@ export default function StaffPackagesPage() {
                   <div className="relative aspect-video bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center">
                     {pkg.thumbnail_url ? (
                       <img
-                        src={pkg.thumbnail_url}
+                        src={resolveMediaUrl(pkg.thumbnail_url)}
                         alt={pkg.title_ar}
                         className="w-full h-full object-cover"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
