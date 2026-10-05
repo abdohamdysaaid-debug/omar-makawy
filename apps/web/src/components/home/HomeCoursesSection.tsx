@@ -171,13 +171,16 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
                   style={{ touchAction: 'pan-x pan-y' }}
                 >
                   {/* Card Header Banner */}
-                  <div className="relative h-44 bg-[#0d6e4f] p-5 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="relative h-44 bg-neutral-900 p-5 flex flex-col justify-between text-white overflow-hidden">
                     {image && (
-                      <img
-                        src={image}
-                        alt={title}
-                        className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
-                      />
+                      <>
+                        <img
+                          src={image}
+                          alt={title}
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40 pointer-events-none" />
+                      </>
                     )}
                     <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
                     <div className="flex items-center justify-between relative z-10">

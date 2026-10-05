@@ -234,7 +234,7 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
 
   // View Results Screen after submission or locked previous attempt
   if (submissionResult) {
-    const isMandatoryGating = Boolean(submissionResult.is_required_for_next || exam.is_required_for_next);
+    const isMandatoryGating = Boolean(submissionResult.is_required_for_next || (exam as any).is_required_for_next);
     const isResultReleased = submissionResult.is_result_released !== false;
     const releaseMessage = submissionResult.release_message;
     const score = submissionResult.score ?? submissionResult.submission?.score ?? 0;
@@ -366,10 +366,6 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
                 <span>عرض تقدمي في الدراسة</span>
               </button>
-            </div>
-          </div>
-                </button>
-              )}
             </div>
           </div>
 

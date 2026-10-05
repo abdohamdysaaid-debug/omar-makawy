@@ -486,12 +486,12 @@ function CoursesContent() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header Banner with Course Image */}
-            <div className="relative h-48 sm:h-56 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-6 flex flex-col justify-between text-white shrink-0 overflow-hidden">
+            <div className="relative h-48 sm:h-56 bg-neutral-900 p-6 flex flex-col justify-between text-white shrink-0 overflow-hidden">
               {(selectedCourse.thumbnail_url || selectedCourse.imageUrl) && (
                 <img
                   src={resolveMediaUrl(selectedCourse.thumbnail_url || selectedCourse.imageUrl)}
                   alt={selectedCourse.title_ar || selectedCourse.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />

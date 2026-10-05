@@ -284,13 +284,16 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
                       className="group flex flex-col bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-xs hover:shadow-xl hover:shadow-[#0d6e4f]/15 hover:border-[#0d6e4f] transition-all duration-300"
                     >
                       {/* Image Banner */}
-                      <div className="relative h-36 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-4 flex flex-col justify-between text-white overflow-hidden">
+                      <div className="relative h-36 bg-neutral-900 p-4 flex flex-col justify-between text-white overflow-hidden">
                         {lecImage && (
-                          <img
-                            src={lecImage}
-                            alt={lecTitle}
-                            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-300"
-                          />
+                          <>
+                            <img
+                              src={lecImage}
+                              alt={lecTitle}
+                              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+                          </>
                         )}
                         <div className="absolute -end-6 -bottom-6 w-20 h-20 rounded-full bg-white/10 pointer-events-none" />
 

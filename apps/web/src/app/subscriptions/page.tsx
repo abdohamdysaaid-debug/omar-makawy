@@ -200,13 +200,16 @@ export default function SubscriptionsPage() {
                     className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-emerald-500/80 dark:border-emerald-500/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1"
                   >
                     {/* Top Banner Box */}
-                    <div className="relative h-44 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] flex items-center justify-center p-4 overflow-hidden text-white">
+                    <div className="relative h-44 bg-neutral-900 flex items-center justify-center p-4 overflow-hidden text-white">
                       {image ? (
-                        <img
-                          src={image}
-                          alt={title}
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-60"
-                        />
+                        <>
+                          <img
+                            src={image}
+                            alt={title}
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+                        </>
                       ) : (
                         <div className="flex flex-col items-center justify-center gap-2">
                           {isPackage ? (

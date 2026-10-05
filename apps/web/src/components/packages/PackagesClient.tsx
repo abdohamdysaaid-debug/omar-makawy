@@ -447,13 +447,16 @@ export default function PackagesClient() {
                   } rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 hover:-translate-y-1`}
                 >
                   {/* Top Image / Banner Header Area Matching Homepage */}
-                  <div className="relative h-36 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-4 flex flex-col justify-between text-white overflow-hidden">
+                  <div className="relative h-36 bg-neutral-900 p-4 flex flex-col justify-between text-white overflow-hidden">
                     {image && (
-                      <img
-                        src={image}
-                        alt={title}
-                        className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-300"
-                      />
+                      <>
+                        <img
+                          src={image}
+                          alt={title}
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30 pointer-events-none" />
+                      </>
                     )}
                     <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
 
@@ -601,12 +604,12 @@ export default function PackagesClient() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header Banner with Package Image */}
-            <div className="relative h-48 sm:h-56 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-6 flex flex-col justify-between text-white shrink-0 overflow-hidden">
+            <div className="relative h-48 sm:h-56 bg-neutral-900 p-6 flex flex-col justify-between text-white shrink-0 overflow-hidden">
               {selectedPackage.thumbnail_url && (
                 <img
                   src={resolveMediaUrl(selectedPackage.thumbnail_url)}
                   alt={selectedPackage.title_ar || selectedPackage.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />

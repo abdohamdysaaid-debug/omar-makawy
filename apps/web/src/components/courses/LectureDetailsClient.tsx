@@ -182,11 +182,14 @@ export default function LectureDetailsClient({
             <div className="relative aspect-video w-full rounded-3xl bg-black overflow-hidden shadow-2xl flex flex-col justify-between p-4 group">
               {/* Overlay Thumbnail if video not played */}
               {lecture.imageUrl ? (
-                <img
-                  src={lecture.imageUrl}
-                  alt={lecture.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
-                />
+                <>
+                  <img
+                    src={lecture.imageUrl}
+                    alt={lecture.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/40 pointer-events-none" />
+                </>
               ) : null}
 
               <div className="relative z-10 flex justify-between items-center text-white/80">

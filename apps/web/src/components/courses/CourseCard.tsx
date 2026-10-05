@@ -57,14 +57,17 @@ export default function CourseCard({ course, onOpenDetails }: CourseCardProps) {
       } hover:shadow-xl hover:shadow-[#0d6e4f]/10 dark:hover:shadow-emerald-500/10 hover:border-[#0d6e4f] dark:hover:border-emerald-500/60 transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1`}
     >
       {/* Top Banner Box */}
-      <div className="relative h-44 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] flex items-center justify-center p-4 overflow-hidden text-white">
+      <div className="relative h-44 bg-neutral-900 flex items-center justify-center p-4 overflow-hidden text-white">
         {image ? (
-          <img
-            src={image}
-            alt={title}
-            onError={() => setImageError(true)}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-60"
-          />
+          <>
+            <img
+              src={image}
+              alt={title}
+              onError={() => setImageError(true)}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center gap-2">
             <BookOpen className="w-12 h-12 text-emerald-300 opacity-80 group-hover:scale-110 transition-transform" />

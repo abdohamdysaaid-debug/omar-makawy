@@ -30,6 +30,8 @@ export function ImageCropperModal({
   const isAr = language === 'ar';
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [imgDimensions, setImgDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [containerWidth, setContainerWidth] = useState<number>(540);
   const [originalFilename, setOriginalFilename] = useState<string>('course-thumbnail.jpg');
   const [scale, setScale] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
@@ -39,14 +41,28 @@ export function ImageCropperModal({
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Measure container width dynamically
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.clientWidth || 540);
+      }
+    };
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [imageSrc]);
 
   // Reset state when opening/closing
   useEffect(() => {
     if (!isOpen) {
       setImageSrc(null);
+      setImgDimensions({ width: 0, height: 0 });
       setScale(1);
       setRotation(0);
       setPosition({ x: 0, y: 0 });
@@ -88,6 +104,7 @@ export function ImageCropperModal({
       const img = new Image();
       img.onload = () => {
         imageRef.current = img;
+        setImgDimensions({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height });
         setImageSrc(result);
         setScale(1);
         setRotation(0);
@@ -115,7 +132,7 @@ export function ImageCropperModal({
     setIsDragging(false);
   };
 
-  // Touch handlers for mobile
+  // Touch handlers for mobile / tablet
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       setIsDragging(true);
@@ -141,13 +158,31 @@ export function ImageCropperModal({
     setRotation((prev) => (prev + 90) % 360);
   };
 
+  // Calculate base fitted dimensions inside viewport
+  const containerH = containerWidth / aspectRatio;
+  const imgAspect =
+    imgDimensions.width > 0 && imgDimensions.height > 0
+      ? imgDimensions.width / imgDimensions.height
+      : aspectRatio;
+
+  let fitWidth = containerWidth;
+  let fitHeight = containerWidth / imgAspect;
+
+  if (imgAspect < aspectRatio) {
+    fitHeight = containerH;
+    fitWidth = containerH * imgAspect;
+  } else {
+    fitWidth = containerWidth;
+    fitHeight = containerWidth / imgAspect;
+  }
+
   const handleCropAndSave = useCallback(() => {
     const img = imageRef.current;
     if (!img) return;
 
-    // Output target canvas at 1280x720 (16:9 standard HD)
+    // Output target canvas at standard HD resolution (1280x720 for 16:9)
     const targetWidth = 1280;
-    const targetHeight = 720;
+    const targetHeight = Math.round(targetWidth / aspectRatio);
 
     const canvas = document.createElement('canvas');
     canvas.width = targetWidth;
@@ -155,39 +190,43 @@ export function ImageCropperModal({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Fill background with clean solid dark color if translucent
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // Fill background with solid clean dark tone
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, targetWidth, targetHeight);
 
-    // Calculate transformations
-    const container = containerRef.current;
-    const containerWidth = container ? container.clientWidth : 480;
-    const containerHeight = containerWidth / aspectRatio;
+    const currentContainerW = containerRef.current?.clientWidth || containerWidth || 540;
+    const currentContainerH = currentContainerW / aspectRatio;
+    const scaleRatio = targetWidth / currentContainerW;
 
-    const scaleFactor = targetWidth / containerWidth;
+    const naturalImgAspect =
+      (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
 
-    ctx.save();
-    ctx.translate(targetWidth / 2, targetHeight / 2);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(scale * scaleFactor, scale * scaleFactor);
+    let baseFitW = currentContainerW;
+    let baseFitH = currentContainerW / naturalImgAspect;
 
-    // Center image and apply offset
-    const imgAspect = img.width / img.height;
-    let drawWidth = containerWidth;
-    let drawHeight = containerWidth / imgAspect;
-
-    if (imgAspect < aspectRatio) {
-      drawHeight = containerHeight;
-      drawWidth = containerHeight * imgAspect;
+    if (naturalImgAspect < aspectRatio) {
+      baseFitH = currentContainerH;
+      baseFitW = currentContainerH * naturalImgAspect;
+    } else {
+      baseFitW = currentContainerW;
+      baseFitH = currentContainerW / naturalImgAspect;
     }
 
-    ctx.drawImage(
-      img,
-      -drawWidth / 2 + position.x / scale,
-      -drawHeight / 2 + position.y / scale,
-      drawWidth,
-      drawHeight
+    ctx.save();
+    // 1. Move to transformed center
+    ctx.translate(
+      targetWidth / 2 + position.x * scaleRatio,
+      targetHeight / 2 + position.y * scaleRatio
     );
+    // 2. Rotate around center
+    ctx.rotate((rotation * Math.PI) / 180);
+    // 3. Scale around center
+    ctx.scale(scale * scaleRatio, scale * scaleRatio);
+    // 4. Draw image centered
+    ctx.drawImage(img, -baseFitW / 2, -baseFitH / 2, baseFitW, baseFitH);
     ctx.restore();
 
     canvas.toBlob(
@@ -207,9 +246,9 @@ export function ImageCropperModal({
         onClose();
       },
       'image/jpeg',
-      0.92
+      0.95
     );
-  }, [aspectRatio, isAr, onClose, onCropComplete, originalFilename, position.x, position.y, rotation, scale]);
+  }, [aspectRatio, containerWidth, isAr, onClose, onCropComplete, originalFilename, position.x, position.y, rotation, scale]);
 
   if (!isOpen) return null;
 
@@ -231,8 +270,8 @@ export function ImageCropperModal({
               </h3>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                 {isAr
-                  ? 'قم بضبط أبعاد وتمركز الصورة بما يتناسب مع نسبة العرض 16:9'
-                  : 'Adjust zoom, position, and rotation to fit 16:9 banner standard'}
+                  ? 'قم بسحب وتكبير وتدوير الصورة لضبط المعاينة بدقة 100%'
+                  : 'Drag, zoom, and rotate to frame the exact crop WYSIWYG'}
               </p>
             </div>
           </div>
@@ -285,28 +324,32 @@ export function ImageCropperModal({
             <div className="space-y-4">
               <div
                 ref={containerRef}
+                style={{ aspectRatio: `${aspectRatio}` }}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                className="relative aspect-video w-full bg-neutral-950 rounded-2xl overflow-hidden border border-neutral-700 cursor-grab active:cursor-grabbing select-none"
+                className="relative w-full bg-neutral-950 rounded-2xl overflow-hidden border border-neutral-700 cursor-grab active:cursor-grabbing select-none flex items-center justify-center"
               >
-                {/* Image Container with Transforms */}
-                <div
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                {/* Visual Image with 100% Exact Matching Transform */}
+                <img
+                  src={imageSrc}
+                  alt="Crop preview"
+                  draggable={false}
                   style={{
+                    width: `${fitWidth}px`,
+                    height: `${fitHeight}px`,
+                    maxWidth: 'none',
+                    maxHeight: 'none',
                     transform: `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg) scale(${scale})`,
-                    transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+                    transformOrigin: 'center center',
+                    transition: isDragging ? 'none' : 'transform 0.05s ease-out',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
                   }}
-                >
-                  <img
-                    src={imageSrc}
-                    alt="Crop preview"
-                    className="max-w-none max-h-none object-contain"
-                  />
-                </div>
+                />
 
                 {/* 16:9 Rule of Thirds Crop Overlay Guide */}
                 <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 border border-white/40">
@@ -316,8 +359,8 @@ export function ImageCropperModal({
                   <div className="border-e border-b border-white/20" />
                   <div className="border-e border-b border-white/20" />
                   <div className="border-b border-white/20" />
-                  <div className="border-e border-white/20" />
-                  <div className="border-e border-white/20" />
+                  <div className="border-e border-b border-white/20" />
+                  <div className="border-e border-b border-white/20" />
                   <div />
                 </div>
               </div>

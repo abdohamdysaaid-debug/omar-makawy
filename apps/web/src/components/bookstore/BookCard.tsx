@@ -37,10 +37,13 @@ export default function BookCard({ book }: BookCardProps) {
     <div className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden font-cairo">
       <Link
         href={`/bookstore/detail?id=${book.id}`}
-        className="block relative aspect-[4/3] bg-gradient-to-br from-emerald-800 to-gray-900 overflow-hidden flex items-center justify-center p-4"
+        className="block relative aspect-[4/3] bg-neutral-900 overflow-hidden flex items-center justify-center"
       >
         {coverUrl ? (
-          <img src={coverUrl} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <>
+            <img src={coverUrl} alt={title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+          </>
         ) : (
           <BookOpen className="w-14 h-14 text-emerald-400 opacity-60 group-hover:scale-110 transition-transform duration-300" />
         )}

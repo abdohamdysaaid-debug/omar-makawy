@@ -296,13 +296,16 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
                       className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-stone-200/80 dark:border-gray-800/80 shadow-xs hover:shadow-xl hover:border-[#0d6e4f] dark:hover:border-emerald-500/60 transition-all duration-300 overflow-hidden flex flex-col justify-between hover:-translate-y-1 text-start"
                     >
                       {/* Top Thumbnail Box */}
-                      <div className="relative h-44 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] flex items-center justify-center p-4 overflow-hidden text-white">
+                      <div className="relative h-44 bg-neutral-900 flex items-center justify-center p-4 overflow-hidden text-white">
                         {lecImage ? (
-                          <img
-                            src={lecImage}
-                            alt={lecTitle}
-                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-60"
-                          />
+                          <>
+                            <img
+                              src={lecImage}
+                              alt={lecTitle}
+                              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+                          </>
                         ) : (
                           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-xs">
                             <Play className="w-6 h-6 text-white fill-current ms-0.5" />

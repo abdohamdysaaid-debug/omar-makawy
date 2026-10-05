@@ -473,13 +473,16 @@ export default function StudentHomeClient() {
                     } rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-[#0d6e4f]/15 hover:border-[#0d6e4f] hover:-translate-y-1`}
                   >
                     {/* Top Image Banner */}
-                    <div className="relative h-36 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a] p-4 flex flex-col justify-between text-white overflow-hidden">
+                    <div className="relative h-36 bg-neutral-900 p-4 flex flex-col justify-between text-white overflow-hidden">
                       {image && (
-                        <img
-                          src={image}
-                          alt={item.title}
-                          className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-300"
-                        />
+                        <>
+                          <img
+                            src={image}
+                            alt={item.title}
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30 pointer-events-none" />
+                        </>
                       )}
                       <div className="absolute -end-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
 
