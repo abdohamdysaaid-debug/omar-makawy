@@ -516,15 +516,10 @@ export function StudentLectureViewClient({
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Completion Status Badge */}
-            {isCompleted ? (
+            {isCompleted && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{isAr ? 'تم إكمال المحاضرة (100%)' : 'Completed (100%)'}</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{isAr ? `جاري المشاهدة (${completionPercentage}%)` : `Watching (${completionPercentage}%)`}</span>
+                <span>{isAr ? 'تم إكمال المحاضرة' : 'Completed'}</span>
               </span>
             )}
           </div>
@@ -588,37 +583,6 @@ export function StudentLectureViewClient({
               </p>
             </div>
           )}
-        </div>
-
-        {/* Watch Progress Indicator */}
-        <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold">
-            <span className="text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400" />
-              <span>{isAr ? 'نسبة المشاهدة والإنجاز:' : 'Watch Progress:'}</span>
-            </span>
-            <span className="text-[#0d6e4f] dark:text-emerald-400 font-mono font-black text-sm">
-              {completionPercentage}%
-            </span>
-          </div>
-          <div className="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden p-0.5">
-            <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                isCompleted
-                  ? 'bg-emerald-500'
-                  : 'bg-gradient-to-r from-[#0d6e4f] to-emerald-400'
-              }`}
-              style={{ width: `${Math.min(100, Math.max(0, completionPercentage))}%` }}
-            />
-          </div>
-          <p className="text-[11px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
-            <Info className="w-3.5 h-3.5 shrink-0 text-[#0d6e4f] dark:text-emerald-400" />
-            <span>
-              {isAr
-                ? 'تكتمل المحاضرة تلقائياً عند تجاوز 90% من وقت المشاهدة.'
-                : 'Lecture automatically marks as complete after 90% watch progress.'}
-            </span>
-          </p>
         </div>
 
         {/* Lecture Content & Details Grid */}
