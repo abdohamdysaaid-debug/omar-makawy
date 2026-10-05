@@ -23,14 +23,19 @@ export default function HomePage() {
     return <StudentHomeClient />;
   }
 
-  // If initial auth check is running and a stored token exists, show clean dark background to prevent guest landing flash
+  // If initial auth check is running and a stored token exists, show clean theme background to prevent guest landing flash
   if (!isInitialized && typeof window !== 'undefined' && getStoredAccessToken()) {
-    return <div className="min-h-screen bg-[#0c1017]" />;
+    return <div className="min-h-screen bg-[#f7f6ed] dark:bg-[#020d08]" />;
+  }
+
+  // Prevent flash during initial hydration when token exists
+  if (!isInitialized && typeof window === 'undefined') {
+    return <div className="min-h-screen bg-[#f7f6ed] dark:bg-[#020d08]" />;
   }
 
   // Statically exported HTML & guest visitor view
   return (
-    <main className="min-h-screen flex flex-col font-cairo bg-[#f7f6ed] dark:bg-black text-gray-900 dark:text-stone-100 transition-colors">
+    <main className="min-h-screen flex flex-col font-cairo bg-[#f7f6ed] dark:bg-[#020d08] text-gray-900 dark:text-stone-100 transition-colors">
       <Navbar />
 
       <div className="flex-1">
