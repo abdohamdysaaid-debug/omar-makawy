@@ -245,10 +245,12 @@ export function resolveMediaUrl(url?: string | null): string | undefined {
   ) {
     return url;
   }
-  const base = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1').replace(
-    /\/api\/v1\/?$/,
-    '',
-  );
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    (typeof window !== 'undefined' && window.location.hostname.includes('omarmeckawy.com')
+      ? 'https://api.omarmeckawy.com/api/v1'
+      : 'http://localhost:3000/api/v1');
+  const base = apiBase.replace(/\/api\/v1\/?$/, '');
   const cleanPath = url.startsWith('/') ? url : `/${url}`;
   return `${base}${cleanPath}`;
 }

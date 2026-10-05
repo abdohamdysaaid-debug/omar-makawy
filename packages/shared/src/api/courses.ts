@@ -151,17 +151,44 @@ export function resolveCourseThumbnailUrl(
   apiBaseUrl?: string
 ): string | null {
   if (!course) return null;
-  if (course.thumbnail_url && course.thumbnail_url.startsWith('blob:')) {
-    return course.thumbnail_url;
+  const raw = course.thumbnail_url?.trim();
+  if (!raw) return null;
+
+  // 1. Direct blob or data URLs (preview in memory)
+  if (raw.startsWith('blob:') || raw.startsWith('data:')) {
+    return raw;
   }
-  if (course.thumbnail_url && (course.thumbnail_url.startsWith('data:') || course.thumbnail_url.startsWith('/'))) {
-    return course.thumbnail_url;
+
+  // 2. Direct HTTP/HTTPS public CDN/Storage URLs
+  if (raw.startsWith('http://') || raw.startsWith('https://')) {
+    return raw;
   }
+
+  // 3. Absolute relative path: e.g. /api/v1/courses/... -> prefix API domain
+  const apiBase = (
+    apiBaseUrl ||
+    (typeof process !== 'undefined' && (process.env?.NEXT_PUBLIC_API_URL || process.env?.NEXT_PUBLIC_API_BASE_URL)) ||
+    (typeof window !== 'undefined' && window.location.hostname.includes('omarmeckawy.com')
+      ? 'https://api.omarmeckawy.com/api/v1'
+      : 'http://localhost:3000/api/v1')
+  ).replace(/\/+$/, '');
+
+  const serverBase = apiBase.replace(/\/api\/v1\/?$/, '');
+
+  if (raw.startsWith('/api/v1/')) {
+    return `${serverBase}${raw}`;
+  }
+
+  if (raw.startsWith('/')) {
+    return `${serverBase}${raw}`;
+  }
+
+  // 4. If course has id, fallback to API proxy route
   if (course.id) {
-    const base = (apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'https://api.omarmeckawy.com/api/v1').replace(/\/$/, '');
-    return `${base}/courses/${course.id}/thumbnail`;
+    return `${apiBase}/courses/${course.id}/thumbnail`;
   }
-  return course.thumbnail_url || null;
+
+  return raw;
 }
 
 export const defaultCoursesApi = createCoursesApi(defaultApiClient);
