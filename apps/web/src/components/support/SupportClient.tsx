@@ -19,16 +19,19 @@ import {
 import { apiClient } from '@/lib/api/client';
 import { createSupportApi, SupportTicket, TicketDetailsResponse } from '@omar-makawy/shared';
 
+let cachedContactInfo: { whatsapp_number?: string; phone_number?: string; email?: string } = {};
+let cachedStudentTickets: SupportTicket[] = [];
+
 export default function SupportClient() {
   const [contactInfo, setContactInfo] = useState<{
     whatsapp_number?: string;
     phone_number?: string;
     email?: string;
-  }>({});
+  }>(() => cachedContactInfo);
 
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [tickets, setTickets] = useState<SupportTicket[]>(() => cachedStudentTickets);
   const [activeTicket, setActiveTicket] = useState<TicketDetailsResponse | null>(null);
-  const [loadingTickets, setLoadingTickets] = useState(true);
+  const [loadingTickets, setLoadingTickets] = useState<boolean>(() => cachedStudentTickets.length === 0);
   const [creatingTicket, setCreatingTicket] = useState(false);
   const [sendingReply, setSendingReply] = useState(false);
 
@@ -47,6 +50,7 @@ export default function SupportClient() {
       try {
         const data: any = await apiClient.get('/public/contact');
         if (data) {
+          cachedContactInfo = data;
           setContactInfo(data);
         }
       } catch (err) {
@@ -58,11 +62,15 @@ export default function SupportClient() {
 
   // Fetch Student Tickets
   const fetchStudentTickets = useCallback(async () => {
-    setLoadingTickets(true);
+    if (cachedStudentTickets.length === 0) {
+      setLoadingTickets(true);
+    }
     try {
       const supportApi = createSupportApi(apiClient as any);
       const res = await supportApi.getStudentTickets();
-      setTickets(res.data || []);
+      const list = res.data || [];
+      cachedStudentTickets = list;
+      setTickets(list);
     } catch (err) {
       // User might be unauthenticated guest or error
     } finally {

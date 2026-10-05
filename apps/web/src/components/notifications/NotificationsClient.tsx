@@ -8,27 +8,29 @@ import { Bell, BookOpen, FileCheck, Info, CheckCircle2 } from 'lucide-react';
 import { Notification } from '@/types';
 import { apiClient } from '@/lib/api';
 
+let cachedNotificationsList: Notification[] = [];
+
 export default function NotificationsClient() {
   const { student, isAuthenticated } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<Notification[]>(() => cachedNotificationsList);
+  const [loading, setLoading] = useState<boolean>(() => cachedNotificationsList.length === 0);
 
   useEffect(() => {
     let isMounted = true;
 
     async function fetchNotifications() {
-      setLoading(true);
+      if (cachedNotificationsList.length === 0) {
+        setLoading(true);
+      }
       try {
         const res = await apiClient.get<Notification[]>('/notifications/my-notifications').catch(() => []);
+        const list = Array.isArray(res) ? res : [];
+        cachedNotificationsList = list;
         if (isMounted) {
-          if (Array.isArray(res)) {
-            setNotifications(res);
-          } else {
-            setNotifications([]);
-          }
+          setNotifications(list);
         }
       } catch {
-        if (isMounted) setNotifications([]);
+        if (isMounted && cachedNotificationsList.length === 0) setNotifications([]);
       } finally {
         if (isMounted) setLoading(false);
       }

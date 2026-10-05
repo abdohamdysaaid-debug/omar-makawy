@@ -42,9 +42,12 @@ const DEFAULT_YEARS: AcademicYearItem[] = [
   { id: 'a0000000-0000-0000-0000-000000000004', title: 'الصف الثالث الثانوي', code: 'THIRD_SECONDARY', stage_order: 4 },
 ];
 
+let cachedPackagesList: any[] = [];
+let cachedPackageYearsList: AcademicYearItem[] = DEFAULT_YEARS;
+
 export default function PackagesClient() {
   const { student, isAuthenticated, openAuthGate, isSubscribedToPackage, refreshSubscriptions } = useAuth();
-  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(DEFAULT_YEARS);
+  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(() => cachedPackageYearsList);
   const [selectedYearId, setSelectedYearId] = useState<string | number | 'all'>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -54,8 +57,8 @@ export default function PackagesClient() {
     }
     return 'all';
   });
-  const [availablePackages, setAvailablePackages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [availablePackages, setAvailablePackages] = useState<any[]>(() => cachedPackagesList);
+  const [loading, setLoading] = useState<boolean>(() => cachedPackagesList.length === 0);
 
   // Selected package for details modal/drawer
   const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
@@ -79,6 +82,7 @@ export default function PackagesClient() {
             code: item.code,
             stage_order: item.stage_order,
           }));
+          cachedPackageYearsList = mapped;
           setYearsList(mapped);
 
           if (student?.academicYearId) {
@@ -111,7 +115,9 @@ export default function PackagesClient() {
     let isMounted = true;
 
     async function loadPackages() {
-      setLoading(true);
+      if (cachedPackagesList.length === 0) {
+        setLoading(true);
+      }
       try {
         let res: any = null;
         if (isAuthenticated) {
@@ -124,24 +130,27 @@ export default function PackagesClient() {
           }
         }
 
+        let list: any[] = [];
+        if (res && Array.isArray(res.data)) {
+          list = res.data;
+        } else if (Array.isArray(res)) {
+          list = res;
+        }
+
+        cachedPackagesList = list;
         if (isMounted) {
-          if (res && Array.isArray(res.data)) {
-            setAvailablePackages(res.data);
-          } else if (Array.isArray(res)) {
-            setAvailablePackages(res);
-          } else {
-            setAvailablePackages([]);
-          }
+          setAvailablePackages(list);
         }
       } catch {
-        if (isMounted) setAvailablePackages([]);
+        if (isMounted && cachedPackagesList.length === 0) {
+          setAvailablePackages([]);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
     }
 
     loadPackages();
-
     return () => {
       isMounted = false;
     };

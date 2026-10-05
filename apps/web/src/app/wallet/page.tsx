@@ -26,11 +26,16 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
+let cachedWalletBalance: number | null = null;
+let cachedWalletTransactions: any[] = [];
+let cachedReceivingAccounts: any[] = [];
+let cachedTopupRequestsHistory: any[] = [];
+
 export default function WalletPage() {
   const { student, refreshWallet } = useAuth();
-  const [balance, setBalance] = useState<number>(student?.walletBalance ?? 0);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [balance, setBalance] = useState<number>(() => cachedWalletBalance ?? student?.walletBalance ?? 0);
+  const [transactions, setTransactions] = useState<any[]>(() => cachedWalletTransactions);
+  const [loading, setLoading] = useState<boolean>(() => cachedWalletTransactions.length === 0 && cachedWalletBalance === null);
   const [showTopupModal, setShowTopupModal] = useState(false);
 
   // Recharge method tab: 'code' | 'topup'
@@ -42,7 +47,7 @@ export default function WalletPage() {
   const [codeMessage, setCodeMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Top-Up Request State
-  const [receivingAccounts, setReceivingAccounts] = useState<any[]>([]);
+  const [receivingAccounts, setReceivingAccounts] = useState<any[]>(() => cachedReceivingAccounts);
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
@@ -53,14 +58,16 @@ export default function WalletPage() {
   const [topupMessage, setTopupMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Student's Top-Up Requests History
-  const [topupRequests, setTopupRequests] = useState<any[]>([]);
+  const [topupRequests, setTopupRequests] = useState<any[]>(() => cachedTopupRequestsHistory);
   const [topupRequestsLoading, setTopupRequestsLoading] = useState(false);
 
   // Copy state helper
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchWallet = useCallback(async () => {
-    setLoading(true);
+    if (cachedWalletTransactions.length === 0 && cachedWalletBalance === null) {
+      setLoading(true);
+    }
     try {
       // 1. Fetch real current balance from backend
       let walletRes: any = await apiClient.get<any>('/wallet').catch(() => null);
@@ -71,13 +78,14 @@ export default function WalletPage() {
         walletRes = await apiClient.get<any>('/financial/wallet/my-wallet').catch(() => null);
       }
 
+      let currentBal = student?.walletBalance ?? 0;
       if (walletRes && (typeof walletRes.current_balance === 'string' || typeof walletRes.current_balance === 'number')) {
-        setBalance(Number(walletRes.current_balance) || 0);
+        currentBal = Number(walletRes.current_balance) || 0;
       } else if (walletRes && typeof walletRes.balance === 'number') {
-        setBalance(walletRes.balance);
-      } else if (typeof student?.walletBalance === 'number') {
-        setBalance(student.walletBalance);
+        currentBal = walletRes.balance;
       }
+      cachedWalletBalance = currentBal;
+      setBalance(currentBal);
 
       // 2. Fetch real transaction history
       let txRes: any = await apiClient.get<any>('/wallet/transactions?limit=50').catch(() => null);
@@ -168,8 +176,10 @@ export default function WalletPage() {
               : new Date().toLocaleDateString('ar-EG'),
           };
         });
+        cachedWalletTransactions = mapped;
         setTransactions(mapped);
       } else {
+        cachedWalletTransactions = [];
         setTransactions([]);
       }
     } catch {
@@ -182,16 +192,19 @@ export default function WalletPage() {
 
   // Fetch receiving accounts
   const fetchReceivingAccounts = useCallback(async () => {
-    setAccountsLoading(true);
+    if (cachedReceivingAccounts.length === 0) {
+      setAccountsLoading(true);
+    }
     try {
       const res: any = await apiClient.get('/api/v1/student/wallet/receiving-accounts');
       const list = res?.data || (Array.isArray(res) ? res : []);
+      cachedReceivingAccounts = list;
       setReceivingAccounts(list);
       if (list.length > 0 && !selectedAccountId) {
         setSelectedAccountId(list[0].id);
       }
     } catch {
-      setReceivingAccounts([]);
+      if (cachedReceivingAccounts.length === 0) setReceivingAccounts([]);
     } finally {
       setAccountsLoading(false);
     }
@@ -199,13 +212,16 @@ export default function WalletPage() {
 
   // Fetch student topup requests
   const fetchTopupRequests = useCallback(async () => {
-    setTopupRequestsLoading(true);
+    if (cachedTopupRequestsHistory.length === 0) {
+      setTopupRequestsLoading(true);
+    }
     try {
       const res: any = await apiClient.get('/api/v1/student/wallet/top-up-requests');
       const list = res?.data || (Array.isArray(res) ? res : []);
+      cachedTopupRequestsHistory = list;
       setTopupRequests(list);
     } catch {
-      setTopupRequests([]);
+      if (cachedTopupRequestsHistory.length === 0) setTopupRequests([]);
     } finally {
       setTopupRequestsLoading(false);
     }

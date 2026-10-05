@@ -21,17 +21,21 @@ import {
   Layers,
 } from 'lucide-react';
 
+let cachedSubscriptionsList: any[] = [];
+
 export default function SubscriptionsPage() {
   const { student, isAuthenticated } = useAuth();
-  const [activeSubscriptions, setActiveSubscriptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activeSubscriptions, setActiveSubscriptions] = useState<any[]>(() => cachedSubscriptionsList);
+  const [loading, setLoading] = useState<boolean>(() => cachedSubscriptionsList.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | 'packages' | 'courses'>('all');
 
   const academicYearId = student?.academicYearId;
 
   const loadSubscriptionsData = async () => {
-    setLoading(true);
+    if (cachedSubscriptionsList.length === 0) {
+      setLoading(true);
+    }
     setError(null);
     try {
       let res: any = await apiClient.get<any[]>('/subscriptions').catch(() => null);
@@ -41,10 +45,13 @@ export default function SubscriptionsPage() {
       }
 
       const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      cachedSubscriptionsList = list;
       setActiveSubscriptions(list);
     } catch (err: any) {
-      setError(err?.message || 'حدث خطأ أثناء تحميل الاشتراكات');
-      setActiveSubscriptions([]);
+      if (cachedSubscriptionsList.length === 0) {
+        setError(err?.message || 'حدث خطأ أثناء تحميل الاشتراكات');
+        setActiveSubscriptions([]);
+      }
     } finally {
       setLoading(false);
     }

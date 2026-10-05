@@ -45,6 +45,9 @@ const DEFAULT_YEARS: AcademicYearItem[] = [
   { id: 'a0000000-0000-0000-0000-000000000004', title: 'الصف الثالث الثانوي', code: 'THIRD_SECONDARY', stage_order: 4 },
 ];
 
+let cachedCoursesList: Course[] = [];
+let cachedYearsList: AcademicYearItem[] = DEFAULT_YEARS;
+
 function CoursesContent() {
   const searchParams = useSearchParams();
   const { student, isAuthenticated, openAuthGate, isSubscribedToCourse, refreshSubscriptions } = useAuth();
@@ -52,9 +55,9 @@ function CoursesContent() {
   const initialYear = searchParams.get('year');
   const searchQuery = searchParams.get('search')?.toLowerCase();
 
-  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(DEFAULT_YEARS);
-  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [yearsList, setYearsList] = useState<AcademicYearItem[]>(() => cachedYearsList);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>(() => cachedCoursesList);
+  const [loading, setLoading] = useState<boolean>(() => cachedCoursesList.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   // Selected course for Details Drawer/Modal
@@ -100,6 +103,7 @@ function CoursesContent() {
             code: item.code,
             stage_order: item.stage_order,
           }));
+          cachedYearsList = mapped;
           setYearsList(mapped);
 
           if (student?.academicYearId) {
@@ -128,7 +132,9 @@ function CoursesContent() {
   }, [student?.academicYearId, student?.academicYearName, initialYear]);
 
   const loadCourses = async () => {
-    setLoading(true);
+    if (cachedCoursesList.length === 0) {
+      setLoading(true);
+    }
     setError(null);
     try {
       let res = await apiClient.get<any>('/courses/public?limit=100').catch(() => null);
@@ -137,16 +143,20 @@ function CoursesContent() {
         res = await apiClient.get<any>('/courses?limit=100').catch(() => null);
       }
 
+      let list: Course[] = [];
       if (res && Array.isArray(res.data)) {
-        setAvailableCourses(res.data);
+        list = res.data;
       } else if (Array.isArray(res)) {
-        setAvailableCourses(res);
-      } else {
+        list = res;
+      }
+
+      cachedCoursesList = list;
+      setAvailableCourses(list);
+    } catch (err: any) {
+      if (cachedCoursesList.length === 0) {
+        setError(err?.message || 'حدث خطأ أثناء تحميل الكورسات. يرجى المحاولة مرة أخرى.');
         setAvailableCourses([]);
       }
-    } catch (err: any) {
-      setError(err?.message || 'حدث خطأ أثناء تحميل الكورسات. يرجى المحاولة مرة أخرى.');
-      setAvailableCourses([]);
     } finally {
       setLoading(false);
     }

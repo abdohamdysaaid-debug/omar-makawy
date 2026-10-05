@@ -16,24 +16,30 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   RETURNED: { label: 'مرتجع', color: 'bg-stone-500/10 text-stone-500 border-stone-500/20' },
 };
 
+let cachedOrdersList: any[] = [];
+
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<any[]>(() => cachedOrdersList);
+  const [loading, setLoading] = useState<boolean>(() => cachedOrdersList.length === 0);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     async function fetchOrders() {
-      setLoading(true);
+      if (cachedOrdersList.length === 0) {
+        setLoading(true);
+      }
       try {
         const res: any = await apiClient.get('/orders').catch(() => null);
         const list = res?.data || (Array.isArray(res) ? res : []);
+        const validList = Array.isArray(list) ? list : [];
+        cachedOrdersList = validList;
         if (isMounted) {
-          setOrders(Array.isArray(list) ? list : []);
+          setOrders(validList);
         }
       } catch {
-        if (isMounted) setOrders([]);
+        if (isMounted && cachedOrdersList.length === 0) setOrders([]);
       } finally {
         if (isMounted) setLoading(false);
       }

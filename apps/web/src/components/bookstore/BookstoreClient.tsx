@@ -48,6 +48,8 @@ function saveStoredGrade(grade: number | 'all') {
   }
 }
 
+let cachedBooksList: any[] = [];
+
 export default function BookstoreClient() {
   const { student } = useAuth();
 
@@ -60,21 +62,24 @@ export default function BookstoreClient() {
     saveStoredGrade(newVal);
   };
 
-  const [availableBooks, setAvailableBooks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [availableBooks, setAvailableBooks] = useState<any[]>(() => cachedBooksList);
+  const [loading, setLoading] = useState<boolean>(() => cachedBooksList.length === 0);
 
   useEffect(() => {
     let isMounted = true;
     async function loadBooks() {
-      setLoading(true);
+      if (cachedBooksList.length === 0) {
+        setLoading(true);
+      }
       try {
         const res: any = await apiClient.get('/books').catch(() => null);
         const list = Array.isArray(res) ? res : (res?.data || []);
+        cachedBooksList = list;
         if (isMounted) {
           setAvailableBooks(list);
         }
       } catch {
-        if (isMounted) setAvailableBooks([]);
+        if (isMounted && cachedBooksList.length === 0) setAvailableBooks([]);
       } finally {
         if (isMounted) setLoading(false);
       }
