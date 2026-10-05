@@ -78,9 +78,17 @@ export default function ExamsPage() {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-base text-gray-900 dark:text-white">
-                        {exam.title}
+                        {exam.title_ar || exam.title}
                       </h3>
-                      <p className="text-xs text-gray-500">{exam.courseTitle || 'اختبار شامل'}</p>
+                      <p className="text-xs text-gray-500">
+                        {exam.lecture_title_ar
+                          ? `محاضرة: ${exam.lecture_title_ar}`
+                          : exam.course_title_ar
+                          ? `كورس: ${exam.course_title_ar}`
+                          : exam.academic_year_name_ar
+                          ? `الصف: ${exam.academic_year_name_ar}`
+                          : exam.courseTitle || 'امتحان عام'}
+                      </p>
                     </div>
                   </div>
 
@@ -99,11 +107,11 @@ export default function ExamsPage() {
                 <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100 dark:border-gray-800">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                    {exam.duration || '30 دقيقة'}
+                    {exam.duration_minutes ? `${exam.duration_minutes} دقيقة` : exam.duration || '30 دقيقة'}
                   </span>
                   <span className="flex items-center gap-1">
                     <Award className="w-3.5 h-3.5 text-emerald-600" />
-                    {exam.questionCount || 10} سؤال
+                    {exam.question_count || exam.questionCount || 10} سؤال
                   </span>
                 </div>
 
