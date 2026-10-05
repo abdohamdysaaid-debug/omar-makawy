@@ -23,6 +23,7 @@ import {
   Smartphone,
   Building2,
   X,
+  RefreshCw,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
@@ -64,8 +65,8 @@ export default function WalletPage() {
   // Copy state helper
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const fetchWallet = useCallback(async () => {
-    if (cachedWalletTransactions.length === 0 && cachedWalletBalance === null) {
+  const fetchWallet = useCallback(async (force = false) => {
+    if (force || (cachedWalletTransactions.length === 0 && cachedWalletBalance === null)) {
       setLoading(true);
     }
     try {
@@ -762,10 +763,22 @@ export default function WalletPage() {
 
         {/* Transaction History Section */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="w-2 h-5 bg-emerald-500 rounded-full inline-block" />
-            سجل الحركات المالية المعتمدة
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <span className="w-2 h-5 bg-emerald-500 rounded-full inline-block" />
+              سجل الحركات المالية المعتمدة
+            </h2>
+            <button
+              type="button"
+              onClick={() => fetchWallet(true)}
+              disabled={loading}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white text-[#0d6e4f] dark:text-emerald-400 font-bold text-xs transition-all border border-emerald-200/60 dark:border-emerald-900/50 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="تحديث السجل من السيرفر"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>تحديث السجل</span>
+            </button>
+          </div>
 
           {loading ? (
             <div className="h-32 rounded-3xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
