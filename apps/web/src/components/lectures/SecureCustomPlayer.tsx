@@ -4,8 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Play,
   Pause,
-  RotateCcw,
-  RotateCw,
   Volume2,
   VolumeX,
   Maximize,
@@ -83,15 +81,35 @@ export function SecureCustomPlayer({
     setTimeout(() => setCenterFeedback(null), 800);
   }, [isPlaying, sendCommand]);
 
-  // Seek helper
-  const handleSeek = (seconds: number) => {
-    const target = Math.max(0, Math.min(duration || 0, seconds));
-    setCurrentTime(target);
-    sendCommand('seekTo', [target, true]);
-  };
+  const maxWatchedTimeRef = useRef<number>(resumePosition || 0);
 
-  const skipSeconds = (delta: number) => {
-    handleSeek(currentTime + delta);
+  // Keep maxWatchedTimeRef updated as video plays forward
+  useEffect(() => {
+    if (currentTime > maxWatchedTimeRef.current) {
+      maxWatchedTimeRef.current = currentTime;
+    }
+  }, [currentTime]);
+
+  // Strict Seek helper: Prevents forward seeking and accidental reset to 0
+  const handleSeek = (seconds: number) => {
+    const maxAllowed = maxWatchedTimeRef.current;
+
+    // 1. Block any attempt to seek forward beyond watched position: stay fixed!
+    if (seconds > maxAllowed + 2) {
+      sendCommand('seekTo', [maxAllowed, true]);
+      setCurrentTime(maxAllowed);
+      return;
+    }
+
+    // 2. Prevent accidental reset to 0 if student clicks on the progress bar when already deep into the video
+    if (seconds < 2 && maxAllowed > 5) {
+      sendCommand('seekTo', [currentTime, true]);
+      return;
+    }
+
+    const safeTarget = Math.max(0, Math.min(maxAllowed, seconds));
+    setCurrentTime(safeTarget);
+    sendCommand('seekTo', [safeTarget, true]);
   };
 
   // Speed Helper
@@ -349,26 +367,6 @@ export function SecureCustomPlayer({
               ) : (
                 <Play className="w-4 h-4 fill-current ms-0.5" />
               )}
-            </button>
-
-            {/* Skip Back 10s */}
-            <button
-              type="button"
-              onClick={() => skipSeconds(-10)}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
-              title="ترجيع 10 ثواني"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-
-            {/* Skip Forward 10s */}
-            <button
-              type="button"
-              onClick={() => skipSeconds(10)}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
-              title="تقديم 10 ثواني"
-            >
-              <RotateCw className="w-4 h-4" />
             </button>
 
             {/* Volume Control */}
