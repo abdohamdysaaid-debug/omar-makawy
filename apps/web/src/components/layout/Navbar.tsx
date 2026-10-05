@@ -313,6 +313,7 @@ export default function Navbar() {
                         { name: 'الكورسات', href: '/student/courses', icon: Video },
                         { name: 'الباقات الشهرية', href: '/student/packages', icon: Package },
                         { name: 'امتحاناتي', href: '/student/exams', icon: GraduationCap },
+                        { name: 'نتائج الامتحانات', href: '/student/exams/results', icon: Award },
                       ].map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;

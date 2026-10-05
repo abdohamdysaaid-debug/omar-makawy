@@ -53,7 +53,12 @@ interface ExamData {
   retake_policy?: string;
   max_retakes?: number;
   available_at?: string;
+  expires_at?: string;
+  results_release_policy?: string;
+  results_release_at?: string;
   isAvailable?: boolean;
+  isExpired?: boolean;
+  isResultReleased?: boolean;
   canRetake?: boolean;
   retakeReason?: string;
   attemptsCount?: number;
@@ -224,10 +229,13 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
   const answeredCount = Object.keys(answers).length;
 
   const isFutureAvailable = exam.isAvailable === false || (exam.available_at && new Date(exam.available_at).getTime() > Date.now());
-  const canStartNewExam = exam.canRetake !== false && !isFutureAvailable;
+  const isExpired = exam.isExpired === true || (Boolean(exam.expires_at) && new Date(exam.expires_at!).getTime() < Date.now());
+  const canStartNewExam = exam.canRetake !== false && !isFutureAvailable && !isExpired;
 
   // View Results Screen after submission or locked previous attempt
   if (submissionResult) {
+    const isResultReleased = submissionResult.is_result_released !== false;
+    const releaseMessage = submissionResult.release_message;
     const score = submissionResult.score ?? submissionResult.submission?.score ?? 0;
     const totalPoints = submissionResult.total_points ?? submissionResult.submission?.total_points ?? questions.length;
     const percentage = submissionResult.percentage ?? submissionResult.submission?.percentage ?? 0;
@@ -239,41 +247,76 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
           {/* Header Banner */}
           <div className="p-8 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800 shadow-sm text-center space-y-4">
             <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center shadow-lg ${
-              isPassed
+              !isResultReleased
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-blue-600/10'
+                : isPassed
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shadow-emerald-600/10'
                 : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 shadow-rose-600/10'
             }`}>
-              {isPassed ? <Award className="w-10 h-10" /> : <XCircle className="w-10 h-10" />}
+              {!isResultReleased ? (
+                <FileCheck className="w-10 h-10" />
+              ) : isPassed ? (
+                <Award className="w-10 h-10" />
+              ) : (
+                <XCircle className="w-10 h-10" />
+              )}
             </div>
 
             <div className="space-y-1">
-              <span className={`px-4 py-1.5 rounded-full text-xs font-black inline-block ${
-                isPassed ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
-              }`}>
-                {isPassed ? 'تهانينا! لقد اجتزت الاختبار بنجاح' : 'لم تتجاوز نسبة النجاح المطلوبة'}
-              </span>
+              {!isResultReleased ? (
+                <span className="px-4 py-1.5 rounded-full text-xs font-black inline-block bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
+                  تم تسليم وإجابة الامتحان بنجاح
+                </span>
+              ) : (
+                <span className={`px-4 py-1.5 rounded-full text-xs font-black inline-block ${
+                  isPassed ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
+                }`}>
+                  {isPassed ? 'تهانينا! لقد اجتزت الاختبار بنجاح' : 'لم تتجاوز نسبة النجاح المطلوبة'}
+                </span>
+              )}
 
               <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
                 {exam.title_ar}
               </h1>
 
-              <div className="text-4xl font-extrabold pt-2 text-emerald-600 dark:text-emerald-400">
-                {percentage}%
-              </div>
-              <p className="text-xs text-gray-500 font-bold">
-                الدرجة الحاصل عليها: {score} من إجمالي {totalPoints} درجة (نسبة النجاح المطلوب: {exam.pass_percentage}%)
-              </p>
+              {isResultReleased ? (
+                <>
+                  <div className="text-4xl font-extrabold pt-2 text-emerald-600 dark:text-emerald-400">
+                    {percentage}%
+                  </div>
+                  <p className="text-xs text-gray-500 font-bold">
+                    الدرجة الحاصل عليها: {score} من إجمالي {totalPoints} درجة (نسبة النجاح المطلوب: {exam.pass_percentage}%)
+                  </p>
+                </>
+              ) : (
+                <div className="p-4 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/60 rounded-2xl text-xs font-bold text-blue-900 dark:text-blue-200 max-w-lg mx-auto space-y-1 mt-2">
+                  <p className="text-sm font-extrabold text-blue-900 dark:text-blue-100">
+                    {releaseMessage || 'تم تسليم الامتحان وحفظ إجاباتك بنجاح!'}
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    سيتم إعلان الدرجات النهائية والإجابات النموذجية فور اعتماد النتيجة أو في الموعد المحدد.
+                  </p>
+                </div>
+              )}
             </div>
 
             {exam.canRetake === false && (
               <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 rounded-2xl text-xs font-bold text-amber-800 dark:text-amber-300 max-w-lg mx-auto flex items-center justify-center gap-2">
                 <Lock className="w-4 h-4 shrink-0" />
-                <span>{exam.retakeReason || 'غير مسموح بإعادة هذا الامتحان. يمكنك مراجعة النتيجة النموذجية أدناه.'}</span>
+                <span>{exam.retakeReason || 'غير مسموح بإعادة هذا الامتحان.'}</span>
               </div>
             )}
 
             {/* Quick Actions */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                onClick={() => router.push('/student/exams/results')}
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-md flex items-center gap-2"
+              >
+                <Award className="w-4 h-4" />
+                <span>عرض صفحة نتائج الامتحانات</span>
+              </button>
+
               {exam.lecture_id && (
                 <button
                   onClick={() => router.push(`/student/lectures/detail?id=${exam.lecture_id}`)}
@@ -310,84 +353,86 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
             </div>
           </div>
 
-          {/* Model Answer & Review Section */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-4">
-            <h2 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-              <FileCheck className="w-5 h-5 text-emerald-600" />
-              مراجعة الأسئلة والإجابة النموذجية
-            </h2>
+          {/* Model Answer & Review Section (Only if results are released) */}
+          {isResultReleased && (
+            <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-4">
+              <h2 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-emerald-600" />
+                مراجعة الأسئلة والإجابة النموذجية
+              </h2>
 
-            <div className="space-y-4">
-              {questions.map((q, idx) => {
-                const studentOptId = answers[q.id];
-                const isCorrect = studentOptId && studentOptId.trim().toUpperCase() === q.correct_option_id.trim().toUpperCase();
+              <div className="space-y-4">
+                {questions.map((q, idx) => {
+                  const studentOptId = answers[q.id];
+                  const isCorrect = studentOptId && studentOptId.trim().toUpperCase() === q.correct_option_id.trim().toUpperCase();
 
-                return (
-                  <div
-                    key={q.id || idx}
-                    className={`p-4 rounded-2xl border space-y-3 ${
-                      isCorrect
-                        ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
-                        : 'bg-red-50/30 dark:bg-red-950/20 border-red-200 dark:border-red-900/40'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0">
-                          {idx + 1}
+                  return (
+                    <div
+                      key={q.id || idx}
+                      className={`p-4 rounded-2xl border space-y-3 ${
+                        isCorrect
+                          ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
+                          : 'bg-red-50/30 dark:bg-red-950/20 border-red-200 dark:border-red-900/40'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="font-extrabold text-xs text-gray-900 dark:text-white flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shrink-0">
+                            {idx + 1}
+                          </span>
+                          {q.question_text_ar}
                         </span>
-                        {q.question_text_ar}
-                      </span>
 
-                      {isCorrect ? (
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-[11px] shrink-0">
-                          إجابة صحيحة ✓
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold text-[11px] shrink-0">
-                          إجابة خاطئة ✗
-                        </span>
+                        {isCorrect ? (
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold text-[11px] shrink-0">
+                            إجابة صحيحة ✓
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold text-[11px] shrink-0">
+                            إجابة خاطئة ✗
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Options list */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {q.options?.map((opt) => {
+                          const isChosen = studentOptId === opt.id;
+                          const isRightOpt = q.correct_option_id === opt.id;
+
+                          let style = 'bg-white dark:bg-[#1a2338] border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300';
+                          if (isRightOpt) {
+                            style = 'bg-emerald-100 dark:bg-emerald-950/80 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
+                          } else if (isChosen && !isRightOpt) {
+                            style = 'bg-rose-100 dark:bg-rose-950/80 border-rose-500 text-rose-900 dark:text-rose-200 font-bold';
+                          }
+
+                          return (
+                            <div key={opt.id} className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 ${style}`}>
+                              <span>
+                                <strong className="ml-1.5 font-black">{opt.id}.</strong>
+                                {opt.text}
+                              </span>
+                              {isRightOpt && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
+                              {isChosen && !isRightOpt && <XCircle className="w-4 h-4 text-rose-600 shrink-0" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Explanation */}
+                      {q.explanation_ar && (
+                        <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/40 text-xs text-emerald-800 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/40">
+                          <strong className="font-extrabold ml-1">التوضيح والشرح:</strong>
+                          {q.explanation_ar}
+                        </div>
                       )}
                     </div>
-
-                    {/* Options list */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      {q.options?.map((opt) => {
-                        const isChosen = studentOptId === opt.id;
-                        const isRightOpt = q.correct_option_id === opt.id;
-
-                        let style = 'bg-white dark:bg-[#1a2338] border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300';
-                        if (isRightOpt) {
-                          style = 'bg-emerald-100 dark:bg-emerald-950/80 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold';
-                        } else if (isChosen && !isRightOpt) {
-                          style = 'bg-rose-100 dark:bg-rose-950/80 border-rose-500 text-rose-900 dark:text-rose-200 font-bold';
-                        }
-
-                        return (
-                          <div key={opt.id} className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 ${style}`}>
-                            <span>
-                              <strong className="ml-1.5 font-black">{opt.id}.</strong>
-                              {opt.text}
-                            </span>
-                            {isRightOpt && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
-                            {isChosen && !isRightOpt && <XCircle className="w-4 h-4 text-rose-600 shrink-0" />}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Explanation */}
-                    {q.explanation_ar && (
-                      <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/40 text-xs text-emerald-800 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900/40">
-                        <strong className="font-extrabold ml-1">التوضيح والشرح:</strong>
-                        {q.explanation_ar}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </StudentLayout>
     );

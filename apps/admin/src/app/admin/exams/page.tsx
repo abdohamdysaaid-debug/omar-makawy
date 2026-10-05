@@ -135,6 +135,13 @@ export default function AdminExamsPage() {
   const [availabilityType, setAvailabilityType] = useState<'NOW' | 'SCHEDULED'>('NOW');
   const [availableAt, setAvailableAt] = useState<string>('');
 
+  // Expiration & Results Release states
+  const [hasExpiration, setHasExpiration] = useState<boolean>(false);
+  const [expiresAt, setExpiresAt] = useState<string>('');
+  const [resultsReleasePolicy, setResultsReleasePolicy] = useState<string>('IMMEDIATE');
+  const [resultsReleaseAt, setResultsReleaseAt] = useState<string>('');
+  const [areResultsReleased, setAreResultsReleased] = useState<boolean>(true);
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -309,6 +316,11 @@ export default function AdminExamsPage() {
       setMaxRetakes(exam.max_retakes !== undefined && exam.max_retakes !== null ? exam.max_retakes : '');
       setAvailabilityType(exam.available_at ? 'SCHEDULED' : 'NOW');
       setAvailableAt(exam.available_at ? new Date(exam.available_at).toISOString().slice(0, 16) : '');
+      setHasExpiration(Boolean((exam as any).expires_at));
+      setExpiresAt((exam as any).expires_at ? new Date((exam as any).expires_at).toISOString().slice(0, 16) : '');
+      setResultsReleasePolicy((exam as any).results_release_policy || 'IMMEDIATE');
+      setResultsReleaseAt((exam as any).results_release_at ? new Date((exam as any).results_release_at).toISOString().slice(0, 16) : '');
+      setAreResultsReleased((exam as any).are_results_released !== false);
       setQuestions(exam.questions || []);
     } else {
       setEditingExamId(null);
@@ -327,6 +339,11 @@ export default function AdminExamsPage() {
       setMaxRetakes('');
       setAvailabilityType('NOW');
       setAvailableAt('');
+      setHasExpiration(false);
+      setExpiresAt('');
+      setResultsReleasePolicy('IMMEDIATE');
+      setResultsReleaseAt('');
+      setAreResultsReleased(true);
       setQuestions([
         {
           question_text_ar: '',
@@ -416,6 +433,10 @@ export default function AdminExamsPage() {
         retake_policy: retakePolicy,
         max_retakes: maxRetakes !== '' ? Number(maxRetakes) : null,
         available_at: availabilityType === 'SCHEDULED' && availableAt ? availableAt : null,
+        expires_at: hasExpiration && expiresAt ? expiresAt : null,
+        results_release_policy: resultsReleasePolicy,
+        results_release_at: resultsReleasePolicy === 'SCHEDULED' && resultsReleaseAt ? resultsReleaseAt : null,
+        are_results_released: areResultsReleased,
         is_published: true,
         questions,
       };
@@ -1244,6 +1265,98 @@ export default function AdminExamsPage() {
                       onChange={(e) => setAvailableAt(e.target.value)}
                       className="w-full sm:w-auto p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-blue-200 dark:border-blue-800 font-bold"
                     />
+                  </div>
+                )}
+              </div>
+
+              {/* Exam Expiration Date & Time Settings */}
+              <div className="bg-amber-50/50 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-100 dark:border-amber-900/40 space-y-3">
+                <label className="text-xs font-bold block text-amber-900 dark:text-amber-300">
+                  موعد انتهاء وثبات الامتحان (Exam Expiration)
+                </label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
+                    <input
+                      type="radio"
+                      name="expiration"
+                      checked={!hasExpiration}
+                      onChange={() => {
+                        setHasExpiration(false);
+                        setExpiresAt('');
+                      }}
+                      className="text-amber-600 focus:ring-amber-500"
+                    />
+                    <span>بدون موعد انتهاء (مفتوح دائماً)</span>
+                  </label>
+
+                  <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
+                    <input
+                      type="radio"
+                      name="expiration"
+                      checked={hasExpiration}
+                      onChange={() => setHasExpiration(true)}
+                      className="text-amber-600 focus:ring-amber-500"
+                    />
+                    <span>تحديد تاريخ ووقت انتهاء الامتحان</span>
+                  </label>
+                </div>
+
+                {hasExpiration && (
+                  <div className="pt-1">
+                    <input
+                      type="datetime-local"
+                      value={expiresAt}
+                      onChange={(e) => setExpiresAt(e.target.value)}
+                      className="w-full sm:w-auto p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-amber-200 dark:border-amber-800 font-bold text-amber-900 dark:text-amber-300"
+                    />
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-semibold">
+                      بعد هذا التاريخ لن يتمكن الطلاب من بدء الامتحان أو تقديم الإجابات.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Results Release Timing & Visibility Policy */}
+              <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/40 space-y-3">
+                <label className="text-xs font-bold block text-indigo-900 dark:text-indigo-300">
+                  موعد إعلان النتيجة والإجابات النموذجية للطالب
+                </label>
+                <select
+                  value={resultsReleasePolicy}
+                  onChange={(e) => setResultsReleasePolicy(e.target.value)}
+                  className="w-full p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-indigo-200 dark:border-indigo-800 font-bold text-indigo-900 dark:text-indigo-200"
+                >
+                  <option value="IMMEDIATE">فوراً بعد الانتهاء والتقديم مباشرة</option>
+                  <option value="SCHEDULED">في تاريخ ووقت محدد في المستقبل</option>
+                  <option value="MANUAL">يدوياً بقرار المعلم/الإدارة (إخفاء حتى التفعيل)</option>
+                </select>
+
+                {resultsReleasePolicy === 'SCHEDULED' && (
+                  <div className="pt-1">
+                    <label className="text-[11px] font-bold block mb-1 text-indigo-800 dark:text-indigo-300">
+                      تاريخ ووقت إعلان النتائج للطلاب:
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={resultsReleaseAt}
+                      onChange={(e) => setResultsReleaseAt(e.target.value)}
+                      className="w-full sm:w-auto p-2 text-xs rounded-lg bg-white dark:bg-neutral-900 border border-indigo-200 dark:border-indigo-800 font-bold"
+                    />
+                  </div>
+                )}
+
+                {resultsReleasePolicy === 'MANUAL' && (
+                  <div className="pt-1 flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="areResultsReleased"
+                      checked={areResultsReleased}
+                      onChange={(e) => setAreResultsReleased(e.target.checked)}
+                      className="rounded text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="areResultsReleased" className="text-xs font-bold cursor-pointer text-indigo-900 dark:text-indigo-200">
+                      إتاحة النتيجة والإجابات النموذجية للطلاب الآن
+                    </label>
                   </div>
                 )}
               </div>
