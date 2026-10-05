@@ -15,7 +15,7 @@ import { COLORS, SPACING } from '../config/theme';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }: any) {
-  const { login, isLoading } = useAuth();
+  const { login, loginAsDemo, isLoading } = useAuth();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +96,14 @@ export default function LoginScreen({ navigation }: any) {
               ) : (
                 <Text style={styles.loginBtnText}>دخول الحساب</Text>
               )}
+            </TouchableOpacity>
+
+            {/* Quick Demo Mode for Testing & Google Review */}
+            <TouchableOpacity
+              style={styles.demoBtn}
+              onPress={() => loginAsDemo()}
+            >
+              <Text style={styles.demoBtnText}>🚀 تجربة سريعة كطالب (Demo Test)</Text>
             </TouchableOpacity>
 
             <View style={styles.footerRow}>
@@ -215,6 +223,20 @@ const styles = StyleSheet.create({
   loginBtnText: {
     color: '#FFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  demoBtn: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: COLORS.primary,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+  },
+  demoBtnText: {
+    color: COLORS.primary,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   footerRow: {

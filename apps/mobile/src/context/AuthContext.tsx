@@ -17,6 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (phone: string, password: string) => Promise<void>;
+  loginAsDemo: () => void;
   register: (payload: any) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -28,23 +29,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check initial session / cached credentials
+    let isMounted = true;
+
     const checkAuth = async () => {
       try {
-        const profile = await mobileApiClient.get('/auth/me').catch(() => null);
-        if (profile && profile.role === 'STUDENT') {
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
+        const fetchPromise = mobileApiClient.get('/auth/me').catch(() => null);
+        const profile: any = await Promise.race([fetchPromise, timeoutPromise]);
+
+        if (isMounted && profile && profile.role === 'STUDENT') {
           setUser(profile);
-        } else {
+        } else if (isMounted) {
           setUser(null);
         }
       } catch {
-        setUser(null);
+        if (isMounted) setUser(null);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     checkAuth();
+    return () => { isMounted = false; };
   }, []);
 
   const login = async (phone: string, password: string) => {
@@ -66,6 +72,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loginAsDemo = () => {
+    const demoUser: StudentUser = {
+      id: 'demo-student-id',
+      phone: '01000000000',
+      full_name: 'طالب تجريبي (Demo Student)',
+      role: 'STUDENT',
+      status: 'ACTIVE',
+      academic_year_id: 'a0000000-0000-0000-0000-000000000004',
+      academic_year_name_ar: 'الصف الثالث الثانوي',
+    };
+    setUser(demoUser);
   };
 
   const register = async (payload: any) => {
@@ -97,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginAsDemo,
         register,
         logout,
       }}
