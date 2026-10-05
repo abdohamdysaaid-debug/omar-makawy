@@ -17,7 +17,6 @@ import {
   Headset,
   BookMarked,
   Clock,
-  Sparkles,
   TrendingUp,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
@@ -439,7 +438,7 @@ export default function StaffDashboardPage() {
       {/* ======================================================== */}
       <div className="rounded-3xl border border-neutral-800/90 bg-[#0e120f] p-6 shadow-sm">
         <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-amber-400" />
+          <span className="w-1.5 h-4 bg-emerald-500 rounded-full inline-block" />
           <span>{isAr ? 'الإجراءات السريعة' : 'Quick Actions'}</span>
         </h3>
 
