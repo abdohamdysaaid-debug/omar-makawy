@@ -234,6 +234,7 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
 
   // View Results Screen after submission or locked previous attempt
   if (submissionResult) {
+    const isMandatoryGating = Boolean(submissionResult.is_required_for_next || exam.is_required_for_next);
     const isResultReleased = submissionResult.is_result_released !== false;
     const releaseMessage = submissionResult.release_message;
     const score = submissionResult.score ?? submissionResult.submission?.score ?? 0;
@@ -243,7 +244,7 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
 
     return (
       <StudentLayout>
-        <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-12">
+        <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-12 font-cairo">
           {/* Header Banner */}
           <div className="p-8 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800 shadow-sm text-center space-y-4">
             <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center shadow-lg ${
@@ -251,7 +252,7 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
                 ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-blue-600/10'
                 : isPassed
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shadow-emerald-600/10'
-                : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 shadow-rose-600/10'
+                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 shadow-amber-600/10'
             }`}>
               {!isResultReleased ? (
                 <FileCheck className="w-10 h-10" />
@@ -262,16 +263,16 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-2">
               {!isResultReleased ? (
                 <span className="px-4 py-1.5 rounded-full text-xs font-black inline-block bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
-                  تم تسليم وإجابة الامتحان بنجاح
+                  تم الاختبار بنجاح 🟢
                 </span>
               ) : (
                 <span className={`px-4 py-1.5 rounded-full text-xs font-black inline-block ${
                   isPassed ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
                 }`}>
-                  {isPassed ? 'تهانينا! لقد اجتزت الاختبار بنجاح' : 'لم تتجاوز نسبة النجاح المطلوبة'}
+                  {isPassed ? 'تهانينا! لقد اجتزت الاختبار بنجاح 🎉' : 'لم تتجاوز نسبة النجاح المطلوبة'}
                 </span>
               )}
 
@@ -279,26 +280,41 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
                 {exam.title_ar}
               </h1>
 
-              {isResultReleased ? (
-                <>
-                  <div className="text-4xl font-extrabold pt-2 text-emerald-600 dark:text-emerald-400">
+              {!isResultReleased ? (
+                <div className="p-4 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/60 rounded-2xl text-xs font-bold text-blue-900 dark:text-blue-200 max-w-lg mx-auto space-y-1 mt-2">
+                  <p className="text-sm font-extrabold text-blue-900 dark:text-blue-100">
+                    تم الاختبار بنجاح! يرجى التوجه إلى نتائج الامتحانات لتظهر النتيجة.
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    {releaseMessage || 'سيتم إعلان الدرجات النهائية والإجابات النموذجية فور اعتماد النتيجة أو في الموعد المحدد.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1 pt-1">
+                  <div className={`text-4xl font-extrabold ${isPassed ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                     {percentage}%
                   </div>
                   <p className="text-xs text-gray-500 font-bold">
                     الدرجة الحاصل عليها: {score} من إجمالي {totalPoints} درجة (نسبة النجاح المطلوب: {exam.pass_percentage}%)
                   </p>
-                </>
-              ) : (
-                <div className="p-4 bg-blue-50/80 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/60 rounded-2xl text-xs font-bold text-blue-900 dark:text-blue-200 max-w-lg mx-auto space-y-1 mt-2">
-                  <p className="text-sm font-extrabold text-blue-900 dark:text-blue-100">
-                    {releaseMessage || 'تم تسليم الامتحان وحفظ إجاباتك بنجاح!'}
-                  </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    سيتم إعلان الدرجات النهائية والإجابات النموذجية فور اعتماد النتيجة أو في الموعد المحدد.
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-extrabold pt-1">
+                    تم الاختبار بنجاح! يرجى التوجه إلى نتائج الامتحانات لتظهر النتيجة والتفاصيل.
                   </p>
                 </div>
               )}
             </div>
+
+            {isMandatoryGating && !isPassed && (
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 rounded-2xl text-xs font-bold text-amber-800 dark:text-amber-300 max-w-lg mx-auto space-y-1 text-center">
+                <div className="flex items-center justify-center gap-1.5 font-extrabold text-amber-900 dark:text-amber-200">
+                  <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>امتحان إجباري للمحاضرة التالية</span>
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  يجب اجتياز هذا الامتحان بنجاح لفتح المحاضرة التالية. تم حجب الإجابات النموذجية لحين الإعادة والنجاح.
+                </p>
+              </div>
+            )}
 
             {exam.canRetake === false && (
               <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 rounded-2xl text-xs font-bold text-amber-800 dark:text-amber-300 max-w-lg mx-auto flex items-center justify-center gap-2">
@@ -308,19 +324,35 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
             )}
 
             {/* Quick Actions */}
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+              {canStartNewExam && (
+                <button
+                  onClick={() => {
+                    setSubmissionResult(null);
+                    setAnswers({});
+                    setCurrentQuestionIdx(0);
+                    setTimeLeftSeconds((exam.duration_minutes || 30) * 60);
+                    setIsExamStarted(true);
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>إعادة الامتحان</span>
+                </button>
+              )}
+
               <button
                 onClick={() => router.push('/student/exams/results')}
                 className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-md flex items-center gap-2"
               >
                 <Award className="w-4 h-4" />
-                <span>عرض صفحة نتائج الامتحانات</span>
+                <span>التوجه إلى نتائج الامتحانات</span>
               </button>
 
               {exam.lecture_id && (
                 <button
                   onClick={() => router.push(`/student/lectures/detail?id=${exam.lecture_id}`)}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-md flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold text-xs transition-all flex items-center gap-2"
                 >
                   <BookOpen className="w-4 h-4" />
                   <span>العودة للمحاضرة</span>
@@ -334,20 +366,8 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
                 <span>عرض تقدمي في الدراسة</span>
               </button>
-
-              {canStartNewExam && (
-                <button
-                  onClick={() => {
-                    setSubmissionResult(null);
-                    setAnswers({});
-                    setCurrentQuestionIdx(0);
-                    setTimeLeftSeconds((exam.duration_minutes || 30) * 60);
-                    setIsExamStarted(true);
-                  }}
-                  className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs hover:bg-gray-50 dark:hover:bg-gray-800 transition-all flex items-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>إعادة المحاولة</span>
+            </div>
+          </div>
                 </button>
               )}
             </div>

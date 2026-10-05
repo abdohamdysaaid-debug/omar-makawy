@@ -23,7 +23,7 @@ export default function CoursesScreen({ navigation }: any) {
     try {
       const q = query ? `?search=${encodeURIComponent(query)}` : '';
       const res = await mobileApiClient.get(`/courses${q}`).catch(() => null);
-      const items = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+      const items = Array.isArray(res?.data) ? res.data : Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
       setCourses(items);
     } catch {
       setCourses([]);

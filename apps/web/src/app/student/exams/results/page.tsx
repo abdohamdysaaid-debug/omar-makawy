@@ -163,7 +163,7 @@ export default function StudentExamResultsPage() {
 
                       {!isReleased ? (
                         <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 text-xs font-bold shrink-0">
-                          قيد الاعتماد
+                          النتيجة قريباً
                         </span>
                       ) : isPassed ? (
                         <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 text-xs font-bold shrink-0">
@@ -211,10 +211,10 @@ export default function StudentExamResultsPage() {
                       <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-800 dark:text-blue-300 font-semibold space-y-1">
                         <div className="flex items-center gap-1.5 font-bold">
                           <Clock className="w-4 h-4 text-blue-600 shrink-0" />
-                          <span>لم تعلن نتائج هذا الامتحان بعد</span>
+                          <span>النتيجة قريباً على هذا الامتحان</span>
                         </div>
                         <p className="text-[11px] text-blue-700 dark:text-blue-300">
-                          {sub.release_message || 'سيتم اعتماد النتيجة والإجابات النموذجية قريباً.'}
+                          {sub.release_message || 'النتيجة قريباً على الامتحان - سيتم إعلان النتائج والإجابات النموذجية فور اعتمادها.'}
                         </p>
                       </div>
                     )}
@@ -242,9 +242,10 @@ export default function StudentExamResultsPage() {
                     ) : (
                       <button
                         disabled
-                        className="w-full py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-xl text-xs font-bold cursor-not-allowed opacity-75"
+                        className="w-full py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-bold cursor-not-allowed opacity-80 flex items-center justify-center gap-1.5"
                       >
-                        النتيجة تحت المراجعة والإعلان
+                        <Clock className="w-4 h-4" />
+                        <span>النتيجة قريباً على هذا الامتحان</span>
                       </button>
                     )}
                   </div>
@@ -262,7 +263,7 @@ export default function StudentExamResultsPage() {
 
         {/* Detailed Breakdown Modal (التفاصيل كاملة) */}
         {selectedSubmission && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in font-cairo">
             <div className="bg-white dark:bg-[#131b2e] w-full max-w-3xl rounded-3xl border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
               {/* Modal Header */}
               <div className="p-6 bg-emerald-600 text-white flex items-center justify-between shrink-0">
@@ -285,6 +286,17 @@ export default function StudentExamResultsPage() {
 
               {/* Modal Content / Questions Review */}
               <div className="p-6 overflow-y-auto space-y-4 divide-y divide-gray-100 dark:divide-gray-800">
+                {(selectedSubmission as any).is_failed_gating && (
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/40 rounded-2xl text-xs font-bold text-amber-800 dark:text-amber-300 space-y-1 text-center">
+                    <div className="flex items-center justify-center gap-1.5 font-extrabold text-amber-900 dark:text-amber-200">
+                      <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>امتحان إجباري للمحاضرة التالية</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed">
+                      نظراً لأن هذا الامتحان إجباري لفتح المحاضرة التالية ولم تتجاوز نسبة النجاح بعد، تم حجب الإجابات النموذجية لحين الإعادة والتفوق فيه.
+                    </p>
+                  </div>
+                )}
                 {selectedSubmission.questions?.map((q, idx) => {
                   const isCorrect = q.is_correct === true;
                   const isUnattempted = !q.user_answer;

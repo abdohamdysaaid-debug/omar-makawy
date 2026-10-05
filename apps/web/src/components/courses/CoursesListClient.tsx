@@ -137,10 +137,12 @@ function CoursesContent() {
     }
     setError(null);
     try {
-      let res = await apiClient.get<any>('/courses/public?limit=100').catch(() => null);
-
-      if (!res || (!res.data && !Array.isArray(res))) {
+      let res: any = null;
+      if (isAuthenticated) {
         res = await apiClient.get<any>('/courses?limit=100').catch(() => null);
+      }
+      if (!res || (!res.data && !Array.isArray(res))) {
+        res = await apiClient.get<any>('/courses/public?limit=100').catch(() => null);
       }
 
       let list: Course[] = [];
@@ -164,7 +166,7 @@ function CoursesContent() {
 
   useEffect(() => {
     loadCourses();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleYearChange = (newVal: string | number | 'all') => {
     setSelectedYearId(newVal);

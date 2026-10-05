@@ -75,6 +75,7 @@ export function CourseFormModal({
   // Initialize or reset form data
   useEffect(() => {
     if (isOpen) {
+      setIsSubmitting(false);
       setErrorMessage(null);
       setUploadProgressStatus(null);
       setPendingCropFile(null);
@@ -178,7 +179,7 @@ export function CourseFormModal({
 
       if (pendingCropFile) {
         setUploadProgressStatus(
-          isAr ? 'جاري رفع صورة الغلاف إلى Google Drive...' : 'Uploading image to Google Drive...'
+          isAr ? 'جاري رفع صورة الغلاف إلى مساحة التخزين...' : 'Uploading image to storage provider...'
         );
 
         const targetYearForUpload = isEdit ? initialCourse!.academic_year_id : academicYearId;
@@ -248,14 +249,15 @@ export function CourseFormModal({
 
       onClose();
     } catch (err: any) {
-      setIsSubmitting(false);
-      setUploadProgressStatus(null);
       setErrorMessage(
         err?.message ||
           (isAr
             ? 'حدث خطأ أثناء حفظ الكورس. يرجى مراجعة البيانات والمحاولة مجدداً.'
             : 'Failed to save course. Please verify input and try again.')
       );
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgressStatus(null);
     }
   };
 
