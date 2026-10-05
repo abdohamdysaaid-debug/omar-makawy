@@ -108,10 +108,12 @@ export default function WalletPage() {
             tx.type === 'RECHARGE' ||
             tx.type === 'CREDIT' ||
             tx.type === 'TOPUP_CREDIT' ||
+            tx.type === 'TOPUP_PENDING' ||
+            tx.type === 'ACTIVATION_CODE' ||
             tx.type === 'ADJUSTMENT_CREDIT' ||
             tx.type === 'ORDER_REFUND' ||
             tx.type === 'REFUND' ||
-            Number(tx.amount) > 0;
+            Number(tx.amount) >= 0;
 
           let defaultArabicDesc = 'حركة مالية';
           switch (tx.type) {
