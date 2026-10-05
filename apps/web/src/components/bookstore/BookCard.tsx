@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Book as BookType } from '@/types';
 import { academicYears } from '@/data/mock';
 import { BookOpen } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { resolveMediaUrl } from '@/lib/api';
 
 interface BookCardProps {
   book: BookType;
@@ -13,6 +14,7 @@ interface BookCardProps {
 
 export default function BookCard({ book }: BookCardProps) {
   const { addItem } = useCart();
+  const [imageError, setImageError] = useState(false);
   const yearId = (book as any).academic_year_id || book.academicYearId;
   const gradeMap: Record<string, number> = {
     'a0000000-0000-0000-0000-000000000001': 1,
@@ -31,31 +33,37 @@ export default function BookCard({ book }: BookCardProps) {
 
   const stock = book.stock !== undefined ? book.stock : Number((book as any).stock_quantity ?? 1);
   const category = book.category || ((book as any).type === 'NOTE' ? 'مذكرة' : 'كتاب');
-  const coverUrl = (book as any).coverImage || (book as any).cover_image_url;
+  const rawCover = (book as any).coverImage || (book as any).cover_image_url || (book as any).imageUrl;
+  const coverUrl = resolveMediaUrl(rawCover);
 
   return (
     <div className="group rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden font-cairo">
       <Link
         href={`/bookstore/detail?id=${book.id}`}
-        className="block relative aspect-[4/3] bg-neutral-900 overflow-hidden flex items-center justify-center"
+        className="block relative h-44 sm:h-48 bg-neutral-900 overflow-hidden flex items-center justify-center"
       >
-        {coverUrl ? (
+        {coverUrl && !imageError ? (
           <>
-            <img src={coverUrl} alt={title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <img
+              src={coverUrl}
+              alt={title}
+              onError={() => setImageError(true)}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
           </>
         ) : (
           <BookOpen className="w-14 h-14 text-emerald-400 opacity-60 group-hover:scale-110 transition-transform duration-300" />
         )}
-        <div className="absolute top-3 start-3 flex items-center gap-1.5 flex-wrap z-10">
+        <div className="absolute top-3 start-3 end-3 flex items-center justify-between gap-1.5 flex-wrap z-10">
+          <span className="bg-emerald-950/80 backdrop-blur-md text-emerald-200 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20">
+            {category}
+          </span>
           {academicYear && (
-            <span className="bg-black/70 backdrop-blur-md text-emerald-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20">
+            <span className="bg-black/70 backdrop-blur-md text-emerald-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-white/10">
               {academicYear.title}
             </span>
           )}
-          <span className="bg-emerald-950/80 backdrop-blur-md text-emerald-200 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
-            {category}
-          </span>
         </div>
       </Link>
 

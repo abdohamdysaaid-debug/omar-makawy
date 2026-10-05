@@ -6,7 +6,7 @@ import Footer from '@/components/layout/Footer';
 import { books, academicYears } from '@/data/mock';
 import { BookOpen, Minus, Plus, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { apiClient } from '@/lib/api';
+import { apiClient, resolveMediaUrl } from '@/lib/api';
 import Link from 'next/link';
 
 interface BookDetailsClientProps {
@@ -102,7 +102,8 @@ export default function BookDetailsClient({ bookId }: BookDetailsClientProps) {
 
   const stock = bookData.stock !== undefined ? bookData.stock : Number(bookData.stock_quantity ?? 1);
   const category = bookData.category || (bookData.type === 'NOTE' ? 'مذكرة' : 'كتاب');
-  const coverUrl = bookData.coverImage || bookData.cover_image_url;
+  const rawCover = bookData.coverImage || bookData.cover_image_url || bookData.imageUrl;
+  const coverUrl = resolveMediaUrl(rawCover);
 
   const yearId = bookData.academic_year_id || bookData.academicYearId;
   const gradeMap: Record<string, number> = {
@@ -124,7 +125,7 @@ export default function BookDetailsClient({ bookId }: BookDetailsClientProps) {
       <main className="container mx-auto px-4 py-8 flex-1 pt-28">
         <div className="bg-white dark:bg-[#131b2e] rounded-3xl shadow-sm overflow-hidden flex flex-col md:flex-row max-w-5xl mx-auto border border-gray-100 dark:border-gray-800">
           {/* Image Side */}
-          <div className="md:w-1/2 bg-gradient-to-br from-emerald-900 to-gray-950 aspect-square md:aspect-auto p-12 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="md:w-1/2 bg-gradient-to-br from-emerald-900 to-gray-950 aspect-square md:aspect-auto p-8 sm:p-12 flex flex-col items-center justify-center relative overflow-hidden">
             {coverUrl ? (
               <img src={coverUrl} alt={title} className="w-full h-full object-cover" />
             ) : (

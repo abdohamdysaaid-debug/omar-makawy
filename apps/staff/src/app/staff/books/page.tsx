@@ -5,7 +5,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { staffApiClient as apiClient } from '@/context/StaffAuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
-import { SystemPermissions } from '@omar-makawy/shared';
+import { SystemPermissions, resolveMediaUrl } from '@omar-makawy/shared';
 import {
   BookOpen,
   Plus,
@@ -193,13 +193,12 @@ export default function StaffBooksPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('folder', 'book-covers');
 
-      const uploadRes: any = await apiClient.post('/api/v1/storage/upload', formData);
+      const uploadRes: any = await apiClient.post('/api/v1/books/upload-cover', formData);
       const url = uploadRes?.url || uploadRes?.data?.url || uploadRes?.storagePath;
       if (url) {
         setBookForm((prev) => ({ ...prev, cover_image_url: url }));
-        setImagePreviewUrl(url);
+        setImagePreviewUrl(resolveMediaUrl(url) || url);
       }
     } catch {
       // Fallback preview
@@ -501,11 +500,11 @@ export default function StaffBooksPage() {
                   }`}
                 >
                   <div className="space-y-3">
-                    {/* Cover Preview Aspect 2:3 */}
-                    <div className="aspect-[2/3] w-full max-h-48 rounded-xl bg-neutral-950 border border-neutral-800 overflow-hidden relative group flex items-center justify-center">
+                    {/* Cover Preview */}
+                    <div className="h-40 w-full rounded-xl bg-neutral-950 border border-neutral-800 overflow-hidden relative group flex items-center justify-center">
                       {b.cover_image_url ? (
                         <img
-                          src={b.cover_image_url}
+                          src={resolveMediaUrl(b.cover_image_url)}
                           alt={b.title_ar}
                           className="w-full h-full object-cover"
                         />

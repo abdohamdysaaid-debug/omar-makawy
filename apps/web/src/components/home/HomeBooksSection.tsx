@@ -7,7 +7,7 @@ import { BookOpen, ShoppingBag, ArrowLeft, ChevronRight, ChevronLeft } from 'luc
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
 
-import { apiClient } from '@/lib/api';
+import { apiClient, resolveMediaUrl } from '@/lib/api';
 
 export interface HomeBooksSectionProps {
   selectedAcademicYearId?: number | null;
@@ -125,7 +125,8 @@ export default function HomeBooksSection({ selectedAcademicYearId = null }: Home
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
           >
             {activeBooks.map((book) => {
-              const coverUrl = book.cover_image_url || book.coverImageUrl || book.imageUrl;
+              const rawCover = book.cover_image_url || book.coverImageUrl || book.imageUrl;
+              const coverUrl = resolveMediaUrl(rawCover);
               const title = book.title_ar || book.title || 'مذكرة دراسية';
               const description = book.description_ar || book.description || '';
               const price = Number(book.price) || 0;
@@ -141,53 +142,60 @@ export default function HomeBooksSection({ selectedAcademicYearId = null }: Home
                   whileHover={{ scale: 1.03, y: -6 }}
                   whileTap={{ scale: 0.98 }}
                   viewport={{ amount: 0.55 }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
                   onClick={() => handleBookClick(book.id)}
-                  className="snap-center shrink-0 w-[240px] sm:w-[270px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
+                  className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
                   style={{ touchAction: 'pan-x pan-y' }}
                 >
-                  {/* Aspect 2:3 Cover Preview Card Container */}
-                  <div className="aspect-[2/3] w-full rounded-2xl bg-emerald-950/20 dark:bg-stone-950 border border-stone-200/80 dark:border-stone-800 overflow-hidden relative mb-4 flex items-center justify-center shadow-inner group-hover:border-[#0d6e4f]/40 transition-colors">
+                  {/* Card Header Banner with Aspect Ratio matching Courses */}
+                  <div className="relative h-44 sm:h-48 bg-neutral-900 overflow-hidden flex items-center justify-center">
                     {coverUrl ? (
-                      <img
-                        src={coverUrl}
-                        alt={title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <>
+                        <img
+                          src={coverUrl}
+                          alt={title}
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 pointer-events-none" />
+                      </>
                     ) : (
-                      <BookOpen className="w-12 h-12 text-[#0d6e4f]/40 dark:text-emerald-500/40" />
+                      <div className="flex flex-col items-center justify-center text-emerald-400/60 p-4">
+                        <BookOpen className="w-14 h-14 group-hover:scale-110 transition-transform duration-300" />
+                      </div>
                     )}
 
-                    {/* Top Type Badge */}
-                    <span className="absolute top-2.5 start-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-black/75 text-emerald-400 border border-emerald-500/30 backdrop-blur-md">
-                      {typeLabel}
-                    </span>
+                    {/* Top Badges */}
+                    <div className="absolute top-3 start-3 end-3 flex items-center justify-between gap-2 z-10">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-black/75 text-emerald-300 border border-emerald-500/30 backdrop-blur-md">
+                        {typeLabel}
+                      </span>
+                      {yearName && (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-black/70 text-gray-200 border border-white/10 backdrop-blur-md truncate max-w-[150px]">
+                          {yearName}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Card Content Body */}
-                  <div className="flex flex-col flex-1 justify-between space-y-3">
+                  <div className="p-5 flex flex-col flex-1 justify-between space-y-4 bg-white dark:bg-stone-900">
                     <div>
-                      <h3 className="text-sm sm:text-base font-black text-gray-900 dark:text-white line-clamp-1">
+                      <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white line-clamp-1 group-hover:text-[#0d6e4f] dark:group-hover:text-emerald-400 transition-colors">
                         {title}
                       </h3>
-                      {yearName && (
-                        <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
-                          {yearName}
-                        </p>
-                      )}
                       {description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-1 font-medium">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-1.5 font-medium leading-relaxed">
                           {description}
                         </p>
                       )}
                     </div>
 
-                    <div className="pt-2 border-t border-stone-100 dark:border-stone-800 space-y-3">
+                    <div className="pt-3 border-t border-stone-100 dark:border-stone-800 space-y-3">
                       {/* Price Tag */}
                       <div className="flex items-baseline justify-between">
                         <span className="text-xs font-bold text-gray-500 dark:text-gray-400">السعر:</span>
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-base font-black text-[#0d6e4f] dark:text-emerald-400">
+                          <span className="text-lg font-black text-[#0d6e4f] dark:text-emerald-400">
                             {discountPrice > 0 && discountPrice < price ? discountPrice : price} ج.م
                           </span>
                           {discountPrice > 0 && discountPrice < price && (
@@ -199,7 +207,7 @@ export default function HomeBooksSection({ selectedAcademicYearId = null }: Home
                       </div>
 
                       {/* Request / Order Button */}
-                      <button className="w-full py-2.5 bg-[#0d6e4f] hover:bg-[#09543c] text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors">
+                      <button className="w-full py-2.5 bg-[#0d6e4f] hover:bg-[#09543c] text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all group-hover:bg-emerald-700">
                         <span>طلب المذكرة</span>
                         <ArrowLeft className="w-3.5 h-3.5" />
                       </button>
