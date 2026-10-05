@@ -15,12 +15,13 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
-// 3. Force deduplication to root node_modules for React, Scheduler, and Web dependencies
+// 3. Force deduplication to mobile project node_modules for React, Scheduler, and Web dependencies
 config.resolver.extraNodeModules = {
-  react: path.resolve(monorepoRoot, 'node_modules/react'),
-  'react-dom': path.resolve(monorepoRoot, 'node_modules/react-dom'),
+  react: path.resolve(projectRoot, 'node_modules/react'),
+  'react-dom': path.resolve(projectRoot, 'node_modules/react-dom'),
+  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
   'react-native-web': path.resolve(monorepoRoot, 'node_modules/react-native-web'),
-  scheduler: path.resolve(monorepoRoot, 'node_modules/scheduler'),
+  scheduler: path.resolve(projectRoot, 'node_modules/scheduler'),
 };
 
 module.exports = config;
