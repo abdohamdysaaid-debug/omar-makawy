@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
+import { apiClient } from '@/lib/api';
 import StudentLayout from '@/components/layout/StudentLayout';
 import { SecureCustomPlayer } from './SecureCustomPlayer';
 import {
@@ -89,6 +90,7 @@ export function StudentLectureViewClient({
   // Primary Lecture State
   const [lecture, setLecture] = useState<LectureItem | null>(null);
   const [progress, setProgress] = useState<LectureProgressResponse | null>(null);
+  const [lectureExam, setLectureExam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{
     status?: number;
@@ -185,6 +187,18 @@ export function StudentLectureViewClient({
   useEffect(() => {
     fetchLectureData();
   }, [fetchLectureData]);
+
+  useEffect(() => {
+    if (lectureId) {
+      apiClient.get<any[]>(`/exams?lecture_id=${lectureId}`)
+        .then((res) => {
+          if (Array.isArray(res) && res.length > 0) {
+            setLectureExam(res[0]);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [lectureId]);
 
   // 2. Authorize Playback Session when Lecture or Video Type changes
   useEffect(() => {
@@ -840,7 +854,11 @@ export function StudentLectureViewClient({
                   </div>
 
                   <Link
-                    href={`/student/exams${queryCourseId ? `?courseId=${queryCourseId}` : ''}`}
+                    href={
+                      lectureExam?.id
+                        ? `/student/exams/${lectureExam.id}`
+                        : `/student/exams${queryCourseId ? `?courseId=${queryCourseId}` : ''}`
+                    }
                     className="w-full py-2 px-3 rounded-xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white text-[11px] font-black transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-[#0d6e4f]/20"
                   >
                     <GraduationCap className="w-3.5 h-3.5" />
