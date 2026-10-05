@@ -176,6 +176,7 @@ export function StudentLectureViewClient({
         (isAr ? 'حدث خطأ أثناء تحميل المحاضرة' : 'An error occurred while loading lecture');
       const scheduledAt = err?.data?.scheduled_at || err?.scheduled_at;
       const requiredExamId = err?.data?.required_exam_id || err?.response?.data?.required_exam_id || err?.data?.required_exam?.id;
+      const requiredLectureId = err?.data?.required_lecture_id || err?.response?.data?.required_lecture_id || err?.data?.required_exam?.lecture_id;
 
       setError({
         status,
@@ -183,6 +184,7 @@ export function StudentLectureViewClient({
         message,
         scheduledAt,
         requiredExamId,
+        requiredLectureId,
       } as any);
     } finally {
       setLoading(false);
@@ -439,6 +441,12 @@ export function StudentLectureViewClient({
     // Gating Exam Lock State (LECTURE_LOCKED_GATING_EXAM)
     if (error?.code === 'LECTURE_LOCKED_GATING_EXAM' || error?.message?.includes('مغلقة:')) {
       const requiredExamId = (error as any)?.requiredExamId || (error as any)?.required_exam_id || (error as any)?.required_exam?.id;
+      const requiredLectureId = (error as any)?.requiredLectureId || (error as any)?.required_lecture_id;
+
+      const targetLectureUrl = requiredLectureId
+        ? `/student/lectures/detail?id=${requiredLectureId}${queryCourseId ? `&course_id=${queryCourseId}` : ''}${queryPackageId ? `&package_id=${queryPackageId}` : ''}`
+        : backUrl;
+
       return (
         <StudentLayout>
           <div className="max-w-2xl mx-auto py-16 px-4 text-center space-y-6 animate-fade-in font-cairo">
@@ -459,29 +467,22 @@ export function StudentLectureViewClient({
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-              {requiredExamId ? (
+              <Link
+                href={targetLectureUrl}
+                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all text-center flex items-center justify-center gap-2"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>انتقل لصفحة المحاضرة السابقة</span>
+              </Link>
+              {requiredExamId && (
                 <Link
                   href={`/student/exams/detail?id=${requiredExamId}`}
-                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all text-center flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-black text-xs transition-all text-center flex items-center justify-center gap-2"
                 >
                   <GraduationCap className="w-4 h-4" />
-                  <span>انتقل للامتحان المطلوب وافتح المحاضرة</span>
-                </Link>
-              ) : (
-                <Link
-                  href="/student/exams"
-                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/20 transition-all text-center flex items-center justify-center gap-2"
-                >
-                  <GraduationCap className="w-4 h-4" />
-                  <span>انتقل لصفحة امتحاناتي</span>
+                  <span>انتقل للامتحان مباشرة</span>
                 </Link>
               )}
-              <Link
-                href={backUrl}
-                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-black text-xs transition-all text-center"
-              >
-                {backLabel}
-              </Link>
             </div>
           </div>
         </StudentLayout>
