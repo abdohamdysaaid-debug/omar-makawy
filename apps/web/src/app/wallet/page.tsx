@@ -199,7 +199,9 @@ export default function WalletPage() {
       setAccountsLoading(true);
     }
     try {
-      const res: any = await apiClient.get('/api/v1/student/wallet/receiving-accounts');
+      let res: any = await apiClient.get('/api/v1/student/wallet/receiving-accounts').catch(() => null);
+      if (!res) res = await apiClient.get('/wallet/top-up-accounts').catch(() => null);
+      if (!res) res = await apiClient.get('/api/v1/wallet/top-up-accounts').catch(() => null);
       const list = res?.data || (Array.isArray(res) ? res : []);
       cachedReceivingAccounts = list;
       setReceivingAccounts(list);
@@ -219,7 +221,9 @@ export default function WalletPage() {
       setTopupRequestsLoading(true);
     }
     try {
-      const res: any = await apiClient.get('/api/v1/student/wallet/top-up-requests');
+      let res: any = await apiClient.get('/api/v1/student/wallet/top-up-requests').catch(() => null);
+      if (!res) res = await apiClient.get('/wallet/top-up-requests').catch(() => null);
+      if (!res) res = await apiClient.get('/api/v1/wallet/top-up-requests').catch(() => null);
       const list = res?.data || (Array.isArray(res) ? res : []);
       cachedTopupRequestsHistory = list;
       setTopupRequests(list);

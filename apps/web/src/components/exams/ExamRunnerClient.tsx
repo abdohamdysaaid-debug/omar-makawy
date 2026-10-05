@@ -369,8 +369,8 @@ export default function ExamRunnerClient({ examId }: ExamRunnerClientProps) {
             </div>
           </div>
 
-          {/* Model Answer & Review Section (Only if results are released) */}
-          {isResultReleased && (
+          {/* Model Answer & Review Section (Only if results are released and not a failed mandatory gating exam) */}
+          {isResultReleased && !(isMandatoryGating && !isPassed) && (
             <div className="p-6 rounded-3xl bg-white dark:bg-[#131b2e] border border-gray-100 dark:border-gray-800/80 shadow-xs space-y-4">
               <h2 className="text-base font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
                 <FileCheck className="w-5 h-5 text-emerald-600" />
