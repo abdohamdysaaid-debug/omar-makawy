@@ -7,6 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { RoleBadge } from '../ui/RoleBadge';
 import { AcademicYearSelector } from './AcademicYearSelector';
+import { StaffNotificationBell } from './StaffNotificationBell';
 
 interface StaffHeaderProps {
   onMenuToggle?: () => void;
@@ -62,6 +63,9 @@ export function StaffHeader({ onMenuToggle }: StaffHeaderProps) {
         >
           {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-emerald-400" />}
         </button>
+
+        {/* Notifications Bell */}
+        <StaffNotificationBell />
 
         <div className="h-5 w-px bg-neutral-800" />
 

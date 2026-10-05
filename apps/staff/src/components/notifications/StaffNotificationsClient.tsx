@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import {
   Bell,
   Send,
@@ -13,6 +14,16 @@ import {
   Clock,
   RefreshCw,
   X,
+  Wallet,
+  BookOpen,
+  Headset,
+  Info,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  ArrowUpRight,
+  Sparkles,
 } from 'lucide-react';
 import { staffApiClient } from '@/context/StaffAuthContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -46,6 +57,21 @@ interface AdminNotification {
   created_at: string;
 }
 
+export interface ActivityFeedItem {
+  id: string;
+  raw_id: string;
+  category: 'WALLET_TOPUP' | 'BOOK_ORDER' | 'SUPPORT_TICKET' | 'SYSTEM';
+  title_ar: string;
+  title_en: string;
+  body_ar: string;
+  body_en: string;
+  status: string;
+  created_at: string;
+  deep_link: string;
+  metadata?: any;
+  is_actionable?: boolean;
+}
+
 const DEEP_LINK_OPTIONS = [
   { value: '', label_ar: 'بدون رابط سريع', label_en: 'No Deep Link' },
   { value: 'app://announcements', label_ar: 'الرئيسية والإعلانات (app://announcements)', label_en: 'Home Announcements (app://announcements)' },
@@ -59,7 +85,31 @@ export default function StaffNotificationsClient() {
   const { language } = useLanguage();
   const isAr = language === 'ar';
 
-  // Form State
+  // Active Top-level Tab
+  const [activeTab, setActiveTab] = useState<'alerts' | 'send' | 'history'>('alerts');
+
+  // ==========================================
+  // Operational Alerts Tab State
+  // ==========================================
+  const [activityItems, setActivityItems] = useState<ActivityFeedItem[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityCategory, setActivityCategory] = useState<string>('ALL');
+  const [activitySearch, setActivitySearch] = useState<string>('');
+  const [counts, setCounts] = useState<{
+    total: number;
+    pending_topups: number;
+    pending_orders: number;
+    open_tickets: number;
+  }>({
+    total: 0,
+    pending_topups: 0,
+    pending_orders: 0,
+    open_tickets: 0,
+  });
+
+  // ==========================================
+  // Broadcast Form State
+  // ==========================================
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [deepLink, setDeepLink] = useState('');
@@ -76,7 +126,7 @@ export default function StaffNotificationsClient() {
   // Academic Years List
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
 
-  // Notifications History State
+  // History State
   const [history, setHistory] = useState<AdminNotification[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<string>('ALL');
@@ -86,6 +136,34 @@ export default function StaffNotificationsClient() {
   const [isSending, setIsSending] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Fetch Activity Feed & Counters
+  const fetchActivityFeed = useCallback(async () => {
+    setActivityLoading(true);
+    try {
+      const categoryParam = activityCategory !== 'ALL' ? `?category=${activityCategory}` : '';
+      const [feedRes, countRes]: [any, any] = await Promise.all([
+        staffApiClient.get(`/admin/notifications/activity-feed${categoryParam}`).catch(() => null),
+        staffApiClient.get('/admin/notifications/unread-count').catch(() => null),
+      ]);
+
+      if (feedRes && Array.isArray(feedRes.data)) {
+        setActivityItems(feedRes.data);
+      } else if (Array.isArray(feedRes)) {
+        setActivityItems(feedRes);
+      } else {
+        setActivityItems([]);
+      }
+
+      if (countRes && typeof countRes.total === 'number') {
+        setCounts(countRes);
+      }
+    } catch {
+      setActivityItems([]);
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [activityCategory]);
 
   // Fetch Academic Years from Canonical Backend Source
   const fetchAcademicYears = useCallback(async () => {
@@ -137,8 +215,9 @@ export default function StaffNotificationsClient() {
 
   useEffect(() => {
     fetchAcademicYears();
+    fetchActivityFeed();
     fetchHistory();
-  }, [fetchAcademicYears, fetchHistory]);
+  }, [fetchAcademicYears, fetchActivityFeed, fetchHistory]);
 
   // Student Autocomplete Search with Debounce
   useEffect(() => {
@@ -152,34 +231,13 @@ export default function StaffNotificationsClient() {
     const timer = setTimeout(async () => {
       setIsSearchingStudents(true);
       try {
-        let res: any = await staffApiClient
-          .get(`/admin/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=8`)
-          .catch(() => null);
-
-        if (!res) {
-          res = await staffApiClient
-            .get(`/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=8`)
-            .catch(() => null);
-        }
-
-        if (!res) {
-          res = await staffApiClient
-            .get(`/api/v1/admin/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=8`)
-            .catch(() => null);
-        }
-
-        const items = Array.isArray(res?.items) ? res.items : Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-        const mapped: StudentSearchResult[] = items.map((st: any) => ({
-          id: st.id,
-          full_name: st.full_name || st.fullName || st.name || 'طالب',
-          phone: st.phone || st.phoneNumber || '',
-          academic_year_name_ar: st.academic_year_name_ar || st.academicYearNameAr || st.academic_year?.name_ar || '',
-        }));
-
-        setStudentSearchResults(mapped);
-        setShowStudentDropdown(true);
+        const res: any = await staffApiClient.get(`/students?search=${encodeURIComponent(studentSearchQuery.trim())}&limit=5`).catch(() => null);
+        const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        setStudentSearchResults(list);
+        setShowStudentDropdown(list.length > 0);
       } catch {
         setStudentSearchResults([]);
+        setShowStudentDropdown(false);
       } finally {
         setIsSearchingStudents(false);
       }
@@ -188,388 +246,542 @@ export default function StaffNotificationsClient() {
     return () => clearTimeout(timer);
   }, [studentSearchQuery, targetType]);
 
-  const handleInitiateSend = (e: React.FormEvent) => {
+  // Handle Send Notification Submit
+  const handleOpenConfirm = (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessMessage(null);
     setErrorMessage(null);
 
     if (!title.trim()) {
-      setErrorMessage(isAr ? 'من فضلك أدخل عنوان الإشعار' : 'Please enter notification title');
+      setErrorMessage(isAr ? 'يرجى إدخال عنوان الإشعار' : 'Notification title is required');
       return;
     }
-
     if (!body.trim()) {
-      setErrorMessage(isAr ? 'من فضلك أدخل نص الإشعار' : 'Please enter notification message');
+      setErrorMessage(isAr ? 'يرجى إدخال نص رسالة الإشعار' : 'Notification body message is required');
       return;
     }
-
     if (targetType === 'ACADEMIC_YEAR' && !selectedAcademicYearId) {
-      setErrorMessage(isAr ? 'من فضلك اختر الصف الدراسي' : 'Please select academic year');
+      setErrorMessage(isAr ? 'يرجى اختيار المرحلة الدراسية المستهدفة' : 'Please select a target academic year');
       return;
     }
-
     if (targetType === 'STUDENT' && !selectedStudent) {
-      setErrorMessage(isAr ? 'من فضلك اختر الطالب المستهدف' : 'Please select target student');
+      setErrorMessage(isAr ? 'يرجى اختيار الطالب المستهدف من القائمة' : 'Please select a target student');
       return;
     }
 
-    if (targetType === 'ALL_STUDENTS' || targetType === 'ACADEMIC_YEAR') {
-      setIsConfirmModalOpen(true);
-    } else {
-      executeSendNotification();
-    }
+    setIsConfirmModalOpen(true);
   };
 
-  const executeSendNotification = async () => {
-    setIsConfirmModalOpen(false);
+  const handleExecuteSend = async () => {
     setIsSending(true);
-    setSuccessMessage(null);
     setErrorMessage(null);
-
-    const payload: any = {
-      title_ar: title.trim(),
-      title_en: title.trim(),
-      body_ar: body.trim(),
-      body_en: body.trim(),
-      target_type: targetType,
-      type: 'ANNOUNCEMENT',
-    };
-
-    if (deepLink) {
-      payload.deep_link = deepLink;
-    }
-
-    if (targetType === 'ACADEMIC_YEAR') {
-      payload.academic_year_id = selectedAcademicYearId;
-      payload.target_id = selectedAcademicYearId;
-    } else if (targetType === 'STUDENT' && selectedStudent) {
-      payload.student_id = selectedStudent.id;
-      payload.target_id = selectedStudent.id;
-    }
+    setSuccessMessage(null);
 
     try {
-      await staffApiClient.post('/admin/notifications', payload);
-      setSuccessMessage(isAr ? 'تم إرسال الإشعار بنجاح.' : 'Notification sent successfully.');
+      const payload: any = {
+        title_ar: title.trim(),
+        title_en: title.trim(),
+        body_ar: body.trim(),
+        body_en: body.trim(),
+        target_type: targetType,
+        deep_link: deepLink.trim() || undefined,
+      };
 
+      if (targetType === 'ACADEMIC_YEAR') {
+        payload.academic_year_id = selectedAcademicYearId;
+        payload.target_id = selectedAcademicYearId;
+      } else if (targetType === 'STUDENT') {
+        payload.student_id = selectedStudent?.id;
+        payload.target_id = selectedStudent?.id;
+      }
+
+      await staffApiClient.post('/admin/notifications', payload);
+
+      setSuccessMessage(
+        isAr ? 'تم إرسال وجدولة الإشعار الفوري بنجاح لكافة الأجهزة المستهدفة!' : 'Notification dispatched successfully!'
+      );
+      setIsConfirmModalOpen(false);
+
+      // Reset form
       setTitle('');
       setBody('');
       setDeepLink('');
       setSelectedStudent(null);
       setStudentSearchQuery('');
 
+      // Refresh list
       fetchHistory();
+      fetchActivityFeed();
     } catch (err: any) {
-      const msg = err?.message || err?.details?.message || (isAr ? 'حدث خطأ أثناء إرسال الإشعار.' : 'Failed to send notification.');
-      setErrorMessage(msg);
+      setErrorMessage(
+        err?.message || (isAr ? 'فشل إرسال الإشعار. يرجى المحاولة مجدداً.' : 'Failed to send notification.')
+      );
+      setIsConfirmModalOpen(false);
     } finally {
       setIsSending(false);
     }
   };
 
-  const getSelectedYearName = () => {
-    const y = academicYears.find((item) => item.id === selectedAcademicYearId);
-    return y ? (isAr ? y.name_ar : y.name_en) : (isAr ? 'الصف الدراسي المحدد' : 'Selected Academic Year');
-  };
-
-  const getTargetBadge = (item: AdminNotification) => {
-    switch (item.target_type) {
-      case 'ALL_STUDENTS':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-bold text-xs">
-            <Users className="w-3.5 h-3.5" /> {isAr ? 'جميع الطلاب' : 'All Students'}
-          </span>
-        );
-      case 'ACADEMIC_YEAR':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-600/40 text-emerald-400 font-bold text-xs">
-            <GraduationCap className="w-3.5 h-3.5" /> {isAr ? 'صف دراسي' : 'Academic Year'}
-          </span>
-        );
-      case 'STUDENT':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-900 border border-neutral-700 text-neutral-300 font-bold text-xs">
-            <UserCheck className="w-3.5 h-3.5 text-emerald-400" /> {isAr ? 'طالب معين' : 'Single Student'}
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 font-bold text-xs">
-            {item.target_type}
-          </span>
-        );
+  const formatTimeAgo = (dateStr: string) => {
+    try {
+      const diffMs = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diffMs / 60000);
+      if (mins < 1) return isAr ? 'الآن' : 'Just now';
+      if (mins < 60) return isAr ? `منذ ${mins} دقيقة` : `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return isAr ? `منذ ${hours} ساعة` : `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return isAr ? `منذ ${days} يوم` : `${days}d ago`;
+    } catch {
+      return '';
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'SENT':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-xs border border-emerald-500/30">
-            <CheckCircle2 className="w-3 h-3" /> {isAr ? 'مُرسل' : 'Sent'}
-          </span>
-        );
-      case 'PROCESSING':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 font-bold text-xs border border-amber-500/30">
-            <Clock className="w-3 h-3 animate-spin" /> {isAr ? 'قيد الإرسال' : 'Processing'}
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-neutral-800 text-neutral-400 font-bold text-xs">
-            {status}
-          </span>
-        );
-    }
-  };
+  const filteredActivity = activityItems.filter((item) => {
+    if (!activitySearch.trim()) return true;
+    const query = activitySearch.trim().toLowerCase();
+    return (
+      item.title_ar?.toLowerCase().includes(query) ||
+      item.body_ar?.toLowerCase().includes(query) ||
+      item.metadata?.student_name?.toLowerCase().includes(query) ||
+      item.metadata?.student_phone?.includes(query) ||
+      item.metadata?.order_number?.toLowerCase().includes(query) ||
+      item.metadata?.ticket_number?.toLowerCase().includes(query)
+    );
+  });
 
   return (
-    <div className="space-y-8 font-cairo text-neutral-100 max-w-6xl mx-auto pb-12">
-      {/* Header Banner */}
-      <div className="bg-[#09090b] border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 end-0 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="space-y-6">
+      {/* Toast Messages */}
+      {successMessage && (
+        <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-950/90 border border-emerald-800 p-4 text-emerald-200 text-xs font-bold animate-in fade-in">
+          <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+          <span>{successMessage}</span>
+          <button onClick={() => setSuccessMessage(null)} className="ms-auto text-emerald-400 hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-400 text-xs font-bold">
-              <Bell className="w-3.5 h-3.5" /> {isAr ? 'لوحة التحكم والعمليات' : 'Admin Operations Panel'}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {isAr ? 'الإشعارات' : 'Notifications'}
+      {errorMessage && (
+        <div className="flex items-center gap-2.5 rounded-2xl bg-rose-950/90 border border-rose-800 p-4 text-rose-200 text-xs font-bold animate-in fade-in">
+          <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+          <span>{errorMessage}</span>
+          <button onClick={() => setErrorMessage(null)} className="ms-auto text-rose-400 hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-950/90 border border-emerald-800/80 text-emerald-400 shadow-sm">
+            <Bell className="h-6 w-6" />
+          </div>
+          <div>
+            <h1 className="text-lg sm:text-xl font-extrabold text-white">
+              {isAr ? 'مركز الإشعارات والطلبات' : 'Notifications & Alerts Center'}
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-400 max-w-2xl leading-relaxed">
-              {isAr ? 'إرسال الإشعارات المباشرة لجميع الطلاب أو لصف دراسي معين أو لطالب محدد.' : 'Send direct notifications to all students, a specific academic year, or an individual student.'}
+            <p className="text-xs text-neutral-400">
+              {isAr
+                ? 'متابعة طلبات شحن المحفظة، طلبات الكتب، الدعم الفني، وإرسال تنبيهات فورية'
+                : 'Monitor top-ups, book orders, support requests, and send push notifications'}
             </p>
           </div>
+        </div>
 
-          <button
-            onClick={() => {
-              fetchAcademicYears();
-              fetchHistory();
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-xl text-xs font-bold text-neutral-300 transition-colors shrink-0"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loadingHistory ? 'animate-spin' : ''}`} />
-            {isAr ? 'تحديث البيانات' : 'Refresh'}
-          </button>
+        <button
+          type="button"
+          onClick={() => {
+            fetchActivityFeed();
+            fetchHistory();
+          }}
+          disabled={activityLoading || loadingHistory}
+          className="inline-flex items-center gap-2 rounded-xl border border-neutral-800 bg-[#121713] px-3.5 py-2 text-xs font-bold text-neutral-200 hover:bg-neutral-800 hover:border-emerald-700 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 text-emerald-400 ${activityLoading || loadingHistory ? 'animate-spin' : ''}`} />
+          <span>{isAr ? 'تحديث البيانات' : 'Refresh'}</span>
+        </button>
+      </div>
+
+      {/* Stats Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <div
+          onClick={() => {
+            setActiveTab('alerts');
+            setActivityCategory('WALLET_TOPUP');
+          }}
+          className="cursor-pointer rounded-2xl border border-neutral-800 bg-[#101511] p-4 hover:border-amber-700/60 transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-neutral-400">{isAr ? 'طلبات شحن المحفظة' : 'Topup Requests'}</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-950/70 border border-amber-800/60 text-amber-400">
+              <Wallet className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-black text-amber-400">{counts.pending_topups}</span>
+            <span className="text-[11px] font-bold text-neutral-500">{isAr ? 'طلب معلق' : 'pending'}</span>
+          </div>
+        </div>
+
+        <div
+          onClick={() => {
+            setActiveTab('alerts');
+            setActivityCategory('BOOK_ORDER');
+          }}
+          className="cursor-pointer rounded-2xl border border-neutral-800 bg-[#101511] p-4 hover:border-emerald-700/60 transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-neutral-400">{isAr ? 'طلبات الكتب والمتجر' : 'Book Orders'}</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-950/70 border border-emerald-800/60 text-emerald-400">
+              <BookOpen className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-black text-emerald-400">{counts.pending_orders}</span>
+            <span className="text-[11px] font-bold text-neutral-500">{isAr ? 'طلب جديد' : 'new orders'}</span>
+          </div>
+        </div>
+
+        <div
+          onClick={() => {
+            setActiveTab('alerts');
+            setActivityCategory('SUPPORT_TICKET');
+          }}
+          className="cursor-pointer rounded-2xl border border-neutral-800 bg-[#101511] p-4 hover:border-cyan-700/60 transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-neutral-400">{isAr ? 'تذاكر الدعم الفني' : 'Support Tickets'}</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-950/70 border border-cyan-800/60 text-cyan-400">
+              <Headset className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-black text-cyan-400">{counts.open_tickets}</span>
+            <span className="text-[11px] font-bold text-neutral-500">{isAr ? 'تذكرة مفتوحة' : 'open tickets'}</span>
+          </div>
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Create Form */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-[#09090b] border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-            <div className="flex items-center justify-between border-b border-neutral-800/80 pb-4">
-              <h2 className="text-lg font-black text-white flex items-center gap-2">
-                <Send className="w-5 h-5 text-emerald-500" />
-                {isAr ? 'إنشاء إشعار جديد' : 'Create New Notification'}
-              </h2>
+      {/* Main Tab Navigation */}
+      <div className="flex items-center gap-2 border-b border-neutral-800 pb-3">
+        <button
+          type="button"
+          onClick={() => setActiveTab('alerts')}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+            activeTab === 'alerts'
+              ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 shadow-sm'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
+          }`}
+        >
+          <Bell className="h-4 w-4 text-emerald-400" />
+          <span>{isAr ? 'تنبيهات العمليات والطلبات' : 'Operational Activity'}</span>
+          {counts.total > 0 && (
+            <span className="rounded-full bg-rose-600 px-1.5 py-0.2 text-[10px] font-black text-white">
+              {counts.total}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('send')}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+            activeTab === 'send'
+              ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 shadow-sm'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
+          }`}
+        >
+          <Send className="h-4 w-4 text-emerald-400" />
+          <span>{isAr ? 'إرسال إشعار فوري للطلاب' : 'Send Push Notification'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('history')}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
+            activeTab === 'history'
+              ? 'bg-emerald-950 text-emerald-300 border border-emerald-800 shadow-sm'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-850'
+          }`}
+        >
+          <Clock className="h-4 w-4 text-emerald-400" />
+          <span>{isAr ? 'سجل الإشعارات المرسلة' : 'Sent History'}</span>
+          <span className="rounded-full bg-neutral-800 px-1.5 py-0.2 text-[10px] text-neutral-400">
+            {history.length}
+          </span>
+        </button>
+      </div>
+
+      {/* ======================================================== */}
+      {/* TAB 1: OPERATIONAL ACTIVITY & REQUESTS                   */}
+      {/* ======================================================== */}
+      {activeTab === 'alerts' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          {/* Filter Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl border border-neutral-800 bg-[#101511]">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { key: 'ALL', label_ar: 'الكل', label_en: 'All' },
+                { key: 'WALLET_TOPUP', label_ar: 'شحن المحفظة', label_en: 'Top-ups' },
+                { key: 'BOOK_ORDER', label_ar: 'طلبات الكتب', label_en: 'Book Orders' },
+                { key: 'SUPPORT_TICKET', label_ar: 'الدعم الفني', label_en: 'Support' },
+                { key: 'SYSTEM', label_ar: 'تنبيهات النظام', label_en: 'System' },
+              ].map((cat) => (
+                <button
+                  key={cat.key}
+                  type="button"
+                  onClick={() => setActivityCategory(cat.key)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
+                    activityCategory === cat.key
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'
+                  }`}
+                >
+                  {isAr ? cat.label_ar : cat.label_en}
+                </button>
+              ))}
             </div>
 
-            {successMessage && (
-              <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-600/60 text-emerald-200 text-xs font-bold flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <span>{successMessage}</span>
-              </div>
-            )}
+            <div className="relative min-w-[200px] flex-1 sm:flex-initial">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+              <input
+                type="text"
+                value={activitySearch}
+                onChange={(e) => setActivitySearch(e.target.value)}
+                placeholder={isAr ? 'بحث في التنبيهات...' : 'Search alerts...'}
+                className="w-full rounded-xl border border-neutral-800 bg-neutral-900 ps-9 pe-3 py-1.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
 
-            {errorMessage && (
-              <div className="p-4 rounded-2xl bg-red-950/80 border border-red-800 text-red-200 text-xs font-bold flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
+          {/* Activity Cards List */}
+          {activityLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 text-neutral-400 gap-2">
+              <RefreshCw className="h-6 w-6 animate-spin text-emerald-400" />
+              <span className="text-xs font-bold">{isAr ? 'جاري جلب آخر التنبيهات والطلبات...' : 'Loading activity feed...'}</span>
+            </div>
+          ) : filteredActivity.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 rounded-3xl border border-neutral-800 bg-[#0e120f] text-neutral-400 gap-2 text-center p-6">
+              <CheckCircle2 className="h-10 w-10 text-emerald-500/50" />
+              <p className="text-sm font-bold text-white">{isAr ? 'لا توجد تنبيهات تطابق البحث' : 'No alerts found'}</p>
+              <p className="text-xs text-neutral-500 max-w-sm">
+                {isAr
+                  ? 'كافة طلبات شحن الرصيد والكتب والرسائل تم التعامل معها ولا توجد طلبات معلقة حالياً.'
+                  : 'All operational requests have been processed.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {filteredActivity.map((item) => {
+                const title = isAr ? item.title_ar : item.title_en || item.title_ar;
+                const body = isAr ? item.body_ar : item.body_en || item.body_ar;
 
-            <form onSubmit={handleInitiateSend} className="space-y-5">
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-neutral-300">
-                  {isAr ? 'عنوان الإشعار' : 'Notification Title'} <span className="text-emerald-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder={isAr ? 'عنوان الإشعار...' : 'Notification title...'}
-                  maxLength={255}
-                  required
-                  className="w-full h-12 px-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-neutral-300">
-                  {isAr ? 'نص الإشعار' : 'Notification Message'} <span className="text-emerald-500">*</span>
-                </label>
-                <textarea
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  placeholder={isAr ? 'محتوى الإشعار...' : 'Notification content...'}
-                  rows={4}
-                  required
-                  className="w-full p-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-neutral-300">
-                  {isAr ? 'رابط سريع داخل التطبيق (اختياري)' : 'Deep Link (Optional)'}
-                </label>
-                <select
-                  value={deepLink}
-                  onChange={(e) => setDeepLink(e.target.value)}
-                  className="w-full h-12 px-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-sm text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
-                >
-                  {DEEP_LINK_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value} className="bg-neutral-900 text-white">
-                      {isAr ? opt.label_ar : opt.label_en}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-3 pt-2 border-t border-neutral-800/80">
-                <label className="block text-xs font-bold text-neutral-300">
-                  {isAr ? 'إرسال إلى' : 'Target Audience'} <span className="text-emerald-500">*</span>
-                </label>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <label
-                    onClick={() => setTargetType('ALL_STUDENTS')}
-                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
-                      targetType === 'ALL_STUDENTS'
-                        ? 'bg-emerald-950/60 border-emerald-500 text-white'
-                        : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                return (
+                  <div
+                    key={item.id}
+                    className={`rounded-2xl border p-4 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                      item.is_actionable
+                        ? 'border-amber-800/60 bg-amber-950/10 hover:border-amber-700'
+                        : 'border-neutral-800 bg-[#0e120f] hover:border-neutral-700'
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="targetType"
-                      checked={targetType === 'ALL_STUDENTS'}
-                      onChange={() => setTargetType('ALL_STUDENTS')}
-                      className="accent-emerald-500 w-4 h-4"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-extrabold text-white flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-emerald-400" /> {isAr ? 'جميع الطلاب' : 'All Students'}
-                      </span>
-                    </div>
-                  </label>
+                    <div className="flex items-start gap-3.5">
+                      <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-xs mt-0.5 ${
+                          item.category === 'WALLET_TOPUP'
+                            ? 'bg-amber-950/80 border-amber-800/80 text-amber-400'
+                            : item.category === 'BOOK_ORDER'
+                            ? 'bg-emerald-950/80 border-emerald-800/80 text-emerald-400'
+                            : item.category === 'SUPPORT_TICKET'
+                            ? 'bg-cyan-950/80 border-cyan-800/80 text-cyan-400'
+                            : 'bg-indigo-950/80 border-indigo-800/80 text-indigo-400'
+                        }`}
+                      >
+                        {item.category === 'WALLET_TOPUP' && <Wallet className="h-5 w-5" />}
+                        {item.category === 'BOOK_ORDER' && <BookOpen className="h-5 w-5" />}
+                        {item.category === 'SUPPORT_TICKET' && <Headset className="h-5 w-5" />}
+                        {item.category === 'SYSTEM' && <Info className="h-5 w-5" />}
+                      </div>
 
-                  <label
-                    onClick={() => setTargetType('ACADEMIC_YEAR')}
-                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
-                      targetType === 'ACADEMIC_YEAR'
-                        ? 'bg-emerald-950/60 border-emerald-500 text-white'
-                        : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="targetType"
-                      checked={targetType === 'ACADEMIC_YEAR'}
-                      onChange={() => setTargetType('ACADEMIC_YEAR')}
-                      className="accent-emerald-500 w-4 h-4"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-extrabold text-white flex items-center gap-1.5">
-                        <GraduationCap className="w-3.5 h-3.5 text-emerald-400" /> {isAr ? 'صف دراسي معين' : 'Academic Year'}
-                      </span>
-                    </div>
-                  </label>
-
-                  <label
-                    onClick={() => setTargetType('STUDENT')}
-                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
-                      targetType === 'STUDENT'
-                        ? 'bg-emerald-950/60 border-emerald-500 text-white'
-                        : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="targetType"
-                      checked={targetType === 'STUDENT'}
-                      onChange={() => setTargetType('STUDENT')}
-                      className="accent-emerald-500 w-4 h-4"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-extrabold text-white flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5 text-emerald-400" /> {isAr ? 'طالب معين' : 'Specific Student'}
-                      </span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {targetType === 'ACADEMIC_YEAR' && (
-                <div className="space-y-2 pt-2">
-                  <label className="block text-xs font-bold text-neutral-300">
-                    {isAr ? 'اختر الصف الدراسي' : 'Select Academic Year'} <span className="text-emerald-500">*</span>
-                  </label>
-                  <select
-                    value={selectedAcademicYearId}
-                    onChange={(e) => setSelectedAcademicYearId(e.target.value)}
-                    className="w-full h-12 px-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
-                  >
-                    {academicYears.map((ay) => (
-                      <option key={ay.id} value={ay.id} className="bg-neutral-900 text-white">
-                        {isAr ? ay.name_ar : ay.name_en}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {targetType === 'STUDENT' && (
-                <div className="space-y-2 pt-2 relative">
-                  <label className="block text-xs font-bold text-neutral-300">
-                    {isAr ? 'ابحث عن الطالب' : 'Search Student'} <span className="text-emerald-500">*</span>
-                  </label>
-
-                  {selectedStudent ? (
-                    <div className="p-4 rounded-2xl bg-neutral-900 border border-emerald-500/50 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-700 text-emerald-400 font-bold text-sm flex items-center justify-center">
-                          {selectedStudent.full_name.charAt(0)}
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-xs sm:text-sm font-bold text-white">{title}</h3>
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                              item.status === 'PENDING' || item.status === 'OPEN'
+                                ? 'bg-amber-950 text-amber-300 border border-amber-800/80'
+                                : item.status === 'APPROVED' || item.status === 'SHIPPED'
+                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/80'
+                                : 'bg-neutral-800 text-neutral-400'
+                            }`}
+                          >
+                            {item.status}
+                          </span>
                         </div>
-                        <div>
-                          <p className="text-sm font-extrabold text-white">{selectedStudent.full_name}</p>
-                          <p className="text-xs text-neutral-400">
-                            {selectedStudent.academic_year_name_ar} • {selectedStudent.phone}
-                          </p>
+
+                        <p className="text-xs text-neutral-300 leading-relaxed max-w-2xl">{body}</p>
+
+                        <div className="flex items-center gap-3 text-[10px] text-neutral-500 pt-0.5">
+                          <span className="flex items-center gap-1 font-mono">
+                            <Clock className="h-3 w-3" />
+                            {formatTimeAgo(item.created_at)}
+                          </span>
+
+                          {item.metadata?.student_phone && (
+                            <span className="font-mono text-neutral-400">{item.metadata.student_phone}</span>
+                          )}
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedStudent(null);
-                          setStudentSearchQuery('');
-                        }}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
                     </div>
-                  ) : (
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={studentSearchQuery}
-                        onChange={(e) => setStudentSearchQuery(e.target.value)}
-                        placeholder={isAr ? 'ابحث باسم الطالب أو رقم الهاتف...' : 'Search by student name or phone...'}
-                        className="w-full h-12 ps-11 pe-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors"
-                      />
-                      <Search className="w-4 h-4 text-neutral-500 absolute start-4 top-1/2 -translate-y-1/2" />
 
-                      {showStudentDropdown && (
-                        <div className="absolute top-full start-0 end-0 mt-2 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden z-30 max-h-60 overflow-y-auto">
-                          {isSearchingStudents ? (
-                            <div className="p-4 text-xs text-neutral-400 text-center flex items-center justify-center gap-2">
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" /> {isAr ? 'جاري البحث...' : 'Searching...'}
-                            </div>
-                          ) : studentSearchResults.length > 0 ? (
-                            studentSearchResults.map((st) => (
+                    {/* Direct Action Link Button */}
+                    <div className="w-full sm:w-auto shrink-0 flex items-center justify-end">
+                      <Link
+                        href={item.deep_link || '/staff'}
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-all w-full sm:w-auto ${
+                          item.is_actionable
+                            ? 'bg-amber-600 hover:bg-amber-500 text-black shadow-sm font-black'
+                            : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-200'
+                        }`}
+                      >
+                        <span>
+                          {item.category === 'WALLET_TOPUP'
+                            ? isAr ? 'مراجعة طلب الشحن' : 'Review Top-up'
+                            : item.category === 'BOOK_ORDER'
+                            ? isAr ? 'متابعة طلب الكتب' : 'View Order'
+                            : item.category === 'SUPPORT_TICKET'
+                            ? isAr ? 'الرد على التذكرة' : 'Reply Ticket'
+                            : isAr ? 'فتح القسم' : 'View Section'}
+                        </span>
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 2: BROADCAST & SEND PUSH NOTIFICATIONS               */}
+      {/* ======================================================== */}
+      {activeTab === 'send' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-200">
+          {/* Left: Broadcast Form */}
+          <div className="lg:col-span-7 space-y-5">
+            <div className="rounded-3xl border border-neutral-800 bg-[#0e120f] p-6 shadow-sm">
+              <form onSubmit={handleOpenConfirm} className="space-y-4">
+                {/* Target Audience Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-2">
+                    {isAr ? 'الجمهور المستهدف بالإشعار:' : 'Target Audience:'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTargetType('ALL_STUDENTS')}
+                      className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border text-xs font-bold transition-all ${
+                        targetType === 'ALL_STUDENTS'
+                          ? 'border-emerald-600 bg-emerald-950/70 text-emerald-300 shadow-xs'
+                          : 'border-neutral-800 bg-[#121713] text-neutral-400 hover:border-neutral-700'
+                      }`}
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>{isAr ? 'كافة الطلاب' : 'All Students'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTargetType('ACADEMIC_YEAR')}
+                      className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border text-xs font-bold transition-all ${
+                        targetType === 'ACADEMIC_YEAR'
+                          ? 'border-emerald-600 bg-emerald-950/70 text-emerald-300 shadow-xs'
+                          : 'border-neutral-800 bg-[#121713] text-neutral-400 hover:border-neutral-700'
+                      }`}
+                    >
+                      <GraduationCap className="h-4 w-4" />
+                      <span>{isAr ? 'مرحلة دراسية' : 'Academic Stage'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTargetType('STUDENT')}
+                      className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border text-xs font-bold transition-all ${
+                        targetType === 'STUDENT'
+                          ? 'border-emerald-600 bg-emerald-950/70 text-emerald-300 shadow-xs'
+                          : 'border-neutral-800 bg-[#121713] text-neutral-400 hover:border-neutral-700'
+                      }`}
+                    >
+                      <UserCheck className="h-4 w-4" />
+                      <span>{isAr ? 'طالب محدد' : 'Single Student'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-selectors */}
+                {targetType === 'ACADEMIC_YEAR' && (
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                      {isAr ? 'اختر المرحلة الدراسية المستهدفة:' : 'Select Academic Stage:'}
+                    </label>
+                    <select
+                      value={selectedAcademicYearId}
+                      onChange={(e) => setSelectedAcademicYearId(e.target.value)}
+                      className="w-full rounded-xl border border-neutral-800 bg-neutral-900 px-3.5 py-2.5 text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    >
+                      {academicYears.map((y) => (
+                        <option key={y.id} value={y.id}>
+                          {isAr ? y.name_ar : y.name_en}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {targetType === 'STUDENT' && (
+                  <div className="relative">
+                    <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                      {isAr ? 'البحث عن الطالب (بالاسم أو الهاتف):' : 'Search Student (Name/Phone):'}
+                    </label>
+
+                    {selectedStudent ? (
+                      <div className="flex items-center justify-between rounded-xl border border-emerald-800/80 bg-emerald-950/40 p-3 text-xs font-bold text-emerald-200">
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="h-4 w-4 text-emerald-400" />
+                          <span>{selectedStudent.full_name}</span>
+                          <span className="text-neutral-400 font-mono">({selectedStudent.phone})</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedStudent(null);
+                            setStudentSearchQuery('');
+                          }}
+                          className="text-neutral-400 hover:text-white"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="relative">
+                          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                          <input
+                            type="text"
+                            value={studentSearchQuery}
+                            onChange={(e) => setStudentSearchQuery(e.target.value)}
+                            placeholder={isAr ? 'اكتب اسم الطالب أو رقم الهاتف...' : 'Type name or phone...'}
+                            className="w-full rounded-xl border border-neutral-800 bg-neutral-900 ps-9 pe-3 py-2.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        {showStudentDropdown && (
+                          <div className="absolute top-full z-20 mt-1 w-full rounded-2xl border border-neutral-800 bg-[#121713] shadow-2xl overflow-hidden divide-y divide-neutral-800">
+                            {studentSearchResults.map((st) => (
                               <button
                                 key={st.id}
                                 type="button"
@@ -577,147 +789,221 @@ export default function StaffNotificationsClient() {
                                   setSelectedStudent(st);
                                   setShowStudentDropdown(false);
                                 }}
-                                className="w-full p-3 text-start hover:bg-neutral-800 border-b border-neutral-800/50 last:border-0 flex items-center justify-between transition-colors"
+                                className="w-full text-start p-3 hover:bg-neutral-800 transition-colors flex items-center justify-between text-xs"
                               >
-                                <div>
-                                  <p className="text-xs font-extrabold text-white">{st.full_name}</p>
-                                  <p className="text-[11px] text-neutral-400">{st.phone}</p>
-                                </div>
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-800 text-emerald-400 font-semibold">
-                                  {st.academic_year_name_ar}
-                                </span>
+                                <span className="font-bold text-white">{st.full_name}</span>
+                                <span className="font-mono text-neutral-400 text-[11px]">{st.phone}</span>
                               </button>
-                            ))
-                          ) : (
-                            <div className="p-4 text-xs text-neutral-400 text-center">{isAr ? 'لم يتم العثور على نتائج' : 'No results found'}</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={isSending}
-                  className="w-full h-13 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm rounded-2xl transition-all shadow-lg shadow-emerald-950/60 flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {isSending ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" /> {isAr ? 'جاري الإرسال...' : 'Sending...'}
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" /> {isAr ? 'إرسال الإشعار' : 'Send Notification'}
-                    </>
-                  )}
-                </button>
+                {/* Title */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    {isAr ? 'عنوان الإشعار:' : 'Notification Title:'}
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder={isAr ? 'مثال: تم رفع محاضرة المراجعة النهائية' : 'e.g. New Revision Lecture Available'}
+                    className="w-full rounded-xl border border-neutral-800 bg-neutral-900 px-3.5 py-2.5 text-xs font-medium text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Body */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    {isAr ? 'نص رسالة الإشعار والتفاصيل:' : 'Notification Message Body:'}
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    placeholder={isAr ? 'اكتب الرسالة التي ستظهر للطالب في الهاتف ولوحة التحكم...' : 'Write notification message...'}
+                    className="w-full rounded-xl border border-neutral-800 bg-neutral-900 px-3.5 py-2.5 text-xs font-medium text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+                  />
+                </div>
+
+                {/* Deep Link */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    {isAr ? 'الرابط السريع المرفق (Deep Link):' : 'Action Deep Link (Optional):'}
+                  </label>
+                  <select
+                    value={deepLink}
+                    onChange={(e) => setDeepLink(e.target.value)}
+                    className="w-full rounded-xl border border-neutral-800 bg-neutral-900 px-3.5 py-2.5 text-xs font-medium text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  >
+                    {DEEP_LINK_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {isAr ? opt.label_ar : opt.label_en}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Submit CTA */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 py-3 text-xs font-black text-white shadow-lg shadow-emerald-950/40 transition-all cursor-pointer"
+                  >
+                    <Send className="h-4 w-4" />
+                    <span>{isAr ? 'إرسال الإشعار الفوري الآن' : 'Dispatch Notification'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Right: Live Push Preview */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="sticky top-20 rounded-3xl border border-neutral-800 bg-[#0e120f] p-6 shadow-sm">
+              <h3 className="text-xs font-bold text-neutral-400 mb-4 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <span>{isAr ? 'معاينة ظهور الإشعار في هاتف الطالب' : 'Mobile Notification Preview'}</span>
+              </h3>
+
+              {/* Mockup Mobile Push Notification Banner */}
+              <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 shadow-xl space-y-3">
+                <div className="flex items-center justify-between border-b border-neutral-900 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-5 w-5 items-center justify-center rounded bg-emerald-600 text-[10px] font-black text-white">
+                      OM
+                    </div>
+                    <span className="text-[11px] font-bold text-white">Mr. Omar Meckawy</span>
+                  </div>
+                  <span className="text-[10px] text-neutral-500 font-mono">Just now</span>
+                </div>
+
+                <div className="space-y-1">
+                  <h4 className="text-xs font-extrabold text-white">
+                    {title.trim() || (isAr ? 'عنوان الإشعار التجريبي' : 'Notification Title')}
+                  </h4>
+                  <p className="text-[11px] text-neutral-300 leading-relaxed">
+                    {body.trim() || (isAr ? 'هنا يظهر نص الإشعار الكامل وتفاصيل التنبيه الموجه للطلاب...' : 'Notification body message will appear here...')}
+                  </p>
+                </div>
+
+                {deepLink && (
+                  <div className="pt-2 border-t border-neutral-900/80 flex items-center justify-between text-[10px] text-emerald-400 font-bold">
+                    <span>{isAr ? 'الرابط السريع:' : 'Action Link:'}</span>
+                    <span className="font-mono bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-900">
+                      {deepLink}
+                    </span>
+                  </div>
+                )}
               </div>
-            </form>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* History Table */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-[#09090b] border border-neutral-800 rounded-3xl p-6 shadow-xl space-y-5">
-            <div className="flex items-center justify-between border-b border-neutral-800/80 pb-4">
-              <h2 className="text-base font-black text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-emerald-500" />
-                {isAr ? 'سجل الإشعارات' : 'Notification History'}
-              </h2>
-
+      {/* ======================================================== */}
+      {/* TAB 3: BROADCAST HISTORY                                 */}
+      {/* ======================================================== */}
+      {activeTab === 'history' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between p-3 rounded-2xl border border-neutral-800 bg-[#101511]">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-neutral-400">{isAr ? 'فلترة حسب الجمهور:' : 'Filter Audience:'}</span>
               <select
                 value={historyFilter}
                 onChange={(e) => setHistoryFilter(e.target.value)}
-                className="bg-neutral-900 border border-neutral-800 rounded-xl px-2.5 py-1 text-xs text-neutral-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                className="rounded-xl border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white focus:outline-none"
               >
                 <option value="ALL">{isAr ? 'الكل' : 'All'}</option>
-                <option value="ALL_STUDENTS">{isAr ? 'جميع الطلاب' : 'All Students'}</option>
-                <option value="ACADEMIC_YEAR">{isAr ? 'صف دراسي' : 'Academic Year'}</option>
-                <option value="STUDENT">{isAr ? 'طالب معين' : 'Single Student'}</option>
+                <option value="ALL_STUDENTS">{isAr ? 'كافة الطلاب' : 'All Students'}</option>
+                <option value="ACADEMIC_YEAR">{isAr ? 'مرحلة دراسية' : 'Academic Stage'}</option>
+                <option value="STUDENT">{isAr ? 'طالب محدد' : 'Single Student'}</option>
               </select>
             </div>
+          </div>
 
-            {loadingHistory ? (
-              <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-20 bg-neutral-900 rounded-2xl animate-pulse border border-neutral-800/60" />
-                ))}
-              </div>
-            ) : history.length > 0 ? (
-              <div className="space-y-3.5 max-h-[580px] overflow-y-auto pe-1 scrollbar-thin">
-                {history.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-800/80 space-y-2 hover:border-neutral-700 transition-colors"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      {getTargetBadge(item)}
-                      {getStatusBadge(item.status)}
+          {loadingHistory ? (
+            <div className="flex flex-col items-center justify-center py-16 text-neutral-400 gap-2">
+              <RefreshCw className="h-6 w-6 animate-spin text-emerald-400" />
+              <span className="text-xs font-bold">{isAr ? 'جاري تحميل سجل الإشعارات...' : 'Loading history...'}</span>
+            </div>
+          ) : history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 rounded-3xl border border-neutral-800 bg-[#0e120f] text-neutral-400 gap-2 text-center p-6">
+              <Clock className="h-10 w-10 text-neutral-600" />
+              <p className="text-sm font-bold text-white">{isAr ? 'لا يوجد سجل إشعارات مرسلة' : 'No sent notifications'}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {history.map((n) => (
+                <div key={n.id} className="rounded-2xl border border-neutral-800 bg-[#0e120f] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs sm:text-sm font-bold text-white">{n.title_ar}</h3>
+                      <span className="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-950 text-emerald-300 border border-emerald-800">
+                        {n.status}
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-neutral-800 text-neutral-400">
+                        {n.target_type}
+                      </span>
                     </div>
 
-                    <div>
-                      <h3 className="text-xs font-extrabold text-white">{item.title_ar || item.title_en}</h3>
-                      <p className="text-[11px] text-neutral-400 line-clamp-2 mt-0.5 leading-relaxed">
-                        {item.body_ar || item.body_en}
-                      </p>
-                    </div>
+                    <p className="text-xs text-neutral-300 max-w-2xl">{n.body_ar}</p>
 
-                    <div className="pt-2 border-t border-neutral-800/50 flex items-center justify-between text-[10px] text-neutral-500">
-                      <span>{new Date(item.created_at).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</span>
-                      <span>{item.creator_name || (isAr ? 'السيرفر/النظام' : 'System')}</span>
+                    <div className="flex items-center gap-3 text-[10px] text-neutral-500 pt-1">
+                      <span className="flex items-center gap-1 font-mono">
+                        <Clock className="h-3 w-3" />
+                        {new Date(n.created_at).toLocaleString('ar-EG')}
+                      </span>
+                      {n.creator_name && <span>بواسطة: {n.creator_name}</span>}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center text-neutral-500 space-y-2 border border-dashed border-neutral-800 rounded-2xl">
-                <Bell className="w-8 h-8 text-neutral-600 mx-auto" />
-                <p className="text-xs font-bold">{isAr ? 'لا يوجد سجل إشعارات حالياً' : 'No notifications history'}</p>
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Confirmation Modal */}
       {isConfirmModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-          <div className="bg-[#09090b] border border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-5 shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-950 border border-emerald-700 text-emerald-400 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-md rounded-3xl border border-neutral-800 bg-[#121713] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800">
+                <Send className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">{isAr ? 'تأكيد إرسال الإشعار الفوري' : 'Confirm Dispatch'}</h3>
+                <p className="text-xs text-neutral-400">{isAr ? 'سيصل التنبيه لكافة الطلاب المستهدفين فوراً' : 'Will be pushed to all targets'}</p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="text-lg font-black text-white">{isAr ? 'تأكيد إرسال الإشعار' : 'Confirm Notification'}</h3>
-              <p className="text-xs text-neutral-300 leading-relaxed">
-                {targetType === 'ALL_STUDENTS'
-                  ? (isAr ? 'سيتم إرسال هذا الإشعار إلى جميع الطلاب في المنصة. هل تريد المتابعة؟' : 'This notification will be sent to all students. Proceed?')
-                  : (isAr ? `سيتم إرسال هذا الإشعار إلى جميع طلاب (${getSelectedYearName()}). هل تريد المتابعة؟` : `This notification will be sent to all students in ${getSelectedYearName()}. Proceed?`)}
-              </p>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-400 space-y-1">
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-3.5 space-y-2 text-xs">
               <p className="font-bold text-white">{title}</p>
-              <p className="line-clamp-2">{body}</p>
+              <p className="text-neutral-300 text-[11px] leading-relaxed">{body}</p>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={executeSendNotification}
-                className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl transition-all shadow-md"
-              >
-                {isAr ? 'تأكيد الإرسال' : 'Confirm Send'}
-              </button>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setIsConfirmModalOpen(false)}
-                className="px-4 h-11 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 font-bold text-xs rounded-xl transition-colors"
+                disabled={isSending}
+                className="rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-2 text-xs font-bold text-neutral-300 hover:bg-neutral-800"
               >
                 {isAr ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteSend}
+                disabled={isSending}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-xs font-bold text-white hover:bg-emerald-500 shadow-md disabled:opacity-50"
+              >
+                {isSending && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+                <span>{isSending ? (isAr ? 'جاري الإرسال...' : 'Sending...') : (isAr ? 'تأكيد وإرسال' : 'Confirm & Send')}</span>
               </button>
             </div>
           </div>
