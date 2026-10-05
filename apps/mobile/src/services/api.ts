@@ -1,8 +1,18 @@
 import { API_BASE_URL } from '@omar-makawy/shared';
 
+const PRODUCTION_API_URL = 'https://api.omarmeckawy.com/api/v1';
+
 class MobileApiClient {
-  private baseUrl: string = API_BASE_URL || 'http://localhost:3000';
+  private baseUrl: string = (
+    (typeof process !== 'undefined' && (process.env as any)?.EXPO_PUBLIC_API_URL) ||
+    (API_BASE_URL && !API_BASE_URL.includes('localhost') ? API_BASE_URL : PRODUCTION_API_URL)
+  ).replace(/\/+$/, '');
   private token: string | null = null;
+
+  private formatUrl(endpoint: string): string {
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `${this.baseUrl}${cleanEndpoint}`;
+  }
 
   setToken(token: string | null) {
     this.token = token;
@@ -26,7 +36,7 @@ class MobileApiClient {
   }
 
   async get<T = any>(endpoint: string): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+    const res = await fetch(this.formatUrl(endpoint), {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -40,7 +50,7 @@ class MobileApiClient {
   }
 
   async post<T = any>(endpoint: string, body?: any): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+    const res = await fetch(this.formatUrl(endpoint), {
       method: 'POST',
       headers: this.getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -55,7 +65,7 @@ class MobileApiClient {
   }
 
   async patch<T = any>(endpoint: string, body?: any): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+    const res = await fetch(this.formatUrl(endpoint), {
       method: 'PATCH',
       headers: this.getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
@@ -70,7 +80,7 @@ class MobileApiClient {
   }
 
   async delete<T = any>(endpoint: string): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+    const res = await fetch(this.formatUrl(endpoint), {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
