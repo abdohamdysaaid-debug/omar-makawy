@@ -135,6 +135,8 @@ export function AdminSidebar({
         { key: 'nav.audit_logs', href: '/admin/audit-logs', icon: ClipboardList },
         { key: 'nav.security_events', href: '/admin/security-events', icon: Shield },
         { key: 'nav.settings', href: '/admin/settings', icon: Settings },
+        { key: 'nav.contact', href: '/admin/contact', icon: Smartphone },
+        { key: 'nav.exams', href: '/admin/exams', icon: GraduationCap },
       ],
     },
   ];

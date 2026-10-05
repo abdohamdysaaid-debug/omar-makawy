@@ -18,10 +18,13 @@ export default function ExamsPage() {
     let isMounted = true;
 
     async function fetchExams() {
-      setLoading(true);
       try {
-        const queryParams = academicYearId ? `?academicYearId=${academicYearId}` : '';
-        const res = await apiClient.get<any[]>(`/exams${queryParams}`).catch(() => []);
+        setLoading(true);
+        const params = new URLSearchParams();
+        params.set('show_in_student_menu', 'true');
+        if (academicYearId) params.set('academic_year_id', String(academicYearId));
+
+        const res = await apiClient.get<any[]>(`/exams?${params.toString()}`).catch(() => []);
         if (isMounted) {
           if (Array.isArray(res) && res.length > 0) {
             setExams(res);

@@ -1,4 +1,4 @@
-import { LayoutDashboard, BookOpen, Package, Video, Users, Settings, Ticket, Wallet, Bell, Headset, Share2 } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Package, Video, Users, Settings, Ticket, Wallet, Bell, Headset, Share2, GraduationCap } from 'lucide-react';
 import { SystemPermissions, SystemPermissionCode, UserRole } from '@omar-makawy/shared';
 
 export interface NavItemConfig {
@@ -80,6 +80,12 @@ export const STAFF_NAVIGATION_SECTIONS: NavSectionConfig[] = [
         href: '/staff/contact',
         icon: Share2,
         permission: SystemPermissions.SETTINGS_READ,
+      },
+      {
+        key: 'nav.exams',
+        href: '/staff/exams',
+        icon: GraduationCap,
+        permission: SystemPermissions.LECTURES_READ,
       },
     ],
   },

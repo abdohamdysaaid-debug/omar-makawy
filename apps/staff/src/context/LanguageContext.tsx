@@ -41,6 +41,7 @@ export const translations: Translations = {
   'nav.notifications': { ar: 'الإشعارات والتنبيهات', en: 'Notifications' },
   'nav.support': { ar: 'خدمة العملاء', en: 'Customer Service' },
   'nav.contact': { ar: 'السوشيال ميديا والتواصل', en: 'Social Media & Contact' },
+  'nav.exams': { ar: 'الامتحانات والاختبارات', en: 'Exams & Quizzes' },
   'nav.analytics': { ar: 'التقارير والإحصائيات', en: 'Analytics' },
   'nav.administration': { ar: 'الإدارة والنظام', en: 'Administration' },
   'nav.supervisors': { ar: 'المشرفين والإدارة', en: 'Admins & Supervisors' },

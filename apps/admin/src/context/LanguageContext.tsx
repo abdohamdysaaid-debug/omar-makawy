@@ -45,6 +45,8 @@ export const translations: Translations = {
   'nav.audit_logs': { ar: 'سجل العمليات (Audit)', en: 'Audit Logs' },
   'nav.security_events': { ar: 'أحداث الأمان والحماية', en: 'Security Events' },
   'nav.settings': { ar: 'إعدادات المنصة', en: 'Platform Settings' },
+  'nav.contact': { ar: 'السوشيال ميديا والتواصل', en: 'Social Media & Contact' },
+  'nav.exams': { ar: 'الامتحانات والاختبارات', en: 'Exams & Quizzes' },
   'nav.profile': { ar: 'الملف الشخصي', en: 'My Profile' },
   'nav.logout': { ar: 'تسجيل الخروج', en: 'Sign Out' },
 
