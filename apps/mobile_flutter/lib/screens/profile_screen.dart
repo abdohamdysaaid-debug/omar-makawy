@@ -86,7 +86,6 @@ class ProfileScreen extends StatelessWidget {
                   _buildInfoRow(Icons.contact_phone_outlined, 'رقم ولي الأمر', user.parentMobileNumber!),
                 if (user?.governorate != null && user!.governorate!.isNotEmpty)
                   _buildInfoRow(Icons.location_city_outlined, 'المحافظة', user.governorate!),
-                _buildInfoRow(Icons.account_balance_wallet_outlined, 'رصيد المحفظة', '${user?.walletBalance ?? 0.0} ج.م'),
               ],
             ),
             const SizedBox(height: 16),

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../models/package_model.dart';
-import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../widgets/app_header.dart';
 import 'course_detail_screen.dart';
@@ -23,7 +21,6 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
   PackageModel? _package;
   bool _isLoading = true;
   String? _errorMessage;
-  bool _isPurchasing = false;
 
   @override
   void initState() {
@@ -52,63 +49,6 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
         _errorMessage = e.toString();
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _handlePurchase() async {
-    if (_package == null) return;
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('تأكيد الاشتراك في الباقة'),
-        content: Text(
-          'هل ترغب في الاشتراك في "${_package!.name}" بسعر ${_package!.discountPrice ?? _package!.price} ج.م من رصيد محفظتك؟',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('تأكيد وخصم الرصيد', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    setState(() => _isPurchasing = true);
-    try {
-      await _apiService.post(
-        '/purchases',
-        body: {
-          'item_type': 'PACKAGE',
-          'item_id': _package!.id,
-        },
-      );
-
-      await auth.refreshProfile();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم الاشتراك في الباقة بنجاح!'),
-          backgroundColor: AppColors.primary,
-        ),
-      );
-      _fetchPackageDetails();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isPurchasing = false);
     }
   }
 
@@ -234,55 +174,12 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
             ),
           const SizedBox(height: 16),
 
-          // Price & Buy
           if (!pkg.isEnrolled)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'سعر الباقة الشهرية',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${pkg.discountPrice ?? pkg.price} ج.م',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: _isPurchasing ? null : _handlePurchase,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: _isPurchasing
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text('اشترك الآن', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'هذا المحتوى متاح للحسابات التي لديها صلاحية وصول.',
+                style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
               ),
             ),
 

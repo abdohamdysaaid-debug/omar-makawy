@@ -229,14 +229,6 @@ class _PackagesScreenState extends State<PackagesScreen> {
                           ),
                         ],
                       ),
-                      Text(
-                        '${pkg.discountPrice ?? pkg.price} ج.م',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
                     ],
                   ),
                 ],

@@ -134,7 +134,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'تصفح الكورسات والباقات الشهرية المتاحة لسنتك الدراسية واشترك الآن للوصول إلى كافة المحاضرات والامتحانات.',
+                'تواصل مع الدعم إذا كنت بحاجة إلى تفعيل صلاحية الوصول للمحتوى الدراسي.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,

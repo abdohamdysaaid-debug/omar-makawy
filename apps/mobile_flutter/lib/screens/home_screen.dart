@@ -224,26 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Divider(color: Colors.white24, height: 28),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'رصيد المحفظة',
-                    style: TextStyle(fontSize: 12, color: Colors.white60),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${user?.walletBalance ?? "0.0"} ج.م',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
@@ -430,14 +412,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          '${pkg.discountPrice ?? pkg.price} ج.م',
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -519,22 +493,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Text(
-                              '${course.discountPrice ?? course.price} ج.م',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              '${course.lecturesCount} محاضرة',
-                              style: const TextStyle(fontSize: 11, color: Colors.grey),
-                            ),
-                          ],
+                        Text(
+                          '${course.lecturesCount} محاضرة',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey),
                         ),
                       ],
                     ),

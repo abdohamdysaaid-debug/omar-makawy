@@ -254,14 +254,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
                           ),
                         ],
                       ),
-                      Text(
-                        '${course.discountPrice ?? course.price} ج.م',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
                     ],
                   ),
                 ],
