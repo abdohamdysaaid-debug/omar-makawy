@@ -12,16 +12,26 @@ export default function MobileBottomNav() {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  const navItems = [
-    { label: t('bottomNav.home', 'الرئيسية'), icon: Home, href: '/' },
-    { label: t('bottomNav.packages', 'الباقات'), icon: Package, href: '/#packages' },
-    { label: t('bottomNav.courses', 'الكورسات'), icon: GraduationCap, href: '/#courses' },
-    { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: '/#books' },
-    { label: t('bottomNav.profile', 'حسابي'), icon: User, href: isAuthenticated ? '/profile' : '/login' },
-  ];
+  const isPublicHome = pathname === '/' && !isAuthenticated;
+
+  const navItems = isAuthenticated
+    ? [
+        { label: t('bottomNav.home', 'الرئيسية'), icon: Home, href: '/student' },
+        { label: t('bottomNav.packages', 'الباقات'), icon: Package, href: '/student/packages' },
+        { label: t('bottomNav.courses', 'الكورسات'), icon: GraduationCap, href: '/student/courses' },
+        { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: '/student/books' },
+        { label: t('bottomNav.profile', 'حسابي'), icon: User, href: '/student/profile' },
+      ]
+    : [
+        { label: t('bottomNav.home', 'الرئيسية'), icon: Home, href: '/' },
+        { label: t('bottomNav.packages', 'الباقات'), icon: Package, href: isPublicHome ? '/#packages' : '/packages' },
+        { label: t('bottomNav.courses', 'الكورسات'), icon: GraduationCap, href: isPublicHome ? '/#courses' : '/courses' },
+        { label: t('bottomNav.store', 'الكتب'), icon: BookOpen, href: isPublicHome ? '/#books' : '/bookstore' },
+        { label: t('bottomNav.profile', 'حسابي'), icon: User, href: '/login' },
+      ];
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith('/#')) {
+    if (href.startsWith('/#') && pathname === '/') {
       const targetId = href.replace('/#', '');
       const elem = document.getElementById(targetId);
       if (elem) {
@@ -36,7 +46,12 @@ export default function MobileBottomNav() {
     <div className="lg:hidden fixed bottom-3 start-3 end-3 z-40 max-w-lg mx-auto bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border border-stone-200/80 dark:border-stone-800 rounded-full shadow-2xl py-1.5 px-2 font-cairo transition-all">
       <div className="flex justify-between items-center h-12 px-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+          const isActive =
+            pathname === item.href ||
+            (item.href !== '/' &&
+              item.href !== '/student' &&
+              !item.href.startsWith('/#') &&
+              pathname.startsWith(item.href));
           const Icon = item.icon;
 
           return (
@@ -50,14 +65,20 @@ export default function MobileBottomNav() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-[#0d6e4f] dark:hover:text-emerald-400'
               }`}
             >
-              <div className={`transition-all duration-300 ${
-                isActive 
-                  ? 'w-8 h-8 rounded-full bg-[#0d6e4f] text-white flex items-center justify-center shadow-md shadow-[#0d6e4f]/30' 
-                  : 'p-1 text-gray-500 dark:text-gray-400'
-              }`}>
+              <div
+                className={`transition-all duration-300 ${
+                  isActive
+                    ? 'w-8 h-8 rounded-full bg-[#0d6e4f] text-white flex items-center justify-center shadow-md shadow-[#0d6e4f]/30'
+                    : 'p-1 text-gray-500 dark:text-gray-400'
+                }`}
+              >
                 <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-white' : ''}`} />
               </div>
-              <span className={`text-[10px] tracking-tight leading-tight ${isActive ? 'font-extrabold text-[#0d6e4f] dark:text-emerald-400' : 'font-semibold'}`}>
+              <span
+                className={`text-[10px] tracking-tight leading-tight ${
+                  isActive ? 'font-extrabold text-[#0d6e4f] dark:text-emerald-400' : 'font-semibold'
+                }`}
+              >
                 {item.label}
               </span>
             </Link>

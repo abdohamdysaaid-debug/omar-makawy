@@ -64,15 +64,22 @@ export default function Navbar() {
     }
   }, [isMobileMenuOpen]);
 
-  const navLinks = [
-    { name: t('nav.home', 'الرئيسية'), href: '/', icon: Home },
-    { name: t('nav.packages', 'الباقات'), href: '/#packages', icon: Package },
-    { name: t('nav.courses', 'الكورسات'), href: '/#courses', icon: Video },
-    { name: t('nav.books', 'الكتب'), href: '/#books', icon: BookOpen },
-  ];
+  const navLinks = isAuthenticated
+    ? [
+        { name: t('nav.home', 'الرئيسية'), href: '/student', icon: Home },
+        { name: t('nav.packages', 'الباقات'), href: '/student/packages', icon: Package },
+        { name: t('nav.courses', 'الكورسات'), href: '/student/courses', icon: Video },
+        { name: t('nav.books', 'الكتب'), href: '/student/books', icon: BookOpen },
+      ]
+    : [
+        { name: t('nav.home', 'الرئيسية'), href: '/', icon: Home },
+        { name: t('nav.packages', 'الباقات'), href: '/#packages', icon: Package },
+        { name: t('nav.courses', 'الكورسات'), href: '/#courses', icon: Video },
+        { name: t('nav.books', 'الكتب'), href: '/#books', icon: BookOpen },
+      ];
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith('/#')) {
+    if (href.startsWith('/#') && pathname === '/') {
       const targetId = href.replace('/#', '');
       const elem = document.getElementById(targetId);
       if (elem) {
