@@ -123,7 +123,7 @@ export default function FloatingAiWidget() {
       let reply = '';
       if (res.ok) {
         const data = await res.json();
-        reply = data.reply;
+        reply = data.data?.reply || data.reply || '';
       }
 
       if (!reply) {

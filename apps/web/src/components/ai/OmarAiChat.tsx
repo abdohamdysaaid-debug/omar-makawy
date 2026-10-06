@@ -218,7 +218,7 @@ export default function OmarAiChat() {
       let replyText = '';
       if (res.ok) {
         const data = await res.json();
-        replyText = data.reply;
+        replyText = data.data?.reply || data.reply || '';
       }
 
       if (!replyText) {
