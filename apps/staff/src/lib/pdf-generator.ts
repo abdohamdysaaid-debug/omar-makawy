@@ -1,5 +1,3 @@
-import { jsPDF } from 'jspdf';
-
 export interface PDFBatchInput {
   title: string;
   type: 'WALLET' | 'DISCOUNT';
@@ -21,7 +19,11 @@ export interface PDFBatchInput {
 /**
  * Generates and downloads a high-fidelity A4 PDF with stylish rectangular voucher cards (10 per page)
  */
-export function generateBatchPDF(batch: PDFBatchInput, filename?: string) {
+export async function generateBatchPDF(batch: PDFBatchInput, filename?: string) {
+  if (typeof window === 'undefined') return;
+
+  const { jsPDF } = await import('jspdf');
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
