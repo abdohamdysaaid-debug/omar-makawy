@@ -20,7 +20,6 @@ class MobileApiClient {
   private getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-Client-Platform': 'MOBILE_ANDROID',
     };
 
     if (this.token) {
