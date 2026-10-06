@@ -15,6 +15,8 @@ import { SPACING } from '../config/theme';
 import { useTheme } from '../context/ThemeContext';
 import { mobileApiClient, extractDataList } from '../services/api';
 
+const FlatListAny = FlatList as any;
+
 interface AcademicYearItem {
   id: string;
   title: string;
@@ -161,9 +163,9 @@ export default function PackagesScreen({ navigation }: any) {
       {loading ? (
         <ActivityIndicator color={theme.primary} size="large" style={{ marginTop: SPACING.xl }} />
       ) : (
-        <FlatList
+        <FlatListAny
           data={filteredPackages}
-          keyExtractor={(item) => String(item.id || Math.random())}
+          keyExtractor={(item: any) => String(item.id || Math.random())}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
@@ -177,7 +179,7 @@ export default function PackagesScreen({ navigation }: any) {
               </Text>
             </View>
           }
-          renderItem={({ item }) => {
+          renderItem={({ item }: { item: any }) => {
             const originalPrice = Number(item.original_price || item.price || 0);
             const price = Number(item.price || item.discounted_price || 0);
             const hasDiscount = originalPrice > price;

@@ -15,6 +15,8 @@ import { SPACING } from '../config/theme';
 import { useTheme } from '../context/ThemeContext';
 import { mobileApiClient, extractDataList } from '../services/api';
 
+const FlatListAny = FlatList as any;
+
 interface AcademicYearItem {
   id: string;
   title: string;
@@ -159,9 +161,9 @@ export default function CoursesScreen({ navigation }: any) {
       {loading ? (
         <ActivityIndicator color={theme.primary} size="large" style={{ marginTop: SPACING.xl }} />
       ) : (
-        <FlatList
+        <FlatListAny
           data={filteredCourses}
-          keyExtractor={(item) => String(item.id || Math.random())}
+          keyExtractor={(item: any) => String(item.id || Math.random())}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
@@ -175,7 +177,7 @@ export default function CoursesScreen({ navigation }: any) {
               </Text>
             </View>
           }
-          renderItem={({ item }) => {
+          renderItem={({ item }: { item: any }) => {
             const price = Number(item.price || 0);
             const lecturesCount = item.lectures_count || (Array.isArray(item.lectures) ? item.lectures.length : 0);
 

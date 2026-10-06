@@ -13,6 +13,8 @@ import { SPACING } from '../config/theme';
 import { useTheme } from '../context/ThemeContext';
 import { mobileApiClient } from '../services/api';
 
+const FlatListAny = FlatList as any;
+
 export default function NotificationsScreen() {
   const { theme } = useTheme();
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -59,9 +61,9 @@ export default function NotificationsScreen() {
       {loading ? (
         <ActivityIndicator color={theme.primary} size="large" style={{ marginTop: SPACING.xl }} />
       ) : (
-        <FlatList
+        <FlatListAny
           data={notifications}
-          keyExtractor={(item) => String(item.id || Math.random())}
+          keyExtractor={(item: any) => String(item.id || Math.random())}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
@@ -75,7 +77,7 @@ export default function NotificationsScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => {
+          renderItem={({ item }: { item: any }) => {
             const isUnread = !item.is_read;
             return (
               <View
