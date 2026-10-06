@@ -183,33 +183,61 @@ export default function OmarAiChat() {
 أرسل استفسارك وسأكون سعيداً بإجابتك فوراً! 🚀`;
   };
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim() || isTyping) return;
 
+    const currentQuery = inputText.trim();
     const userMsg: Message = {
       id: Date.now().toString(),
       sender: 'user',
-      text: inputText.trim(),
+      text: currentQuery,
       timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    const currentQuery = inputText;
     setInputText('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const aiReplyText = generateSmartAiResponse(currentQuery);
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: currentQuery,
+          history: messages.map((m) => ({ sender: m.sender, text: m.text })),
+        }),
+      });
+
+      let replyText = '';
+      if (res.ok) {
+        const data = await res.json();
+        replyText = data.reply;
+      }
+
+      if (!replyText) {
+        replyText = generateSmartAiResponse(currentQuery);
+      }
+
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: aiReplyText,
+        text: replyText,
         timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, aiMsg]);
+    } catch {
+      const fallbackText = generateSmartAiResponse(currentQuery);
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: fallbackText,
+        timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+    } finally {
       setIsTyping(false);
-    }, 900);
+    }
   };
 
   const handlePresetClick = (q: string) => {

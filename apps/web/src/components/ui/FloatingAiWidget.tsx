@@ -95,7 +95,7 @@ export default function FloatingAiWidget() {
     window.addEventListener('touchend', onTouchEnd);
   };
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isTyping) return;
 
@@ -104,11 +104,33 @@ export default function FloatingAiWidget() {
     setInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const reply = generateSmartAiResponse(userText);
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userText,
+          history: messages.map((m) => ({ sender: m.sender, text: m.text })),
+        }),
+      });
+
+      let reply = '';
+      if (res.ok) {
+        const data = await res.json();
+        reply = data.reply;
+      }
+
+      if (!reply) {
+        reply = generateSmartAiResponse(userText);
+      }
+
       setMessages((prev) => [...prev, { sender: 'ai', text: reply }]);
+    } catch {
+      const fallbackReply = generateSmartAiResponse(userText);
+      setMessages((prev) => [...prev, { sender: 'ai', text: fallbackReply }]);
+    } finally {
       setIsTyping(false);
-    }, 600);
+    }
   };
 
   const handleButtonClick = () => {
