@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
+import '../services/legal_links.dart';
 import 'main_navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -227,6 +228,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 4,
+                    children: [
+                      TextButton(
+                        onPressed: LegalLinks.openPrivacyPolicy,
+                        child: const Text('سياسة الخصوصية'),
+                      ),
+                      TextButton(
+                        onPressed: LegalLinks.openDeleteAccount,
+                        child: const Text('طلب حذف الحساب'),
+                      ),
+                    ],
                   ),
                 ],
               ),

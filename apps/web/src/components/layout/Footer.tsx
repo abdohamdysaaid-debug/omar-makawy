@@ -160,6 +160,22 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/privacy-policy/"
+                  className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm"
+                >
+                  سياسة الخصوصية
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/delete-account/"
+                  className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm"
+                >
+                  طلب حذف الحساب
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/profile"
                   className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-emerald-400 transition-colors text-sm"
                 >

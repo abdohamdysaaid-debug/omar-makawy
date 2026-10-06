@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/legal_links.dart';
 import '../widgets/app_header.dart';
 import 'login_screen.dart';
 
@@ -103,6 +104,24 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   value: themeProvider.isDarkMode,
                   onChanged: (val) => themeProvider.toggleTheme(),
+                ),
+              ],
+            ),
+            _buildSection(
+              title: 'الخصوصية والحساب',
+              isDark: isDark,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.primary),
+                  title: const Text('سياسة الخصوصية', style: TextStyle(fontSize: 14)),
+                  trailing: const Icon(Icons.open_in_new, size: 18),
+                  onTap: LegalLinks.openPrivacyPolicy,
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: AppColors.error),
+                  title: const Text('طلب حذف الحساب والبيانات', style: TextStyle(fontSize: 14)),
+                  trailing: const Icon(Icons.open_in_new, size: 18),
+                  onTap: LegalLinks.openDeleteAccount,
                 ),
               ],
             ),
