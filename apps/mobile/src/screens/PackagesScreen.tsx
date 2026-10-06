@@ -28,12 +28,12 @@ const DEFAULT_YEARS: AcademicYearItem[] = [
   { id: 'a0000000-0000-0000-0000-000000000004', title: 'الصف الثالث الثانوي' },
 ];
 
-export default function CoursesScreen({ navigation }: any) {
+export default function PackagesScreen({ navigation }: any) {
   const { theme } = useTheme();
   const [search, setSearch] = useState('');
   const [selectedYearId, setSelectedYearId] = useState<string>('all');
   const [years, setYears] = useState<AcademicYearItem[]>(DEFAULT_YEARS);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [packages, setPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -41,30 +41,37 @@ export default function CoursesScreen({ navigation }: any) {
     try {
       const res = await mobileApiClient.get('/auth/academic-years').catch(() => null);
       if (Array.isArray(res) && res.length > 0) {
-        setYears([
+        const mapped: AcademicYearItem[] = [
           { id: 'all', title: 'جميع المراحل' },
           ...res.map((item: any) => ({
             id: String(item.id),
             title: item.name_ar || item.title || item.name_en || 'صف دراسي',
           })),
-        ]);
+        ];
+        setYears(mapped);
       }
     } catch {}
   };
 
-  const loadCourses = async () => {
+  const loadPackages = async () => {
     try {
-      const res = await mobileApiClient.get('/courses?limit=100').catch(() => null);
-      const items = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.items)
-        ? res.items
-        : Array.isArray(res)
-        ? res
-        : [];
-      setCourses(items);
+      let res = await mobileApiClient.get('/packages?limit=100').catch(() => null);
+      if (!res || (!res.data && !Array.isArray(res)) || (Array.isArray(res.data) && res.data.length === 0)) {
+        res = await mobileApiClient.get('/packages/public?limit=100').catch(() => null);
+      }
+
+      let items: any[] = [];
+      if (Array.isArray(res?.data)) {
+        items = res.data;
+      } else if (Array.isArray(res?.items)) {
+        items = res.items;
+      } else if (Array.isArray(res)) {
+        items = res;
+      }
+
+      setPackages(items);
     } catch {
-      setCourses([]);
+      setPackages([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -73,34 +80,34 @@ export default function CoursesScreen({ navigation }: any) {
 
   useEffect(() => {
     loadAcademicYears();
-    loadCourses();
+    loadPackages();
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadCourses();
+    loadPackages();
   };
 
-  // Filter courses by search and academic year
-  const filteredCourses = courses.filter((c) => {
+  // Filter packages by search and academic year
+  const filteredPackages = packages.filter((pkg) => {
     const matchYear =
       selectedYearId === 'all' ||
-      String(c.academic_year_id) === selectedYearId ||
-      String(c.academicYearId) === selectedYearId;
+      String(pkg.academic_year_id) === selectedYearId ||
+      String(pkg.academicYearId) === selectedYearId;
     const matchSearch =
       !search.trim() ||
-      (c.title_ar || c.title || '').toLowerCase().includes(search.toLowerCase()) ||
-      (c.description_ar || c.description || '').toLowerCase().includes(search.toLowerCase());
+      (pkg.title_ar || pkg.title || '').toLowerCase().includes(search.toLowerCase()) ||
+      (pkg.description_ar || pkg.description || '').toLowerCase().includes(search.toLowerCase());
     return matchYear && matchSearch;
   });
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header Search and Filter */}
+      {/* Top Search & Filter Bar */}
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.surfaceBorder }]}>
-        <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>الكورسات والمحاضرات 📚</Text>
+        <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>باقات واشتراكات المنصة 📦</Text>
         <Text style={[styles.headerSub, { color: theme.textSecondary }]}>
-          تصفح شرح ومراجعات منهج اللغة الإنجليزية لجميع المراحل
+          وفّر واشترك في باقات الشهر والمراجعات الشاملة مع مستر عمر مكاوي
         </Text>
 
         <TextInput
@@ -112,7 +119,7 @@ export default function CoursesScreen({ navigation }: any) {
               borderColor: theme.border,
             },
           ]}
-          placeholder="ابحث عن اسم الكورس أو الدرس..."
+          placeholder="ابحث عن باقة معينة..."
           placeholderTextColor={theme.textMuted}
           value={search}
           onChangeText={setSearch}
@@ -156,12 +163,12 @@ export default function CoursesScreen({ navigation }: any) {
         </ScrollView>
       </View>
 
-      {/* Courses List */}
+      {/* Packages List */}
       {loading ? (
         <ActivityIndicator color={theme.primary} size="large" style={{ marginTop: SPACING.xl }} />
       ) : (
         <FlatList
-          data={filteredCourses}
+          data={filteredPackages}
           keyExtractor={(item) => String(item.id || Math.random())}
           contentContainerStyle={styles.listContent}
           refreshControl={
@@ -169,48 +176,81 @@ export default function CoursesScreen({ navigation }: any) {
           }
           ListEmptyComponent={
             <View style={[styles.emptyBox, { backgroundColor: theme.surface, borderColor: theme.surfaceBorder }]}>
-              <Text style={styles.emptyIcon}>📚</Text>
-              <Text style={[styles.emptyText, { color: theme.textPrimary }]}>لم يتم العثور على كورسات</Text>
+              <Text style={styles.emptyIcon}>📦</Text>
+              <Text style={[styles.emptyText, { color: theme.textPrimary }]}>لا توجد باقات متاحة حالياً</Text>
               <Text style={[styles.emptySub, { color: theme.textSecondary }]}>
-                جرب تغيير البحث أو اختيار مرحلة دراسية أخرى
+                جرّب اختيار مرحلة دراسية أخرى أو مسح كلمة البحث
               </Text>
             </View>
           }
           renderItem={({ item }) => {
-            const price = Number(item.price || 0);
-            const lecturesCount = item.lectures_count || (Array.isArray(item.lectures) ? item.lectures.length : 0);
+            const originalPrice = Number(item.original_price || item.price || 0);
+            const price = Number(item.price || item.discounted_price || 0);
+            const hasDiscount = originalPrice > price;
+            const coursesCount = item.courses_count || (Array.isArray(item.courses) ? item.courses.length : 0);
 
             return (
               <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.surfaceBorder }]}>
+                {/* Header Badge */}
                 <View style={styles.cardTopRow}>
                   <View style={[styles.badge, { backgroundColor: theme.badgeBg, borderColor: theme.primary }]}>
                     <Text style={[styles.badgeText, { color: theme.primary }]}>
-                      {item.academic_year_name_ar || 'كورس تعليمي'}
+                      {item.academic_year_name_ar || item.academic_year_name || 'باقة شاملة'}
                     </Text>
                   </View>
-                  <Text style={[styles.lecturesBadge, { color: theme.textSecondary }]}>
-                    🎥 {lecturesCount} محاضرات
-                  </Text>
+                  {hasDiscount && (
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountBadgeText}>خصم خاص 🔥</Text>
+                    </View>
+                  )}
                 </View>
 
+                {/* Package Info */}
                 <Text style={[styles.title, { color: theme.textPrimary }]}>{item.title_ar || item.title}</Text>
                 <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={3}>
-                  {item.description_ar || item.description || 'شرح متكامل وبنك أسئلة وامتحانات متابعة تفاعلية.'}
+                  {item.description_ar || item.description || 'باقة دراسية متكاملة تشمل الكورسات والمحاضرات والامتحانات الدورية.'}
                 </Text>
 
+                {/* Features Highlights */}
+                <View style={styles.featuresRow}>
+                  {coursesCount > 0 && (
+                    <View style={styles.featureItem}>
+                      <Text style={[styles.featureText, { color: theme.textSecondary }]}>
+                        📚 {coursesCount} كورسات ومحاضرات
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.featureItem}>
+                    <Text style={[styles.featureText, { color: theme.textSecondary }]}>⚡ وصول فوري وشامل</Text>
+                  </View>
+                  <View style={styles.featureItem}>
+                    <Text style={[styles.featureText, { color: theme.textSecondary }]}>📝 امتحانات وتدريبات</Text>
+                  </View>
+                </View>
+
+                {/* Divider */}
                 <View style={[styles.divider, { backgroundColor: theme.surfaceBorder }]} />
 
+                {/* Price and Action Button */}
                 <View style={styles.cardBottomRow}>
-                  <Text style={[styles.priceTag, { color: theme.primary }]}>
-                    {price > 0 ? `${price} ج.م` : 'مجاني'}
-                  </Text>
+                  <View style={styles.priceContainer}>
+                    {hasDiscount && (
+                      <Text style={[styles.oldPrice, { color: theme.textMuted }]}>{originalPrice} ج.م</Text>
+                    )}
+                    <Text style={[styles.priceTag, { color: theme.primary }]}>
+                      {price > 0 ? `${price} ج.م` : 'مجانية'}
+                    </Text>
+                  </View>
+
                   <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: theme.primary }]}
+                    style={[styles.subscribeBtn, { backgroundColor: theme.primary }]}
                     onPress={() => {
-                      // Navigate or open course details
+                      if (navigation?.navigate) {
+                        navigation.navigate('Courses');
+                      }
                     }}
                   >
-                    <Text style={styles.actionBtnText}>عرض المحاضرات ‹</Text>
+                    <Text style={styles.subscribeBtnText}>تصفح محتوى الباقة</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -288,8 +328,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 'bold',
   },
-  lecturesBadge: {
-    fontSize: 12,
+  discountBadge: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  discountBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 17,
@@ -303,6 +351,21 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginBottom: SPACING.sm,
   },
+  featuresRow: {
+    flexDirection: 'row-reverse',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: SPACING.sm,
+  },
+  featureItem: {
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  featureText: {
+    fontSize: 11,
+  },
   divider: {
     height: 1,
     marginVertical: SPACING.sm,
@@ -312,16 +375,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  oldPrice: {
+    fontSize: 11,
+    textDecorationLine: 'line-through',
+  },
   priceTag: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: 'bold',
   },
-  actionBtn: {
+  subscribeBtn: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 10,
   },
-  actionBtnText: {
+  subscribeBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: 'bold',

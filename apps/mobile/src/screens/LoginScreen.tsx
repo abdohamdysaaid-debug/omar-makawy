@@ -11,10 +11,12 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { COLORS, SPACING } from '../config/theme';
+import { SPACING } from '../config/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }: any) {
+  const { theme, isDark, toggleTheme } = useTheme();
   const { login, loginAsDemo, isLoading } = useAuth();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -30,42 +32,77 @@ export default function LoginScreen({ navigation }: any) {
     try {
       await login(phone.trim(), password);
     } catch (err: any) {
-      setError(err.message || 'خطأ في بيانات الدخول');
+      setError(err.message || 'خطأ في بيانات الدخول، تأكد من صحة الحساب');
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Top Bar with Theme Switcher */}
+          <View style={styles.topBar}>
+            <TouchableOpacity
+              style={[styles.themeBtn, { backgroundColor: theme.surface, borderColor: theme.surfaceBorder }]}
+              onPress={toggleTheme}
+            >
+              <Text style={styles.themeBtnIcon}>{isDark ? '☀️ الوضع النهاري' : '🌙 الوضع الليلي'}</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Header Branding */}
           <View style={styles.brandHeader}>
-            <View style={styles.logoBadge}>
-              <Text style={styles.logoBadgeText}>OM</Text>
+            <View
+              style={[
+                styles.logoBadge,
+                {
+                  backgroundColor: theme.badgeBg,
+                  borderColor: theme.primary,
+                },
+              ]}
+            >
+              <Text style={[styles.logoBadgeText, { color: theme.primary }]}>OM</Text>
             </View>
-            <Text style={styles.brandTitle}>منصة مستر عمر مكاوي</Text>
-            <Text style={styles.brandSubtitle}>تطبيق الطلاب الرسمي - مرحباً بك مجدداً</Text>
+            <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>منصة مستر عمر مكاوي</Text>
+            <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
+              تطبيق الطلاب والمذاكرة الرسمي لجميع المراحل الثانوية
+            </Text>
           </View>
 
           {/* Form Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>تسجيل الدخول</Text>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.surfaceBorder,
+              },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>تسجيل الدخول</Text>
 
             {error && (
-              <View style={styles.errorBox}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={[styles.errorBox, { borderColor: theme.error }]}>
+                <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
               </View>
             )}
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>رقم الهاتف</Text>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>رقم الهاتف</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.inputBg,
+                    color: theme.textPrimary,
+                    borderColor: theme.border,
+                  },
+                ]}
                 placeholder="010XXXXXXXX"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={theme.textMuted}
                 keyboardType="phone-pad"
                 value={phone}
                 onChangeText={setPhone}
@@ -74,11 +111,18 @@ export default function LoginScreen({ navigation }: any) {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>كلمة المرور</Text>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>كلمة المرور</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.inputBg,
+                    color: theme.textPrimary,
+                    borderColor: theme.border,
+                  },
+                ]}
                 placeholder="••••••••"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={theme.textMuted}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
@@ -87,7 +131,7 @@ export default function LoginScreen({ navigation }: any) {
             </View>
 
             <TouchableOpacity
-              style={[styles.loginBtn, isLoading && styles.btnDisabled]}
+              style={[styles.loginBtn, { backgroundColor: theme.primary }, isLoading && styles.btnDisabled]}
               onPress={handleLogin}
               disabled={isLoading}
             >
@@ -98,20 +142,21 @@ export default function LoginScreen({ navigation }: any) {
               )}
             </TouchableOpacity>
 
-            {/* Quick Demo Mode for Testing & Google Review */}
+            {/* Quick Demo Mode for Testing */}
             <TouchableOpacity
-              style={styles.demoBtn}
+              style={[
+                styles.demoBtn,
+                {
+                  backgroundColor: theme.badgeBg,
+                  borderColor: theme.primary,
+                },
+              ]}
               onPress={() => loginAsDemo()}
             >
-              <Text style={styles.demoBtnText}>🚀 تجربة سريعة كطالب (Demo Test)</Text>
+              <Text style={[styles.demoBtnText, { color: theme.primary }]}>
+                🚀 تجربة سريعة كطالب (Demo Test)
+              </Text>
             </TouchableOpacity>
-
-            <View style={styles.footerRow}>
-              <Text style={styles.footerText}>ليس لديك حساب؟ </Text>
-              <TouchableOpacity onPress={() => navigation?.navigate?.('Register')}>
-                <Text style={styles.registerLink}>إنشاء حساب جديد</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -122,7 +167,6 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   keyboardView: {
     flex: 1,
@@ -132,62 +176,68 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexGrow: 1,
   },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginBottom: SPACING.md,
+  },
+  themeBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  themeBtnIcon: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
   brandHeader: {
     alignItems: 'center',
     marginBottom: SPACING.xl,
   },
   logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: COLORS.primaryGlow,
-    borderColor: COLORS.primary,
+    width: 68,
+    height: 68,
+    borderRadius: 22,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.md,
   },
   logoBadgeText: {
-    color: COLORS.primary,
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
   },
   brandTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
     textAlign: 'center',
     marginBottom: 4,
   },
   brandSubtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+    fontSize: 13,
     textAlign: 'center',
+    lineHeight: 18,
   },
   card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: SPACING.lg,
     borderWidth: 1,
-    borderColor: COLORS.surfaceBorder,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.textPrimary,
     marginBottom: SPACING.lg,
     textAlign: 'right',
   },
   errorBox: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
     borderWidth: 1,
-    borderColor: COLORS.error,
-    borderRadius: 8,
+    borderRadius: 10,
     padding: SPACING.sm,
     marginBottom: SPACING.md,
   },
   errorText: {
-    color: COLORS.error,
     fontSize: 13,
     textAlign: 'right',
   },
@@ -195,23 +245,18 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   inputLabel: {
-    color: COLORS.textSecondary,
     fontSize: 13,
     marginBottom: 6,
     textAlign: 'right',
   },
   input: {
-    backgroundColor: COLORS.inputBg,
     borderRadius: 10,
     paddingHorizontal: SPACING.md,
     paddingVertical: 12,
-    color: COLORS.textPrimary,
     borderWidth: 1,
-    borderColor: COLORS.border,
     fontSize: 15,
   },
   loginBtn: {
-    backgroundColor: COLORS.primary,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -226,8 +271,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   demoBtn: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: COLORS.primary,
     borderWidth: 1,
     borderRadius: 10,
     paddingVertical: 12,
@@ -235,23 +278,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
   demoBtnText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  footerRow: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: SPACING.lg,
-  },
-  footerText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  registerLink: {
-    color: COLORS.primary,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
   },
 });
