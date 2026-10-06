@@ -1,12 +1,7 @@
-import { API_BASE_URL } from '@omar-makawy/shared';
-
 const PRODUCTION_API_URL = 'https://api.omarmeckawy.com/api/v1';
 
 class MobileApiClient {
-  private baseUrl: string = (
-    (typeof process !== 'undefined' && (process.env as any)?.EXPO_PUBLIC_API_URL) ||
-    (API_BASE_URL && !API_BASE_URL.includes('localhost') ? API_BASE_URL : PRODUCTION_API_URL)
-  ).replace(/\/+$/, '');
+  private baseUrl: string = PRODUCTION_API_URL;
   private token: string | null = null;
 
   private formatUrl(endpoint: string): string {

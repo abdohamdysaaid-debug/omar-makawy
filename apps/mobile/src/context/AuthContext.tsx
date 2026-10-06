@@ -33,7 +33,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const checkAuth = async () => {
       try {
-        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
+        const token = mobileApiClient.getToken();
+        if (!token) {
+          if (isMounted) {
+            setUser(null);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2000));
         const fetchPromise = mobileApiClient.get('/auth/me').catch(() => null);
         const profile: any = await Promise.race([fetchPromise, timeoutPromise]);
 

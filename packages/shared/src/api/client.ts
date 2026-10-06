@@ -2,9 +2,9 @@ import { ApiError, Tokens } from '../types';
 
 export const DEFAULT_API_BASE_URL =
   (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_BASE_URL) ||
-  (typeof window !== 'undefined' && window.location.hostname.includes('omarmeckawy.com')
+  (typeof window !== 'undefined' && window.location?.hostname && typeof window.location.hostname === 'string' && window.location.hostname.includes('omarmeckawy.com')
     ? 'https://api.omarmeckawy.com/api/v1'
-    : 'http://localhost:3000/api/v1');
+    : 'https://api.omarmeckawy.com/api/v1');
 
 export const API_BASE_URL = DEFAULT_API_BASE_URL;
 
