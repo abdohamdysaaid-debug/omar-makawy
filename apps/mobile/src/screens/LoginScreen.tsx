@@ -141,22 +141,6 @@ export default function LoginScreen({ navigation }: any) {
                 <Text style={styles.loginBtnText}>دخول الحساب</Text>
               )}
             </TouchableOpacity>
-
-            {/* Quick Demo Mode for Testing */}
-            <TouchableOpacity
-              style={[
-                styles.demoBtn,
-                {
-                  backgroundColor: theme.badgeBg,
-                  borderColor: theme.primary,
-                },
-              ]}
-              onPress={() => loginAsDemo()}
-            >
-              <Text style={[styles.demoBtnText, { color: theme.primary }]}>
-                🚀 تجربة سريعة كطالب (Demo Test)
-              </Text>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

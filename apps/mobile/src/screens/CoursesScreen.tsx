@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SPACING } from '../config/theme';
 import { useTheme } from '../context/ThemeContext';
-import { mobileApiClient } from '../services/api';
+import { mobileApiClient, extractDataList } from '../services/api';
 
 interface AcademicYearItem {
   id: string;
@@ -40,10 +40,11 @@ export default function CoursesScreen({ navigation }: any) {
   const loadAcademicYears = async () => {
     try {
       const res = await mobileApiClient.get('/auth/academic-years').catch(() => null);
-      if (Array.isArray(res) && res.length > 0) {
+      const list = extractDataList(res);
+      if (list.length > 0) {
         setYears([
           { id: 'all', title: 'جميع المراحل' },
-          ...res.map((item: any) => ({
+          ...list.map((item: any) => ({
             id: String(item.id),
             title: item.name_ar || item.title || item.name_en || 'صف دراسي',
           })),
@@ -54,14 +55,12 @@ export default function CoursesScreen({ navigation }: any) {
 
   const loadCourses = async () => {
     try {
-      const res = await mobileApiClient.get('/courses?limit=100').catch(() => null);
-      const items = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.items)
-        ? res.items
-        : Array.isArray(res)
-        ? res
-        : [];
+      let res = await mobileApiClient.get('/courses?limit=100').catch(() => null);
+      let items = extractDataList(res);
+      if (items.length === 0) {
+        res = await mobileApiClient.get('/courses/public?limit=100').catch(() => null);
+        items = extractDataList(res);
+      }
       setCourses(items);
     } catch {
       setCourses([]);

@@ -16,6 +16,16 @@ export function resolveMediaUrl(url?: string | null): string | undefined {
   return `${baseUrl}${cleanPath}`;
 }
 
+export function extractDataList<T = any>(res: any): T[] {
+  if (!res) return [];
+  if (Array.isArray(res)) return res;
+  if (res.data && Array.isArray(res.data.data)) return res.data.data;
+  if (res.data && Array.isArray(res.data.items)) return res.data.items;
+  if (Array.isArray(res.data)) return res.data;
+  if (Array.isArray(res.items)) return res.items;
+  return [];
+}
+
 class MobileApiClient {
   private baseUrl: string = PRODUCTION_API_URL;
   private token: string | null = null;

@@ -94,6 +94,16 @@ export default function StudentHomeClient() {
     try {
       const yearParam = academicYearId ? `academic_year_id=${academicYearId}&` : '';
 
+      const extractHelper = (res: any): any[] => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (res.data && Array.isArray(res.data.data)) return res.data.data;
+        if (res.data && Array.isArray(res.data.items)) return res.data.items;
+        if (Array.isArray(res.data)) return res.data;
+        if (Array.isArray(res.items)) return res.items;
+        return [];
+      };
+
       // Parallel helper for packages
       const fetchPackagesPromise = (async () => {
         try {
@@ -101,13 +111,13 @@ export default function StudentHomeClient() {
           if (isAuthenticated) {
             pkgRes = await apiClient.get<any>(`/packages?${yearParam}limit=20`).catch(() => null);
           }
-          let pkgData = Array.isArray(pkgRes?.data) ? pkgRes.data : Array.isArray(pkgRes) ? pkgRes : [];
+          let pkgData = extractHelper(pkgRes);
           if (pkgData.length === 0) {
             const publicPkgRes = await apiClient.get<any>(`/packages/public?${yearParam}limit=20`).catch(() => null);
-            pkgData = Array.isArray(publicPkgRes?.data) ? publicPkgRes.data : Array.isArray(publicPkgRes) ? publicPkgRes : [];
+            pkgData = extractHelper(publicPkgRes);
             if (pkgData.length === 0 && academicYearId) {
               const globalPublicPkg = await apiClient.get<any>(`/packages/public?limit=20`).catch(() => null);
-              pkgData = Array.isArray(globalPublicPkg?.data) ? globalPublicPkg.data : Array.isArray(globalPublicPkg) ? globalPublicPkg : [];
+              pkgData = extractHelper(globalPublicPkg);
             }
           }
           return pkgData;
@@ -123,13 +133,13 @@ export default function StudentHomeClient() {
           if (isAuthenticated) {
             courseRes = await apiClient.get<any>(`/courses?${yearParam}limit=20`).catch(() => null);
           }
-          let courseData = Array.isArray(courseRes?.data) ? courseRes.data : Array.isArray(courseRes) ? courseRes : [];
+          let courseData = extractHelper(courseRes);
           if (courseData.length === 0) {
             const publicCourseRes = await apiClient.get<any>(`/courses/public?${yearParam}limit=20`).catch(() => null);
-            courseData = Array.isArray(publicCourseRes?.data) ? publicCourseRes.data : Array.isArray(publicCourseRes) ? publicCourseRes : [];
+            courseData = extractHelper(publicCourseRes);
             if (courseData.length === 0 && academicYearId) {
               const globalPublicCourse = await apiClient.get<any>(`/courses/public?limit=20`).catch(() => null);
-              courseData = Array.isArray(globalPublicCourse?.data) ? globalPublicCourse.data : Array.isArray(globalPublicCourse) ? globalPublicCourse : [];
+              courseData = extractHelper(globalPublicCourse);
             }
           }
           return courseData;

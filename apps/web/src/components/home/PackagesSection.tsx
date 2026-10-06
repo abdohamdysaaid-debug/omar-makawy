@@ -64,13 +64,15 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
         const endpoint = '/packages/public?is_public=true&limit=50';
         const res = await apiClient.get<any>(endpoint);
         if (isMounted) {
-          if (res && Array.isArray(res.data)) {
-            setAvailablePackages(res.data);
-          } else if (Array.isArray(res)) {
-            setAvailablePackages(res);
-          } else {
-            setAvailablePackages([]);
+          let list: any[] = [];
+          if (res) {
+            if (Array.isArray(res)) list = res;
+            else if (res.data && Array.isArray(res.data.data)) list = res.data.data;
+            else if (res.data && Array.isArray(res.data.items)) list = res.data.items;
+            else if (Array.isArray(res.data)) list = res.data;
+            else if (Array.isArray(res.items)) list = res.items;
           }
+          setAvailablePackages(list);
         }
       } catch {
         if (isMounted) setAvailablePackages([]);

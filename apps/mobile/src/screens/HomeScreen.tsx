@@ -12,7 +12,7 @@ import {
 import { SPACING } from '../config/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { mobileApiClient } from '../services/api';
+import { mobileApiClient, extractDataList } from '../services/api';
 
 interface AcademicYearItem {
   id: string;
@@ -42,46 +42,37 @@ export default function HomeScreen({ navigation }: any) {
     try {
       const [yearsRes, coursesRes, packagesRes, notifsRes] = await Promise.all([
         mobileApiClient.get('/auth/academic-years').catch(() => null),
-        mobileApiClient.get('/courses?limit=10').catch(() => null),
+        mobileApiClient.get('/courses?limit=10').catch(() => mobileApiClient.get('/courses/public?limit=10').catch(() => null)),
         mobileApiClient.get('/packages?limit=10').catch(() => mobileApiClient.get('/packages/public?limit=10').catch(() => null)),
         mobileApiClient.get('/notifications?limit=5').catch(() => null),
       ]);
 
-      if (Array.isArray(yearsRes) && yearsRes.length > 0) {
+      const yearsList = extractDataList(yearsRes);
+      if (yearsList.length > 0) {
         setYears([
           { id: 'all', title: 'جميع المراحل' },
-          ...yearsRes.map((y: any) => ({
+          ...yearsList.map((y: any) => ({
             id: String(y.id),
             title: y.name_ar || y.title || y.name_en || 'صف دراسي',
           })),
         ]);
       }
 
-      const coursesList = Array.isArray(coursesRes?.items)
-        ? coursesRes.items
-        : Array.isArray(coursesRes?.data)
-        ? coursesRes.data
-        : Array.isArray(coursesRes)
-        ? coursesRes
-        : [];
+      let coursesList = extractDataList(coursesRes);
+      if (coursesList.length === 0) {
+        const publicCourses = await mobileApiClient.get('/courses/public?limit=10').catch(() => null);
+        coursesList = extractDataList(publicCourses);
+      }
       setCourses(coursesList);
 
-      const packagesList = Array.isArray(packagesRes?.items)
-        ? packagesRes.items
-        : Array.isArray(packagesRes?.data)
-        ? packagesRes.data
-        : Array.isArray(packagesRes)
-        ? packagesRes
-        : [];
+      let packagesList = extractDataList(packagesRes);
+      if (packagesList.length === 0) {
+        const publicPkgs = await mobileApiClient.get('/packages/public?limit=10').catch(() => null);
+        packagesList = extractDataList(publicPkgs);
+      }
       setPackages(packagesList);
 
-      const notifs = Array.isArray(notifsRes?.items)
-        ? notifsRes.items
-        : Array.isArray(notifsRes?.data)
-        ? notifsRes.data
-        : Array.isArray(notifsRes)
-        ? notifsRes
-        : [];
+      const notifs = extractDataList(notifsRes);
       setNotifCount(notifs.filter((n: any) => !n.is_read).length || notifs.length);
     } catch {
       // fallback

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SPACING } from '../config/theme';
 import { useTheme } from '../context/ThemeContext';
-import { mobileApiClient } from '../services/api';
+import { mobileApiClient, extractDataList } from '../services/api';
 
 interface AcademicYearItem {
   id: string;
@@ -40,10 +40,11 @@ export default function PackagesScreen({ navigation }: any) {
   const loadAcademicYears = async () => {
     try {
       const res = await mobileApiClient.get('/auth/academic-years').catch(() => null);
-      if (Array.isArray(res) && res.length > 0) {
+      const list = extractDataList(res);
+      if (list.length > 0) {
         const mapped: AcademicYearItem[] = [
           { id: 'all', title: 'جميع المراحل' },
-          ...res.map((item: any) => ({
+          ...list.map((item: any) => ({
             id: String(item.id),
             title: item.name_ar || item.title || item.name_en || 'صف دراسي',
           })),
@@ -56,17 +57,10 @@ export default function PackagesScreen({ navigation }: any) {
   const loadPackages = async () => {
     try {
       let res = await mobileApiClient.get('/packages?limit=100').catch(() => null);
-      if (!res || (!res.data && !Array.isArray(res)) || (Array.isArray(res.data) && res.data.length === 0)) {
+      let items = extractDataList(res);
+      if (items.length === 0) {
         res = await mobileApiClient.get('/packages/public?limit=100').catch(() => null);
-      }
-
-      let items: any[] = [];
-      if (Array.isArray(res?.data)) {
-        items = res.data;
-      } else if (Array.isArray(res?.items)) {
-        items = res.items;
-      } else if (Array.isArray(res)) {
-        items = res;
+        items = extractDataList(res);
       }
 
       setPackages(items);

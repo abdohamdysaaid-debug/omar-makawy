@@ -67,13 +67,15 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
         const endpoint = '/courses/public?limit=50';
         const res = await apiClient.get<any>(endpoint);
         if (isMounted) {
-          if (res && Array.isArray(res.data)) {
-            setAvailableCourses(res.data);
-          } else if (Array.isArray(res)) {
-            setAvailableCourses(res);
-          } else {
-            setAvailableCourses([]);
+          let list: Course[] = [];
+          if (res) {
+            if (Array.isArray(res)) list = res;
+            else if (res.data && Array.isArray(res.data.data)) list = res.data.data;
+            else if (res.data && Array.isArray(res.data.items)) list = res.data.items;
+            else if (Array.isArray(res.data)) list = res.data;
+            else if (Array.isArray(res.items)) list = res.items;
           }
+          setAvailableCourses(list);
         }
       } catch (err: any) {
         if (isMounted) {

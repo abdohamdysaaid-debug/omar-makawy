@@ -123,18 +123,25 @@ export default function PackagesClient() {
         if (isAuthenticated) {
           res = await apiClient.get<any>('/packages?limit=100').catch(() => null);
         }
-        if (!res || (!res.data && !Array.isArray(res)) || (Array.isArray(res.data) && res.data.length === 0)) {
-          const publicRes = await apiClient.get<any>('/packages/public?limit=100').catch(() => null);
-          if (publicRes && (Array.isArray(publicRes.data) || Array.isArray(publicRes))) {
-            res = publicRes;
-          }
-        }
 
         let list: any[] = [];
-        if (res && Array.isArray(res.data)) {
-          list = res.data;
-        } else if (Array.isArray(res)) {
-          list = res;
+        if (res) {
+          if (Array.isArray(res)) list = res;
+          else if (res.data && Array.isArray(res.data.data)) list = res.data.data;
+          else if (res.data && Array.isArray(res.data.items)) list = res.data.items;
+          else if (Array.isArray(res.data)) list = res.data;
+          else if (Array.isArray(res.items)) list = res.items;
+        }
+
+        if (list.length === 0) {
+          const publicRes = await apiClient.get<any>('/packages/public?limit=100').catch(() => null);
+          if (publicRes) {
+            if (Array.isArray(publicRes)) list = publicRes;
+            else if (publicRes.data && Array.isArray(publicRes.data.data)) list = publicRes.data.data;
+            else if (publicRes.data && Array.isArray(publicRes.data.items)) list = publicRes.data.items;
+            else if (Array.isArray(publicRes.data)) list = publicRes.data;
+            else if (Array.isArray(publicRes.items)) list = publicRes.items;
+          }
         }
 
         cachedPackagesList = list;
