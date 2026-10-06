@@ -1,6 +1,10 @@
 import { ApiError, Tokens } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ? 'http://localhost:3000/api/v1'
+    : 'https://api.omarmeckawy.com/api/v1');
 
 // Key names for student portal storage
 const ACCESS_TOKEN_KEY = 'omar_student_access_token';

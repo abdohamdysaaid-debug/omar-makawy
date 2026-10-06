@@ -105,7 +105,13 @@ export default function FloatingAiWidget() {
     setIsTyping(true);
 
     try {
-      const res = await fetch('/api/ai/chat', {
+      const apiBase =
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+          ? 'http://localhost:3000/api/v1'
+          : 'https://api.omarmeckawy.com/api/v1');
+
+      const res = await fetch(`${apiBase}/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
