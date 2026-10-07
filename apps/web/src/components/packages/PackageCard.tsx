@@ -2,55 +2,48 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Clock, PlayCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { Course } from '@/types';
+import { Package as PackageIcon, BookOpen, ArrowLeft, CheckCircle2, Star } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { academicYears } from '@/data/mock';
 import { resolveMediaUrl } from '@/lib/api/client';
 
-export interface CourseCardProps {
-  course: Course;
-  onOpenDetails?: (course: Course) => void;
+export interface PackageCardProps {
+  pkg: any;
+  onOpenDetails?: (pkg: any) => void;
   className?: string;
 }
 
-export default function CourseCard({ course, onOpenDetails, className = '' }: CourseCardProps) {
+export default function PackageCard({ pkg, onOpenDetails, className = '' }: PackageCardProps) {
   const router = useRouter();
-  const { isAuthenticated, openAuthGate, isSubscribedToCourse } = useAuth();
+  const { isAuthenticated, openAuthGate, isSubscribedToPackage } = useAuth();
   const { t } = useLanguage();
   const [imageError, setImageError] = React.useState(false);
 
-  const title = course.title_ar || course.title || 'كورس تعليمي';
-  const description = course.description_ar || course.description;
-  const rawImage = course.thumbnail_url || course.imageUrl;
+  const title = pkg.title_ar || pkg.title || 'باقة تعليمية';
+  const description = pkg.description_ar || pkg.description || '';
+  const rawImage = pkg.thumbnail_url || pkg.imageUrl;
   const image = !imageError ? resolveMediaUrl(rawImage) : undefined;
 
-  const academicYear = academicYears.find(
-    (y) => y.id === course.academicYearId || y.id === Number(course.academic_year_id)
-  );
-  const yearTitle = course.academic_year_name_ar || academicYear?.title || t('courses.allYears', 'عام');
+  const courses = Array.isArray(pkg.courses) ? pkg.courses : [];
+  const coursesCount = courses.length || pkg.courses_count || (pkg as any).courseCount || 0;
+  const isPopular = Boolean(pkg.is_featured || pkg.isPopular);
+
+  const price = Number(pkg.price) || 0;
+  const discountPrice = pkg.discount_price ? Number(pkg.discount_price) : null;
+  const hasDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < price;
+
+  const isPurchased = isSubscribedToPackage(pkg.id);
+  const yearTitle = pkg.academic_year_name_ar || 'باقة معتمدة';
 
   const handleCardClick = () => {
     if (onOpenDetails) {
-      onOpenDetails(course);
+      onOpenDetails(pkg);
     } else if (!isAuthenticated && openAuthGate) {
-      openAuthGate(`/courses/detail?id=${course.id}`);
+      openAuthGate(`/packages`);
     } else {
-      router.push(`/student/courses/detail?id=${course.id}`);
+      router.push(`/student/packages`);
     }
   };
-
-  const isPurchased = isSubscribedToCourse(course.id);
-
-  const price = Number(course.price) || 0;
-  const discountPrice = course.discount_price ? Number(course.discount_price) : null;
-  const hasDiscount =
-    discountPrice !== null &&
-    discountPrice > 0 &&
-    discountPrice < price;
-
-  const lectureCount = course.lectureCount || (course as any).lectures_count || (course as any).lecture_count || 0;
 
   return (
     <div
@@ -58,6 +51,8 @@ export default function CourseCard({ course, onOpenDetails, className = '' }: Co
       className={`group cursor-pointer rounded-3xl bg-white dark:bg-[#131b2e] border ${
         isPurchased
           ? 'border-emerald-500/80 dark:border-emerald-500 shadow-md'
+          : isPopular
+          ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
           : 'border-stone-200/80 dark:border-gray-800/80 shadow-xs'
       } hover:shadow-xl hover:shadow-[#0d6e4f]/10 dark:hover:shadow-emerald-500/10 hover:border-[#0d6e4f] dark:hover:border-emerald-500/60 transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 font-cairo ${className}`}
     >
@@ -75,18 +70,26 @@ export default function CourseCard({ course, onOpenDetails, className = '' }: Co
           </>
         ) : (
           <div className="flex flex-col items-center justify-center gap-2">
-            <BookOpen className="w-12 h-12 text-emerald-300 opacity-80 group-hover:scale-110 transition-transform" />
+            <PackageIcon className="w-12 h-12 text-emerald-300 opacity-80 group-hover:scale-110 transition-transform" />
           </div>
         )}
 
         <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
 
-        {/* Top Badges Bar: Year on start, Price/Status on end */}
+        {/* Top Badges Bar: Year/Popular on start, Price/Status on end */}
         <div className="absolute top-3 start-3 end-3 flex items-center justify-between pointer-events-none z-10">
-          <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-emerald-200 text-xs font-bold rounded-full border border-emerald-400/20 shadow-xs flex items-center gap-1">
-            <BookOpen className="w-3.5 h-3.5 text-emerald-300" />
-            <span>{yearTitle}</span>
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-emerald-200 text-xs font-bold rounded-full border border-emerald-400/20 shadow-xs flex items-center gap-1">
+              <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
+              <span>{yearTitle}</span>
+            </span>
+            {isPopular && !isPurchased && (
+              <span className="px-2 py-0.5 bg-amber-400 text-stone-950 text-[10px] font-black rounded-full shadow-xs flex items-center gap-0.5">
+                <Star className="w-2.5 h-2.5 fill-stone-950" />
+                <span>مميز</span>
+              </span>
+            )}
+          </div>
 
           {/* Price or Purchased Status Badge */}
           {isPurchased ? (
@@ -115,19 +118,23 @@ export default function CourseCard({ course, onOpenDetails, className = '' }: Co
           </h3>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed min-h-[2rem]">
-            {description || 'كورس تعليمي شامل لشرح المنهج والتدريبات والواجبات والاختبارات.'}
+            {description || 'باقة تعليمية شاملة للمنهج والمحاضرات والمذكرات والاختبارات الدورية.'}
           </p>
         </div>
 
-        {/* Stats / Meta Row */}
+        {/* Meta Row */}
         <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-1.5">
-            <PlayCircle className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-            <span>{lectureCount} {t('courses.lecturesCount', 'محاضرة')}</span>
+            <BookOpen className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
+            <span>
+              {coursesCount > 0
+                ? `${coursesCount} ${coursesCount === 1 ? 'كورس مضمن' : 'كورسات مضمنة'}`
+                : 'شامل كافة الكورسات'}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-            <span>{course.duration || 'شامل'}</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
+            <span>وصول شامل</span>
           </div>
         </div>
 
@@ -152,7 +159,7 @@ export default function CourseCard({ course, onOpenDetails, className = '' }: Co
               </>
             ) : (
               <>
-                <span>{t('courses.viewDetails', 'تفاصيل الكورس')}</span>
+                <span>تفاصيل الباقة</span>
                 <ArrowLeft className="w-3 h-3 transition-transform group-hover:-translate-x-0.5" />
               </>
             )}

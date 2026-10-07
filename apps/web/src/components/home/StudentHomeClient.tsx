@@ -24,6 +24,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { apiClient, resolveMediaUrl } from '@/lib/api';
+import CourseCard from '@/components/courses/CourseCard';
+import PackageCard from '@/components/packages/PackageCard';
 
 export interface LatestProductItem {
   id: string;
@@ -466,145 +468,34 @@ export default function StudentHomeClient() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredLatestItems.map((item) => {
                 const isPackage = item.type === 'PACKAGE';
-                const hasDiscount = item.discountPrice !== null && item.discountPrice !== undefined && item.discountPrice > 0 && item.discountPrice < item.price;
-                const image = resolveMediaUrl(item.imageUrl);
+                if (isPackage) {
+                  const pkgObj = {
+                    id: item.id,
+                    title_ar: item.title,
+                    description_ar: item.description,
+                    thumbnail_url: item.imageUrl,
+                    price: item.price,
+                    discount_price: item.discountPrice,
+                    is_featured: item.isFeatured,
+                    academic_year_name_ar: item.academicYearName,
+                    courses_count: item.courseCount,
+                  };
+                  return <PackageCard key={`pkg-${item.id}`} pkg={pkgObj} />;
+                }
 
-                const isPurchased = isPackage ? isSubscribedToPackage(item.id) : isSubscribedToCourse(item.id);
-
-                return (
-                  <div
-                    key={`${item.type}-${item.id}`}
-                    className={`group flex flex-col bg-white dark:bg-stone-900 border ${
-                      isPurchased
-                        ? 'border-emerald-500/80 dark:border-emerald-500 shadow-md'
-                        : item.isFeatured
-                        ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-lg shadow-[#0d6e4f]/10'
-                        : 'border-stone-200/80 dark:border-stone-800 shadow-xs'
-                    } rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-[#0d6e4f]/15 hover:border-[#0d6e4f] hover:-translate-y-1`}
-                  >
-                    {/* Top Image Banner */}
-                    <div className="relative h-36 bg-neutral-900 p-4 flex flex-col justify-between text-white overflow-hidden">
-                      {image && (
-                        <>
-                          <img
-                            src={image}
-                            alt={item.title}
-                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30 pointer-events-none" />
-                        </>
-                      )}
-                      <div className="absolute -end-6 -bottom-6 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
-
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between relative z-10">
-                        <span className="bg-white/20 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
-                          {isPackage ? (
-                            <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
-                          ) : (
-                            <Video className="w-3.5 h-3.5 text-emerald-300" />
-                          )}
-                          <span>{isPackage ? 'باقة شهرية' : 'كورس تعليمي'}</span>
-                        </span>
-
-                        {isPurchased ? (
-                          <span className="bg-emerald-600 text-white font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1 border border-emerald-400/30">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                            تم الشراء
-                          </span>
-                        ) : item.isFeatured ? (
-                          <span className="bg-amber-400 text-stone-950 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-stone-950" />
-                            الأكثر طلباً
-                          </span>
-                        ) : null}
-                      </div>
-
-                      {/* Title & Info */}
-                      <div className="relative z-10">
-                        <h3 className="text-base font-black leading-snug line-clamp-1">
-                          {item.title}
-                        </h3>
-                        {item.description && (
-                          <p className="text-emerald-100 text-[11px] font-medium line-clamp-1 opacity-90">
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Card Content Body */}
-                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4 text-start">
-                      {/* Price Pill */}
-                      <div className="text-center bg-emerald-50 dark:bg-emerald-950/40 py-2.5 px-3 rounded-2xl border border-emerald-100 dark:border-emerald-900/50">
-                        {isPurchased ? (
-                          <div className="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-black text-sm">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                            <span>أنت مشترك بالفعل</span>
-                          </div>
-                        ) : hasDiscount ? (
-                          <div className="flex items-baseline justify-center gap-2">
-                            <span className="text-2xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                              {item.discountPrice}
-                            </span>
-                            <span className="text-xs text-neutral-400 line-through">
-                              {item.price}
-                            </span>
-                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                              ج.م
-                            </span>
-                          </div>
-                        ) : (
-                          <div>
-                            <span className="text-2xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                              {item.price}
-                            </span>
-                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 ms-1">
-                              ج.م
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Item Details Info */}
-                      <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300 font-semibold px-1">
-                        <span className="flex items-center gap-1.5">
-                          <BookOpen className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-                          {isPackage
-                            ? `${item.courseCount || 'عدة'} كورسات مضمنة`
-                            : `${item.lectureCount || 'عدة'} محاضرات متوفرة`}
-                        </span>
-                        <span className="text-gray-400 text-[11px]">
-                          {item.academicYearName}
-                        </span>
-                      </div>
-
-                      {/* Action Button */}
-                      <Link
-                        href={item.url}
-                        className={`w-full py-2.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-300 shadow-sm ${
-                          isPurchased
-                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
-                            : item.isFeatured
-                            ? 'bg-[#0d6e4f] hover:bg-[#0a4834] text-white shadow-[#0d6e4f]/20'
-                            : 'bg-[#e2ede5] dark:bg-stone-800 text-[#0d6e4f] dark:text-emerald-400 group-hover:bg-[#0d6e4f] group-hover:text-white hover:bg-[#0d6e4f] hover:text-white'
-                        }`}
-                      >
-                        {isPurchased ? (
-                          <>
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>تم الشراء</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>{isPackage ? 'تفاصيل الباقة' : 'تفاصيل الكورس'}</span>
-                            <ArrowLeft className="w-3.5 h-3.5" />
-                          </>
-                        )}
-                      </Link>
-                    </div>
-                  </div>
-                );
+                const courseObj: any = {
+                  id: item.id,
+                  title_ar: item.title,
+                  description_ar: item.description,
+                  thumbnail_url: item.imageUrl,
+                  price: item.price,
+                  discount_price: item.discountPrice,
+                  is_featured: item.isFeatured,
+                  academic_year_name_ar: item.academicYearName,
+                  lectureCount: item.lectureCount,
+                  duration: 'شامل',
+                };
+                return <CourseCard key={`course-${item.id}`} course={courseObj} />;
               })}
             </div>
           ) : (

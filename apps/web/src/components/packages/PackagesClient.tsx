@@ -25,6 +25,7 @@ import {
   AlertCircle,
   ArrowRight,
 } from 'lucide-react';
+import PackageCard from '@/components/packages/PackageCard';
 
 interface AcademicYearItem {
   id: string | number;
@@ -428,168 +429,13 @@ export default function PackagesClient() {
           </div>
         ) : filteredPackages.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPackages.map((pkg) => {
-              const title = pkg.title_ar || pkg.title || 'باقة تعليمية';
-              const description = pkg.description_ar || pkg.description || '';
-              const courses = Array.isArray(pkg.courses) ? pkg.courses : [];
-              const isPopular = pkg.is_featured || pkg.isPopular;
-              const price = Number(pkg.price) || 0;
-              const discountPrice = pkg.discount_price ? Number(pkg.discount_price) : null;
-              const hasDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < price;
-              const rawImage = pkg.thumbnail_url || pkg.imageUrl;
-              const image = resolveMediaUrl(rawImage);
-
-              const isPurchased = isSubscribedToPackage(pkg.id);
-
-              return (
-                <div
-                  key={pkg.id}
-                  onClick={() => openPackageDetails(pkg)}
-                  className={`group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border ${
-                    isPurchased
-                      ? 'border-emerald-500/80 dark:border-emerald-500 shadow-md'
-                      : isPopular
-                      ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/15'
-                      : 'border-stone-200/80 dark:border-stone-800 shadow-sm'
-                  } rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 hover:-translate-y-1`}
-                >
-                  {/* Top Image / Banner Header Area Matching Homepage */}
-                  <div className="relative h-36 bg-neutral-900 p-4 flex flex-col justify-between text-white overflow-hidden">
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={title}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#0d6e4f] via-[#0b5c42] to-[#073b2a]" />
-                    )}
-                    <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
-
-                    {/* Badges */}
-                    <div className="flex items-center justify-between relative z-10">
-                      <span className="bg-black/60 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/10 shadow-xs">
-                        <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
-                        <span>{pkg.academic_year_name_ar || 'باقة معتمدة'}</span>
-                      </span>
-                      {isPurchased ? (
-                        <span className="bg-emerald-600 text-white font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 border border-emerald-400/30">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                          تم الشراء
-                        </span>
-                      ) : isPopular ? (
-                        <span className="bg-amber-400 text-stone-950 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-stone-950" />
-                          الأكثر طلباً
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {/* Title */}
-                    <div className="relative z-10">
-                      <h3 className="text-base sm:text-lg font-black leading-snug line-clamp-1 drop-shadow-xs">
-                        {title}
-                      </h3>
-                      {description && (
-                        <p className="text-emerald-100 text-[11px] font-medium line-clamp-1 opacity-90">
-                          {description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
-                    {/* Price Pill */}
-                    <div className="text-center bg-emerald-50 dark:bg-emerald-950/40 py-2.5 px-3 rounded-2xl border border-emerald-100 dark:border-emerald-900/50">
-                      {isPurchased ? (
-                        <div className="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-black text-sm">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                          <span>أنت مشترك في هذه الباقة</span>
-                        </div>
-                      ) : hasDiscount ? (
-                        <div className="flex items-baseline justify-center gap-2">
-                          <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                            {discountPrice}
-                          </span>
-                          <span className="text-xs text-neutral-400 line-through">
-                            {price}
-                          </span>
-                          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                            ج.م
-                          </span>
-                        </div>
-                      ) : (
-                        <div>
-                          <span className="text-2xl sm:text-3xl font-black text-[#0d6e4f] dark:text-emerald-400">
-                            {price}
-                          </span>
-                          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 ms-1">
-                            ج.م
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Included Courses or Features */}
-                    <div className="flex-1 space-y-2 text-start">
-                      {courses.length > 0 ? (
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400">
-                            <BookOpen className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-                            <span>الكورسات المضمنة ({courses.length}):</span>
-                          </div>
-                          {courses.slice(0, 3).map((c: any, idx: number) => (
-                            <div key={idx} className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 font-medium">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400 shrink-0" />
-                              <span className="truncate">{c.title_ar || c.title}</span>
-                            </div>
-                          ))}
-                          {courses.length > 3 && (
-                            <span className="text-[10px] text-gray-400 ps-5 block">
-                              + {courses.length - 3} كورسات إضافية
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                          <CheckCircle2 className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400 shrink-0" />
-                          <span>وصول كامل لكافة المحاضرات والمذكرات</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Button ("تم الشراء" or "تفاصيل الباقة") */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openPackageDetails(pkg);
-                      }}
-                      className={`w-full py-2.5 rounded-full font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
-                        isPurchased
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
-                          : isPopular
-                          ? 'bg-[#0d6e4f] hover:bg-[#0a4834] text-white shadow-[#0d6e4f]/20'
-                          : 'bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-[#0d6e4f] dark:hover:text-white'
-                      }`}
-                    >
-                      {isPurchased ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-white" />
-                          <span>تم الشراء</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>تفاصيل الباقة</span>
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {filteredPackages.map((pkg) => (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                onOpenDetails={openPackageDetails}
+              />
+            ))}
           </div>
         ) : (
           <EmptyState

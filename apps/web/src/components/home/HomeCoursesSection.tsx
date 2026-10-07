@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { courses } from '@/data/mock';
 import { useAuth } from '@/context/AuthContext';
-import { PlaySquare, Clock, ArrowLeft, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { PlaySquare, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { motion } from 'framer-motion';
-import { apiClient, resolveMediaUrl } from '@/lib/api';
+import { apiClient } from '@/lib/api';
 import { Course } from '@/types';
+import CourseCard from '@/components/courses/CourseCard';
 
 export interface HomeCoursesSectionProps {
   selectedAcademicYearId?: number | string | null;
@@ -21,7 +21,7 @@ const GRADE_UUID_MAP: Record<number, string> = {
 };
 
 export default function HomeCoursesSection({ selectedAcademicYearId = null }: HomeCoursesSectionProps) {
-  const { isAuthenticated, openAuthGate, isSubscribedToCourse } = useAuth();
+  const { isAuthenticated, openAuthGate } = useAuth();
   const { t, language } = useLanguage();
   const isRtl = language === 'ar';
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -39,11 +39,11 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
     }
   };
 
-  const handleCourseClick = (courseId: string | number) => {
+  const handleCourseDetails = (course: Course) => {
     if (!isAuthenticated && openAuthGate) {
-      openAuthGate(`/courses/detail?id=${courseId}`);
+      openAuthGate(`/courses/detail?id=${course.id}`);
     } else {
-      window.location.href = `/student/courses/detail?id=${courseId}`;
+      window.location.href = `/student/courses/detail?id=${course.id}`;
     }
   };
 
@@ -106,7 +106,6 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
     return false;
   });
 
-
   return (
     <section id="courses" className="py-14 sm:py-20 bg-white dark:bg-[#080b11] transition-colors font-cairo scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -149,114 +148,21 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
             className="flex overflow-x-auto snap-x snap-proximity scrollbar-none scroll-smooth py-6 -mx-4 px-4 gap-5 sm:gap-6 touch-pan-x touch-pan-y"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
           >
-            {activeCourses.map((course) => {
-              const title = course.title_ar || course.title || 'كورس تعليمي';
-              const description = course.description_ar || course.description;
-              const rawImage = course.thumbnail_url || course.imageUrl;
-              const image = resolveMediaUrl(rawImage);
-              const hasDiscount =
-                typeof course.discount_price === 'number' &&
-                course.discount_price > 0 &&
-                course.discount_price < course.price;
-
-              return (
-                <motion.div
-                  key={course.id}
-                  initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
-                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                  whileHover={{ scale: 1.03, y: -6 }}
-                  whileTap={{ scale: 0.98 }}
-                  viewport={{ amount: 0.55 }}
-                  transition={{ duration: 0.35, ease: 'easeOut' }}
-                  onClick={() => handleCourseClick(course.id)}
-                  className="snap-center shrink-0 w-[280px] sm:w-[330px] group cursor-pointer flex flex-col bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-[#0d6e4f]/25 dark:hover:shadow-emerald-500/20 hover:border-[#0d6e4f] dark:hover:border-emerald-400 transition-all duration-300 touch-pan-y"
-                  style={{ touchAction: 'pan-x pan-y' }}
-                >
-                  {/* Card Header Banner */}
-                  <div className="relative h-44 bg-neutral-900 p-5 flex flex-col justify-between text-white overflow-hidden">
-                    {image && (
-                      <>
-                        <img
-                          src={image}
-                          alt={title}
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40 pointer-events-none" />
-                      </>
-                    )}
-                    <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
-                    <div className="flex items-center justify-between relative z-10">
-                      <span className="bg-black/40 backdrop-blur-md text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full border border-white/10">
-                        {course.teacher || t('teacher.title', 'Mr. Omar Meckawy')}
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        {hasDiscount ? (
-                          <span className="bg-emerald-400 text-stone-900 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-xs">
-                            {course.discount_price} {t('ui.currency', 'ج.م')}
-                          </span>
-                        ) : (
-                          <span className="bg-emerald-400 text-stone-900 font-black text-[11px] px-2.5 py-0.5 rounded-full shadow-xs">
-                            {course.price > 0 ? `${course.price} ${t('ui.currency', 'ج.م')}` : t('courses.free', 'مجاني')}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="relative z-10">
-                      <h3 className="text-base sm:text-lg font-black leading-snug line-clamp-2 drop-shadow-xs">
-                        {title}
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* Card Content Body */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    {description && (
-                      <p className="text-gray-600 dark:text-gray-400 text-xs font-medium line-clamp-2 mb-5">
-                        {description}
-                      </p>
-                    )}
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 border-t border-stone-100 dark:border-stone-800 pt-3 mb-4">
-                        <div className="flex items-center gap-1.5">
-                          <PlaySquare className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-                          <span>{course.lectureCount || 0} {t('courses.lecturesCount', 'محاضرة')}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-                          <span>{course.duration || '0 h'}</span>
-                        </div>
-                      </div>
-
-                      {(() => {
-                        const isPurchased = isSubscribedToCourse(course.id);
-                        return (
-                          <button
-                            className={`w-full py-2.5 font-extrabold rounded-full text-xs flex items-center justify-center gap-2 transition-all ${
-                              isPurchased
-                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                                : 'bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white'
-                            }`}
-                          >
-                            {isPurchased ? (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>تم الشراء</span>
-                              </>
-                            ) : (
-                              <>
-                                <span>{t('courses.exploreCourse', 'تفاصيل الكورس')}</span>
-                                <ArrowLeft className="w-3.5 h-3.5" />
-                              </>
-                            )}
-                          </button>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+            {activeCourses.map((course) => (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0.75, scale: 0.92, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                whileHover={{ scale: 1.03, y: -6 }}
+                whileTap={{ scale: 0.98 }}
+                viewport={{ amount: 0.55 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                className="snap-center shrink-0 w-[280px] sm:w-[330px] touch-pan-y"
+                style={{ touchAction: 'pan-x pan-y' }}
+              >
+                <CourseCard course={course} onOpenDetails={handleCourseDetails} />
+              </motion.div>
+            ))}
           </div>
         ) : (
           <div className="w-full py-12 px-6 rounded-3xl bg-stone-50 dark:bg-stone-900/50 border border-stone-200/80 dark:border-stone-800 text-center flex flex-col items-center justify-center space-y-3">
