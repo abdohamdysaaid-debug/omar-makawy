@@ -30,6 +30,8 @@ export default function StaffProfilePage() {
   const { language } = useLanguage();
   const isAr = language === 'ar';
 
+  const [mounted, setMounted] = useState(false);
+
   // Password form state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -44,6 +46,10 @@ export default function StaffProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,10 +180,10 @@ export default function StaffProfilePage() {
                 </span>
               )}
               {user?.created_at && (
-                <span className="flex items-center gap-1.5 text-neutral-400">
+                <span suppressHydrationWarning className="flex items-center gap-1.5 text-neutral-400">
                   <Calendar className="h-3.5 w-3.5" />
                   {isAr ? 'تاريخ الإنشاء:' : 'Joined:'}{' '}
-                  {new Date(user.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
+                  {mounted ? new Date(user.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US') : ''}
                 </span>
               )}
             </div>

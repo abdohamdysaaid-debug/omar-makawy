@@ -30,12 +30,13 @@ const PRESET_QUESTIONS = [
 ];
 
 export default function OmarAiChat() {
+  const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'ai',
       text: 'أهلاً بك يا بطل! 🚀 أنا المساعد الذكي الرسمي لمنصة مستر عمر مكاوي (Mr. Omar Meckawy AI).\n\nأنا هنا لمساعدتك في شرح ومناقشة أي قاعدة أو مفردات في اللغة الإنجليزية، تصحيح الجمل، وتوجيهك في كل ما يخص المنصة. تفضل بكتابة سؤالك وسأجيبك فوراً! 🎓',
-      timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: 'الآن',
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -44,13 +45,19 @@ export default function OmarAiChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+    if (mounted) {
+      scrollToBottom();
+    }
+  }, [messages, isTyping, mounted]);
 
   const sendMessage = async (textToSend: string) => {
     const query = textToSend.trim();

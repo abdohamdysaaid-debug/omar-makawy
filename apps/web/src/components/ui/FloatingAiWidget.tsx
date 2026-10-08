@@ -6,6 +6,7 @@ import { Sparkles, X, MessageSquare, Send, Bot, ExternalLink, ChevronLeft } from
 import { apiClient } from '@/lib/api';
 
 export default function FloatingAiWidget() {
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
@@ -29,6 +30,7 @@ export default function FloatingAiWidget() {
 
   // Set default initial position on client side
   useEffect(() => {
+    setMounted(true);
     const defaultX = Math.max(15, window.innerWidth - 75);
     const defaultY = Math.max(15, window.innerHeight - 130);
     setPosition({ x: defaultX, y: defaultY });
@@ -45,6 +47,10 @@ export default function FloatingAiWidget() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   const handleDragStart = (clientX: number, clientY: number) => {
     if (!position) return;
