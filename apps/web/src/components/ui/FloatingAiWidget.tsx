@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Sparkles, X, MessageSquare, Send, Bot, ExternalLink, ChevronLeft } from 'lucide-react';
-import { generateSmartAiResponse } from '@/lib/ai/aiBrain';
+import { apiClient } from '@/lib/api';
 
 export default function FloatingAiWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
-  const [messages, setMessages] = useState<Array<{ sender: 'ai' | 'user'; text: string }>>([
+  const [messages, setMessages] = useState<Array<{ sender: 'ai' | 'user'; text: string; isError?: boolean }>>([
     {
       sender: 'ai',
       text: 'أهلاً بك يا بطل! 🚀 أنا مستر عمر AI. عندك أي سؤال في الإنجليزي أو استفسار في المنصة؟ اسألني فوراً!',
@@ -105,35 +105,35 @@ export default function FloatingAiWidget() {
     setIsTyping(true);
 
     try {
-      const apiBase =
-        process.env.NEXT_PUBLIC_API_BASE_URL ||
-        (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-          ? 'http://localhost:3000/api/v1'
-          : 'https://api.omarmeckawy.com/api/v1');
+      const historyPayload = messages
+        .filter((m) => !m.isError)
+        .slice(-6)
+        .map((m) => ({
+          sender: m.sender === 'user' ? ('user' as const) : ('ai' as const),
+          text: m.text,
+        }));
 
-      const res = await fetch(`${apiBase}/ai/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userText,
-          history: messages.map((m) => ({ sender: m.sender, text: m.text })),
-        }),
+      const res: any = await apiClient.post('/ai/chat', {
+        message: userText,
+        history: historyPayload,
       });
 
-      let reply = '';
-      if (res.ok) {
-        const data = await res.json();
-        reply = data.data?.reply || data.reply || '';
-      }
+      const reply = res?.reply || res?.message || res?.data?.reply || res?.data?.message || '';
 
-      if (!reply) {
-        reply = generateSmartAiResponse(userText);
+      if (reply && typeof reply === 'string') {
+        setMessages((prev) => [...prev, { sender: 'ai', text: reply.trim() }]);
+      } else {
+        throw new Error('لم يتم استلام رد صالح من المساعد الذكي');
       }
-
-      setMessages((prev) => [...prev, { sender: 'ai', text: reply }]);
-    } catch {
-      const fallbackReply = generateSmartAiResponse(userText);
-      setMessages((prev) => [...prev, { sender: 'ai', text: fallbackReply }]);
+    } catch (err: any) {
+      const errorMsg =
+        err?.message ||
+        err?.response?.data?.message ||
+        'حدث خطأ في الاتصال بالمساعد الذكي، يرجى المحاولة مرة أخرى.';
+      setMessages((prev) => [
+        ...prev,
+        { sender: 'ai', text: `⚠️ ${errorMsg}`, isError: true },
+      ]);
     } finally {
       setIsTyping(false);
     }

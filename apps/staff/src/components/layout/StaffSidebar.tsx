@@ -137,7 +137,17 @@ export function StaffSidebar({
 
       {/* Footer Identity Card */}
       <div className="p-3 border-t border-neutral-800/80 bg-[#080b09]">
-        <div className="rounded-xl p-1.5">
+        <Link
+          href="/staff/profile"
+          prefetch={false}
+          onClick={() => setIsMobileOpen(false)}
+          className={`block rounded-xl p-1.5 transition-all hover:bg-neutral-800/60 ${
+            pathname === '/staff/profile'
+              ? 'bg-emerald-950/60 ring-1 ring-emerald-500/50'
+              : ''
+          }`}
+          title={isAr ? 'الملف الشخصي' : 'Profile'}
+        >
           {!isCollapsed ? (
             <div>
               <div className="flex items-center gap-2.5 mb-1.5">
@@ -166,7 +176,7 @@ export function StaffSidebar({
               </div>
             </div>
           )}
-        </div>
+        </Link>
       </div>
     </div>
   );
