@@ -123,7 +123,7 @@ export default function WalletPage() {
               break;
             case 'CREDIT':
             case 'TOPUP_CREDIT':
-              defaultArabicDesc = 'شحن رصيد (تحويل خارجي)';
+              defaultArabicDesc = 'شحن رصيد (انستا باي / فودافون كاش)';
               break;
             case 'BOOK_PURCHASE':
               defaultArabicDesc = 'شراء كتاب / مذكرة دراسية';
@@ -376,6 +376,43 @@ export default function WalletPage() {
     }
   };
 
+  const formatPaymentMethod = (req: any) => {
+    if (!req) return 'انستا باي / فودافون كاش';
+    const displayName = req.receiving_display_name || req.display_name;
+    const providerName = req.receiving_provider_name || req.provider_name;
+    const type = (req.receiving_type || req.type || '').toUpperCase();
+    const accNum = req.receiving_account_number || req.account_number;
+
+    let typeArabic = '';
+    if (type === 'INSTAPAY' || type.includes('INSTA')) {
+      typeArabic = 'انستا باي (InstaPay)';
+    } else if (type === 'VODAFONE_CASH' || type.includes('VODAFONE')) {
+      typeArabic = 'فودافون كاش';
+    } else if (type === 'ORANGE_CASH' || type.includes('ORANGE')) {
+      typeArabic = 'أورنج كاش';
+    } else if (type === 'ETISALAT_CASH' || type.includes('ETISALAT')) {
+      typeArabic = 'اتصالات كاش';
+    } else if (type === 'WE_PAY' || type.includes('WE')) {
+      typeArabic = 'وي باي (WE Pay)';
+    } else if (type === 'BANK_ACCOUNT' || type.includes('BANK')) {
+      typeArabic = 'تحويل بنكي';
+    }
+
+    if (displayName && providerName && displayName.toLowerCase() !== providerName.toLowerCase()) {
+      return `${displayName} (${providerName})${accNum ? ` - ${accNum}` : ''}`;
+    }
+    if (displayName) {
+      return `${displayName}${accNum ? ` - ${accNum}` : ''}`;
+    }
+    if (providerName) {
+      return `${providerName}${accNum ? ` - ${accNum}` : ''}`;
+    }
+    if (typeArabic) {
+      return `${typeArabic}${accNum ? ` - ${accNum}` : ''}`;
+    }
+    return 'انستا باي / فودافون كاش';
+  };
+
   return (
     <StudentLayout>
       <div className="space-y-8 animate-fade-in max-w-4xl pb-12">
@@ -464,7 +501,7 @@ export default function WalletPage() {
                   }`}
                 >
                   <CreditCard className="w-4 h-4" />
-                  <span>تحويل خارجي (كاش / انستا باي)</span>
+                  <span>انستا باي / فودافون كاش</span>
                 </button>
 
                 <button
@@ -741,7 +778,7 @@ export default function WalletPage() {
                     </div>
 
                     <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                      الحساب: {req.receiving_display_name || req.receiving_type || 'تحويل خارجي'} | التاريخ:{' '}
+                      طريقة التحويل: {formatPaymentMethod(req)} | التاريخ:{' '}
                       {new Date(req.created_at).toLocaleDateString('ar-EG', {
                         year: 'numeric',
                         month: 'short',

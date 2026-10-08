@@ -242,6 +242,43 @@ export default function StaffWalletPage() {
     setProofBlobUrl(null);
   };
 
+  const formatPaymentMethod = (req: any) => {
+    if (!req) return 'تحويل إلكتروني';
+    const displayName = req.receiving_display_name || req.display_name;
+    const providerName = req.receiving_provider_name || req.provider_name;
+    const type = (req.receiving_type || req.type || '').toUpperCase();
+    const accNum = req.receiving_account_number || req.account_number;
+
+    let typeArabic = '';
+    if (type === 'INSTAPAY' || type.includes('INSTA')) {
+      typeArabic = 'انستا باي (InstaPay)';
+    } else if (type === 'VODAFONE_CASH' || type.includes('VODAFONE')) {
+      typeArabic = 'فودافون كاش';
+    } else if (type === 'ORANGE_CASH' || type.includes('ORANGE')) {
+      typeArabic = 'أورنج كاش';
+    } else if (type === 'ETISALAT_CASH' || type.includes('ETISALAT')) {
+      typeArabic = 'اتصالات كاش';
+    } else if (type === 'WE_PAY' || type.includes('WE')) {
+      typeArabic = 'وي باي (WE Pay)';
+    } else if (type === 'BANK_ACCOUNT' || type.includes('BANK')) {
+      typeArabic = 'تحويل بنكي';
+    }
+
+    if (displayName && providerName && displayName.toLowerCase() !== providerName.toLowerCase()) {
+      return `${displayName} (${providerName})${accNum ? ` - ${accNum}` : ''}`;
+    }
+    if (displayName) {
+      return `${displayName}${accNum ? ` - ${accNum}` : ''}`;
+    }
+    if (providerName) {
+      return `${providerName}${accNum ? ` - ${accNum}` : ''}`;
+    }
+    if (typeArabic) {
+      return `${typeArabic}${accNum ? ` - ${accNum}` : ''}`;
+    }
+    return 'انستا باي / فودافون كاش';
+  };
+
   // Approve top-up request
   const handleApprove = async (reqId: string) => {
     setActionProcessing(true);
@@ -585,8 +622,8 @@ export default function StaffWalletPage() {
                           </span>
                         </td>
                         <td className="p-4">
-                          <span className="text-neutral-300 font-semibold">
-                            {req.receiving_display_name || req.receiving_type || 'تحويل خارجي'}
+                          <span className="text-neutral-300 font-semibold text-xs">
+                            {formatPaymentMethod(req)}
                           </span>
                         </td>
                         <td className="p-4">
@@ -1071,8 +1108,8 @@ export default function StaffWalletPage() {
 
               <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-1">
                 <span className="text-neutral-400">الحساب المحول إليه:</span>
-                <p className="font-bold text-white">
-                  {selectedRequest.receiving_display_name || selectedRequest.receiving_type || 'تحويل خارجي'}
+                <p className="font-bold text-white text-xs sm:text-sm">
+                  {formatPaymentMethod(selectedRequest)}
                 </p>
               </div>
 
