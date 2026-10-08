@@ -92,6 +92,7 @@ export default function StaffWalletPage() {
 
   const [rejectingRequest, setRejectingRequest] = useState<any | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectError, setRejectError] = useState<string | null>(null);
   const [actionProcessing, setActionProcessing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -263,18 +264,23 @@ export default function StaffWalletPage() {
     if (!rejectingRequest || !rejectionReason.trim()) return;
 
     setActionProcessing(true);
+    setRejectError(null);
     setActionError(null);
     try {
       await apiClient.post(`/api/v1/admin/wallet/top-up-requests/${rejectingRequest.id}/reject`, {
         rejection_reason: rejectionReason.trim(),
+        reason: rejectionReason.trim(),
       });
       setRejectingRequest(null);
       setRejectionReason('');
+      setRejectError(null);
       closeRequestDetail();
-      fetchSummary();
-      fetchRequests();
+      await fetchSummary();
+      await fetchRequests();
     } catch (err: any) {
-      setActionError(err?.response?.data?.message || err?.message || 'فشل في رفض الطلب');
+      const errMsg = err?.response?.data?.message || err?.message || 'فشل في رفض الطلب';
+      setRejectError(errMsg);
+      setActionError(errMsg);
     } finally {
       setActionProcessing(false);
     }
@@ -1106,7 +1112,11 @@ export default function StaffWalletPage() {
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
                 <button
                   type="button"
-                  onClick={() => setRejectingRequest(selectedRequest)}
+                  onClick={() => {
+                    setRejectError(null);
+                    setRejectionReason('');
+                    setRejectingRequest(selectedRequest);
+                  }}
                   disabled={actionProcessing}
                   className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 font-bold text-xs transition-colors border border-red-500/20"
                 >
@@ -1143,6 +1153,13 @@ export default function StaffWalletPage() {
               يرجى إدخال سبب الرفض بوضوح ليتم توضيحه للطالب في الإشعارات وفي سجل حسابه.
             </p>
 
+            {rejectError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{rejectError}</span>
+              </div>
+            )}
+
             <textarea
               required
               rows={3}
@@ -1155,7 +1172,10 @@ export default function StaffWalletPage() {
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setRejectingRequest(null)}
+                onClick={() => {
+                  setRejectingRequest(null);
+                  setRejectError(null);
+                }}
                 className="px-4 py-2 rounded-xl bg-neutral-900 text-neutral-400 hover:text-white text-xs font-bold"
               >
                 إلغاء
@@ -1163,8 +1183,9 @@ export default function StaffWalletPage() {
               <button
                 type="submit"
                 disabled={actionProcessing || !rejectionReason.trim()}
-                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition-colors shadow-sm"
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-xs transition-colors shadow-sm flex items-center gap-2"
               >
+                {actionProcessing && <RefreshCw className="w-4 h-4 animate-spin" />}
                 تأكيد الرفض
               </button>
             </div>
