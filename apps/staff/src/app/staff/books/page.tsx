@@ -109,6 +109,7 @@ export default function StaffBooksPage() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('ALL');
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [trackingNumberInput, setTrackingNumberInput] = useState<string>('');
 
   // Global Action Processing
   const [actionProcessing, setActionProcessing] = useState(false);
@@ -314,13 +315,21 @@ export default function StaffBooksPage() {
   };
 
   // Update Order Status
-  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string, trackingNumber?: string) => {
     setActionProcessing(true);
     try {
-      await apiClient.put(`/api/v1/orders/${orderId}/status`, { status: newStatus });
+      const payload: any = { status: newStatus };
+      if (trackingNumber !== undefined && trackingNumber.trim()) {
+        payload.tracking_number = trackingNumber.trim();
+      }
+      await apiClient.put(`/api/v1/orders/${orderId}/status`, payload);
       fetchOrders();
       if (selectedOrder) {
-        setSelectedOrder({ ...selectedOrder, status: newStatus });
+        setSelectedOrder({
+          ...selectedOrder,
+          status: newStatus,
+          tracking_number: trackingNumber !== undefined ? trackingNumber : selectedOrder.tracking_number,
+        });
       }
     } catch (err: any) {
       alert(err?.response?.data?.message || 'فشل تحديث حالة الطلب');
@@ -766,7 +775,7 @@ export default function StaffBooksPage() {
         <div className="space-y-4">
           <div className="p-4 rounded-2xl bg-[#111813] border border-neutral-800/80 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
             <div className="flex items-center gap-1.5 overflow-x-auto">
-              {(['ALL', 'PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const).map((st) => (
+              {(['ALL', 'PENDING', 'CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'RETURNED', 'CANCELLED'] as const).map((st) => (
                 <button
                   key={st}
                   onClick={() => setOrderStatusFilter(st)}
@@ -787,7 +796,9 @@ export default function StaffBooksPage() {
                     : st === 'SHIPPED'
                     ? 'تم الشحن'
                     : st === 'DELIVERED'
-                    ? 'تم التوصيل'
+                    ? 'تم التسليم'
+                    : st === 'RETURNED'
+                    ? 'مرتجع'
                     : 'ملغى'}
                 </button>
               ))}
@@ -837,13 +848,46 @@ export default function StaffBooksPage() {
                           })}
                         </td>
                         <td className="p-4">
-                          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            {ord.status}
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                              ord.status === 'DELIVERED'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                : ord.status === 'SHIPPED'
+                                ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                                : ord.status === 'PREPARING'
+                                ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                : ord.status === 'CONFIRMED'
+                                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                : ord.status === 'CANCELLED'
+                                ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                : ord.status === 'RETURNED'
+                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                            }`}
+                          >
+                            {ord.status === 'PENDING'
+                              ? 'قيد الانتظار'
+                              : ord.status === 'CONFIRMED'
+                              ? 'مؤكد'
+                              : ord.status === 'PREPARING'
+                              ? 'قيد التجهيز'
+                              : ord.status === 'SHIPPED'
+                              ? 'تم الشحن'
+                              : ord.status === 'DELIVERED'
+                              ? 'تم التسليم'
+                              : ord.status === 'RETURNED'
+                              ? 'مرتجع'
+                              : ord.status === 'CANCELLED'
+                              ? 'ملغى'
+                              : ord.status}
                           </span>
                         </td>
                         <td className="p-4 text-center">
                           <button
-                            onClick={() => setSelectedOrder(ord)}
+                            onClick={() => {
+                              setSelectedOrder(ord);
+                              setTrackingNumberInput(ord.tracking_number || '');
+                            }}
                             className="h-8 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 font-bold text-[11px] transition-colors inline-flex items-center gap-1.5"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -1259,10 +1303,10 @@ export default function StaffBooksPage() {
       {/* INSPECT ORDER MODAL */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="w-full max-w-xl rounded-3xl bg-[#111813] border border-neutral-800 text-white p-6 space-y-6 relative">
+          <div className="w-full max-w-2xl rounded-3xl bg-[#111813] border border-neutral-800 text-white p-6 space-y-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedOrder(null)}
-              className="absolute top-5 left-5 p-2 rounded-xl bg-neutral-900 text-neutral-400 hover:text-white"
+              className="absolute top-5 left-5 p-2 rounded-xl bg-neutral-900 text-neutral-400 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1272,23 +1316,95 @@ export default function StaffBooksPage() {
                 <Package className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-lg font-bold">تفاصيل طلب الكتاب #{selectedOrder.order_number}</h2>
-                <p className="text-xs text-neutral-400">مراجعة بيانات الشحن والمستلم وتغيير حالة الطلب</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-bold">تفاصيل طلب الكتاب #{selectedOrder.order_number}</h2>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                      selectedOrder.status === 'DELIVERED'
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        : selectedOrder.status === 'SHIPPED'
+                        ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                        : selectedOrder.status === 'PREPARING'
+                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                        : selectedOrder.status === 'CONFIRMED'
+                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                        : selectedOrder.status === 'CANCELLED'
+                        ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                        : selectedOrder.status === 'RETURNED'
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                    }`}
+                  >
+                    الحالة الحالية:{' '}
+                    {selectedOrder.status === 'PENDING'
+                      ? 'قيد الانتظار'
+                      : selectedOrder.status === 'CONFIRMED'
+                      ? 'مؤكد'
+                      : selectedOrder.status === 'PREPARING'
+                      ? 'قيد التجهيز'
+                      : selectedOrder.status === 'SHIPPED'
+                      ? 'تم الشحن'
+                      : selectedOrder.status === 'DELIVERED'
+                      ? 'تم التسليم'
+                      : selectedOrder.status === 'RETURNED'
+                      ? 'مرتجع'
+                      : selectedOrder.status === 'CANCELLED'
+                      ? 'ملغى'
+                      : selectedOrder.status}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  مراجعة بيانات الشحن والمستلم وتغيير حالة الطلب بحرية في أي وقت
+                </p>
               </div>
             </div>
+
+            {/* Ordered Items List */}
+            {selectedOrder.items && selectedOrder.items.length > 0 && (
+              <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-3">
+                <span className="text-xs font-bold text-neutral-300 block">الكتب والمذكرات المطلوبة:</span>
+                <div className="divide-y divide-neutral-800/80">
+                  {selectedOrder.items.map((item: any, idx: number) => (
+                    <div key={item.id || idx} className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-neutral-950 border border-neutral-800 overflow-hidden flex items-center justify-center shrink-0">
+                          {item.cover_image_url ? (
+                            <img
+                              src={resolveMediaUrl(item.cover_image_url)}
+                              alt={item.title_ar}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <BookOpen className="w-4 h-4 text-neutral-600" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-white">{item.title_ar || item.title_en || 'كتاب دراسي'}</p>
+                          <p className="text-[11px] text-neutral-400 font-mono">الكمية: {item.quantity} نسخة</p>
+                        </div>
+                      </div>
+                      <div className="font-bold text-emerald-400">
+                        {(Number(item.total_price) || 0).toLocaleString()} ج.م
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Address Snapshot */}
             <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2 text-xs">
               <span className="font-bold text-emerald-400 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4" />
-                بيانات التوصيل والشحن المسجلة (Order Address Snapshot):
+                بيانات التوصيل والشحن المسجلة:
               </span>
               <div className="grid grid-cols-2 gap-2 text-neutral-300">
                 <p>
                   <strong className="text-white">المستلم:</strong> {selectedOrder.recipient_name}
                 </p>
                 <p>
-                  <strong className="text-white">الهاتف:</strong> {selectedOrder.recipient_phone}
+                  <strong className="text-white">الهاتف:</strong>{' '}
+                  <span dir="ltr" className="font-mono">{selectedOrder.recipient_phone}</span>
                 </p>
                 <p>
                   <strong className="text-white">المحافظة:</strong> {selectedOrder.governorate_name_snapshot || 'المحافظة'}
@@ -1304,8 +1420,8 @@ export default function StaffBooksPage() {
               </div>
             </div>
 
-            {/* Order Totals */}
-            <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-1 text-xs">
+            {/* Order Totals & Payment */}
+            <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-neutral-400">سعر المشتريات:</span>
                 <span className="text-white">{(Number(selectedOrder.subtotal) || 0).toLocaleString()} ج.م</span>
@@ -1314,38 +1430,86 @@ export default function StaffBooksPage() {
                 <span className="text-neutral-400">رسوم الشحن:</span>
                 <span className="text-white">{(Number(selectedOrder.shipping_fee) || 0).toLocaleString()} ج.م</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-400">حالة الدفع:</span>
+                <span
+                  className={`font-bold ${
+                    selectedOrder.payment_status === 'PAID'
+                      ? 'text-emerald-400'
+                      : selectedOrder.payment_status === 'REFUNDED'
+                      ? 'text-amber-400'
+                      : 'text-neutral-300'
+                  }`}
+                >
+                  {selectedOrder.payment_status === 'PAID'
+                    ? 'تم الدفع (خصم من المحفظة)'
+                    : selectedOrder.payment_status === 'REFUNDED'
+                    ? 'تم استرجاع المبلغ للمحفظة'
+                    : 'غير مدفوع'}
+                </span>
+              </div>
               <div className="flex justify-between pt-2 border-t border-neutral-800 font-bold text-sm">
                 <span className="text-emerald-400">الإجمالي:</span>
                 <span className="text-emerald-400">{(Number(selectedOrder.total_amount) || 0).toLocaleString()} ج.م</span>
               </div>
             </div>
 
+            {/* Tracking Number Input */}
+            <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2 text-xs">
+              <label className="font-bold text-neutral-300 block">رقم بوليصة الشحن / التتبع (Tracking Number):</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={trackingNumberInput}
+                  onChange={(e) => setTrackingNumberInput(e.target.value)}
+                  placeholder="مثلاً: AWB-123456789"
+                  className="flex-1 h-9 rounded-xl bg-neutral-950 border border-neutral-800 px-3 text-white text-xs focus:outline-hidden focus:border-emerald-500 font-mono"
+                  dir="ltr"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleUpdateOrderStatus(selectedOrder.id, selectedOrder.status, trackingNumberInput)}
+                  disabled={actionProcessing}
+                  className="h-9 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs transition-colors"
+                >
+                  حفظ البوليصة
+                </button>
+              </div>
+            </div>
+
             {/* State Machine Action Transitions */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-neutral-400">تحديث حالة الطلب:</span>
-              <div className="flex flex-wrap gap-2">
-                {['CONFIRMED', 'PREPARING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => handleUpdateOrderStatus(selectedOrder.id, st)}
-                    disabled={actionProcessing || selectedOrder.status === st}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      selectedOrder.status === st
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-                    }`}
-                  >
-                    {st === 'CONFIRMED'
-                      ? 'تأكيد'
-                      : st === 'PREPARING'
-                      ? 'تجهيز'
-                      : st === 'SHIPPED'
-                      ? 'شحن'
-                      : st === 'DELIVERED'
-                      ? 'تسليم'
-                      : 'إلغاء'}
-                  </button>
-                ))}
+            <div className="space-y-3 pt-2">
+              <span className="text-xs font-bold text-neutral-400 block">
+                تغيير حالة الطلب (متاح التغيير والتبديل في أي وقت):
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { st: 'PENDING', label: 'قيد الانتظار', activeBg: 'bg-neutral-700 border-neutral-600', color: 'hover:border-neutral-500' },
+                  { st: 'CONFIRMED', label: 'تأكيد الطلب', activeBg: 'bg-blue-600 border-blue-500', color: 'hover:border-blue-500' },
+                  { st: 'PREPARING', label: 'قيد التجهيز', activeBg: 'bg-purple-600 border-purple-500', color: 'hover:border-purple-500' },
+                  { st: 'SHIPPED', label: 'إلى الشحن', activeBg: 'bg-cyan-600 border-cyan-500', color: 'hover:border-cyan-500' },
+                  { st: 'DELIVERED', label: 'تم التسليم', activeBg: 'bg-emerald-600 border-emerald-500', color: 'hover:border-emerald-500' },
+                  { st: 'RETURNED', label: 'مرتجع واسترداد', activeBg: 'bg-amber-600 border-amber-500', color: 'hover:border-amber-500' },
+                  { st: 'CANCELLED', label: 'إلغاء واسترداد', activeBg: 'bg-red-600 border-red-500', color: 'hover:border-red-500' },
+                ].map(({ st, label, activeBg, color }) => {
+                  const isCurrent = selectedOrder.status === st;
+                  return (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => handleUpdateOrderStatus(selectedOrder.id, st, trackingNumberInput)}
+                      disabled={actionProcessing || isCurrent}
+                      className={`h-10 px-3 rounded-xl text-xs font-bold transition-all border ${
+                        isCurrent
+                          ? `${activeBg} text-white shadow-sm ring-1 ring-white/20`
+                          : `bg-neutral-900 border-neutral-800 text-neutral-300 ${color} hover:text-white`
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {label}
+                      {isCurrent && ' ✓'}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
