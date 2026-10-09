@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import StudentLayout from '@/components/layout/StudentLayout';
 import EmptyState from '@/components/ui/EmptyState';
 import { useAuth } from '@/context/AuthContext';
@@ -173,12 +174,14 @@ export default function PackagesClient() {
     }
   };
 
+  const router = useRouter();
+
   const openPackageDetails = (pkg: any) => {
-    setSelectedPackage(pkg);
-    setPromoCode('');
-    setAppliedDiscount(null);
-    setCodeFeedback(null);
-    setPurchaseSuccess(false);
+    if (!isAuthenticated && openAuthGate) {
+      openAuthGate(`/packages/detail?id=${pkg.id}`);
+    } else {
+      router.push(`/student/packages/detail?id=${pkg.id}`);
+    }
   };
 
   const closePackageDetails = () => {

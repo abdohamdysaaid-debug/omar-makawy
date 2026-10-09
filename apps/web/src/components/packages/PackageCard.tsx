@@ -39,9 +39,9 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
     if (onOpenDetails) {
       onOpenDetails(pkg);
     } else if (!isAuthenticated && openAuthGate) {
-      openAuthGate(`/packages`);
+      openAuthGate(`/packages/detail?id=${pkg.id}`);
     } else {
-      router.push(`/student/packages`);
+      router.push(`/student/packages/detail?id=${pkg.id}`);
     }
   };
 
@@ -155,7 +155,8 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
             {isPurchased ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>تم الشراء</span>
+                <span>عرض تفاصيل الباقة</span>
+                <ArrowLeft className="w-3 h-3 transition-transform group-hover:-translate-x-0.5" />
               </>
             ) : (
               <>

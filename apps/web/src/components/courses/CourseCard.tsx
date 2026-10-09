@@ -148,7 +148,8 @@ export default function CourseCard({ course, onOpenDetails, className = '' }: Co
             {isPurchased ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>تم الشراء</span>
+                <span>عرض تفاصيل الكورس</span>
+                <ArrowLeft className="w-3 h-3 transition-transform group-hover:-translate-x-0.5" />
               </>
             ) : (
               <>

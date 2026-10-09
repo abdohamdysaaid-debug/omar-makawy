@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import CourseCard from '@/components/courses/CourseCard';
@@ -187,12 +187,14 @@ function CoursesContent() {
     }
   };
 
+  const router = useRouter();
+
   const openCourseDetails = (course: Course) => {
-    setSelectedCourse(course);
-    setPromoCode('');
-    setAppliedDiscount(null);
-    setCodeFeedback(null);
-    setPurchaseSuccess(false);
+    if (!isAuthenticated && openAuthGate) {
+      openAuthGate(`/courses/detail?id=${course.id}`);
+    } else {
+      router.push(`/student/courses/detail?id=${course.id}`);
+    }
   };
 
   const closeCourseDetails = () => {

@@ -40,9 +40,9 @@ export default function PackagesSection({ selectedAcademicYearId = null }: Packa
 
   const handleOpenDetails = (pkg: any) => {
     if (!isAuthenticated && openAuthGate) {
-      openAuthGate(`/packages`);
+      openAuthGate(`/packages/detail?id=${pkg.id}`);
     } else {
-      window.location.href = `/student/packages`;
+      window.location.href = `/student/packages/detail?id=${pkg.id}`;
     }
   };
 
