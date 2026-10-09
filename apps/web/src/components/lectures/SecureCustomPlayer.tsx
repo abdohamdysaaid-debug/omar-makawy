@@ -366,21 +366,24 @@ export function SecureCustomPlayer({
 
       {/* 5. BOTTOM SOLID BLACK CONTROL BAR FRAME (Hides YouTube watermark logo completely) */}
       <div
+        dir="ltr"
         className={`absolute bottom-0 inset-x-0 z-30 p-3 sm:p-4 bg-black border-t border-white/10 transition-opacity duration-300 pointer-events-auto space-y-2.5 text-white ${
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Interactive Progress Slider */}
-        <div className="relative group/timeline flex items-center">
+        <div className="relative group/timeline flex items-center" dir="ltr">
           <input
             type="range"
+            dir="ltr"
             min={0}
             max={effectiveDuration > 0 ? effectiveDuration : 100}
             value={currentTime}
             onChange={(e) => handleSeek(Number(e.target.value))}
             className="w-full h-1.5 bg-gray-700/80 rounded-lg appearance-none cursor-pointer accent-[#0d6e4f] hover:h-2.5 transition-all"
             style={{
+              direction: 'ltr',
               background: `linear-gradient(to right, #0d6e4f 0%, #10b981 ${
                 effectiveDuration > 0 ? (currentTime / effectiveDuration) * 100 : 0
               }%, #374151 ${
@@ -391,7 +394,7 @@ export function SecureCustomPlayer({
         </div>
 
         {/* Controls Row */}
-        <div className="flex items-center justify-between text-xs font-bold gap-2">
+        <div className="flex items-center justify-between text-xs font-bold gap-2" dir="ltr">
           {/* Left Controls: Play/Pause, Volume, Time */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Play/Pause Button */}
@@ -425,16 +428,18 @@ export function SecureCustomPlayer({
 
               <input
                 type="range"
+                dir="ltr"
                 min={0}
                 max={100}
                 value={isMuted ? 0 : volume}
                 onChange={(e) => handleVolumeChange(Number(e.target.value))}
                 className="w-16 sm:w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-emerald-400 hidden sm:block"
+                style={{ direction: 'ltr' }}
               />
             </div>
 
             {/* Current / Duration Time */}
-            <span className="text-[11px] font-mono text-gray-300 ps-1">
+            <span className="text-[11px] font-mono text-gray-300 ps-1" dir="ltr">
               {formatTime(currentTime)} / {effectiveDuration > 0 ? formatTime(effectiveDuration) : '--:--'}
             </span>
           </div>
@@ -454,7 +459,10 @@ export function SecureCustomPlayer({
 
               {/* Speed Menu Popover */}
               {showSpeedMenu && (
-                <div className="absolute bottom-full end-0 mb-2 w-32 bg-stone-900 border border-stone-700 rounded-2xl p-1.5 shadow-2xl z-50 text-xs font-bold space-y-0.5 animate-in fade-in slide-in-from-bottom-2">
+                <div
+                  dir="rtl"
+                  className="absolute bottom-full end-0 mb-2 w-32 bg-stone-900 border border-stone-700 rounded-2xl p-1.5 shadow-2xl z-50 text-xs font-bold space-y-0.5 animate-in fade-in slide-in-from-bottom-2"
+                >
                   <div className="px-3 py-1.5 text-[10px] text-gray-400 border-b border-stone-800">
                     سرعة التشغيل
                   </div>
