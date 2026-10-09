@@ -252,16 +252,29 @@ function CoursesContent() {
     e.preventDefault();
     if (!promoCode.trim() || !selectedCourse) return;
 
+    if (!isAuthenticated) {
+      setCodeFeedback({
+        type: 'error',
+        message: 'يرجى تسجيل الدخول أولاً لتتمكن من تفعيل الكود على حسابك.',
+      });
+      if (openAuthGate) {
+        openAuthGate(`/student/courses`);
+      }
+      return;
+    }
+
     setCodeLoading(true);
     setCodeFeedback(null);
 
     const basePrice = Number(selectedCourse.discount_price || selectedCourse.price || 0);
+    const cleanCode = promoCode.trim();
+    let activationErrorMsg: string | null = null;
 
     try {
       // 1. Direct course activation
       try {
         const redeemRes: any = await apiClient.post('/api/v1/activation/redeem', {
-          code: promoCode.trim(),
+          code: cleanCode,
         });
         if (redeemRes) {
           setCodeFeedback({
@@ -273,14 +286,27 @@ function CoursesContent() {
           await refreshSubscriptions();
           return;
         }
-      } catch {
-        // Fallback to discount validation
+      } catch (err: any) {
+        activationErrorMsg =
+          err?.response?.data?.message ||
+          err?.data?.message ||
+          err?.message ||
+          null;
+      }
+
+      // If the code starts with ACT- and failed activation, show the activation error directly!
+      if (cleanCode.toUpperCase().startsWith('ACT-')) {
+        setCodeFeedback({
+          type: 'error',
+          message: activationErrorMsg || 'كود التفعيل غير صالح أو منتهي الصلاحية.',
+        });
+        return;
       }
 
       // 2. Validate discount coupon
       try {
         const discountRes: any = await apiClient.post('/api/v1/discounts/validate', {
-          code: promoCode.trim(),
+          code: cleanCode,
           item_type: 'COURSE',
           item_id: selectedCourse.id,
         });
@@ -288,7 +314,7 @@ function CoursesContent() {
         if (discountRes && typeof discountRes.final_price !== 'undefined') {
           const finalVal = Number(discountRes.final_price);
           setAppliedDiscount({
-            code: promoCode.trim(),
+            code: cleanCode,
             percent: discountRes.discount_percent,
             amount: discountRes.discount_amount,
             finalPrice: finalVal,
@@ -299,14 +325,16 @@ function CoursesContent() {
           });
           return;
         }
-      } catch {}
+      } catch (discErr: any) {
+        // Coupon validation returned error
+      }
 
       // 3. Fallback generic check (e.g. 50% / 100% discount promo)
-      const upperCode = promoCode.trim().toUpperCase();
+      const upperCode = cleanCode.toUpperCase();
       if (upperCode.includes('50') || upperCode.includes('HALF')) {
         const halfPrice = Math.round(basePrice * 0.5);
         setAppliedDiscount({
-          code: promoCode.trim(),
+          code: cleanCode,
           percent: 50,
           finalPrice: halfPrice,
         });
@@ -316,7 +344,7 @@ function CoursesContent() {
         });
       } else if (upperCode.includes('100') || upperCode.includes('FREE')) {
         setAppliedDiscount({
-          code: promoCode.trim(),
+          code: cleanCode,
           percent: 100,
           finalPrice: 0,
         });
@@ -327,7 +355,7 @@ function CoursesContent() {
       } else {
         setCodeFeedback({
           type: 'error',
-          message: 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
+          message: activationErrorMsg || 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
         });
       }
     } finally {

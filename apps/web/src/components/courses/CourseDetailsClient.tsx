@@ -155,16 +155,29 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
     e.preventDefault();
     if (!promoCode.trim() || !course) return;
 
+    if (!isAuthenticated) {
+      setCodeFeedback({
+        type: 'error',
+        message: 'يرجى تسجيل الدخول أولاً لتتمكن من تفعيل الكود على حسابك.',
+      });
+      if (openAuthGate) {
+        openAuthGate(`/student/courses/detail?id=${effectiveCourseId}`);
+      }
+      return;
+    }
+
     setCodeLoading(true);
     setCodeFeedback(null);
 
     const basePrice = Number(course.discount_price || course.price || 0);
+    const cleanCode = promoCode.trim();
+    let activationErrorMsg: string | null = null;
 
     try {
       // 1. First attempt direct course activation via redemption endpoint
       try {
         const redeemRes: any = await apiClient.post('/api/v1/activation/redeem', {
-          code: promoCode.trim(),
+          code: cleanCode,
         });
         if (redeemRes) {
           setCodeFeedback({
@@ -177,13 +190,26 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
           return;
         }
       } catch (err: any) {
-        // Continue to discount validation
+        activationErrorMsg =
+          err?.response?.data?.message ||
+          err?.data?.message ||
+          err?.message ||
+          null;
+      }
+
+      // If the code starts with ACT- and failed activation, show the activation error directly!
+      if (cleanCode.toUpperCase().startsWith('ACT-')) {
+        setCodeFeedback({
+          type: 'error',
+          message: activationErrorMsg || 'كود التفعيل غير صالح أو منتهي الصلاحية.',
+        });
+        return;
       }
 
       // 2. Validate as discount coupon
       try {
         const discountRes: any = await apiClient.post('/api/v1/discounts/validate', {
-          code: promoCode.trim(),
+          code: cleanCode,
           item_type: 'COURSE',
           item_id: course.id,
         });
@@ -191,7 +217,7 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
         if (discountRes && typeof discountRes.final_price !== 'undefined') {
           const finalVal = Number(discountRes.final_price);
           setAppliedDiscount({
-            code: promoCode.trim(),
+            code: cleanCode,
             percent: discountRes.discount_percent,
             amount: discountRes.discount_amount,
             finalPrice: finalVal,
@@ -207,11 +233,11 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
       }
 
       // 3. Fallback generic check
-      const upperCode = promoCode.trim().toUpperCase();
+      const upperCode = cleanCode.toUpperCase();
       if (upperCode.includes('50') || upperCode.includes('HALF')) {
         const halfPrice = Math.round(basePrice * 0.5);
         setAppliedDiscount({
-          code: promoCode.trim(),
+          code: cleanCode,
           percent: 50,
           finalPrice: halfPrice,
         });
@@ -221,7 +247,7 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
         });
       } else if (upperCode.includes('100') || upperCode.includes('FREE')) {
         setAppliedDiscount({
-          code: promoCode.trim(),
+          code: cleanCode,
           percent: 100,
           finalPrice: 0,
         });
@@ -232,7 +258,7 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
       } else {
         setCodeFeedback({
           type: 'error',
-          message: 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
+          message: activationErrorMsg || 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
         });
       }
     } finally {

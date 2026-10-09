@@ -227,20 +227,31 @@ export default function PackagesClient() {
     e.preventDefault();
     if (!promoCode.trim() || !selectedPackage) return;
 
+    if (!isAuthenticated) {
+      setCodeFeedback({
+        type: 'error',
+        message: 'يرجى تسجيل الدخول أولاً لتتمكن من تفعيل الكود على حسابك.',
+      });
+      if (openAuthGate) {
+        openAuthGate(`/student/packages`);
+      }
+      return;
+    }
+
     setCodeLoading(true);
     setCodeFeedback(null);
 
     const basePrice = Number(selectedPackage.discount_price || selectedPackage.price || 0);
+    const cleanCode = promoCode.trim();
+    let activationErrorMsg: string | null = null;
 
     try {
       // 1. First attempt direct package activation via redemption endpoint
-      let isActivationSuccess = false;
       try {
         const redeemRes: any = await apiClient.post('/api/v1/activation/redeem', {
-          code: promoCode.trim(),
+          code: cleanCode,
         });
         if (redeemRes) {
-          isActivationSuccess = true;
           setCodeFeedback({
             type: 'success',
             message: redeemRes.message || '🎉 تم تفعيل الباقة بنجاح والاشتراك فيها مجاناً!',
@@ -251,13 +262,26 @@ export default function PackagesClient() {
           return;
         }
       } catch (err: any) {
-        // If not a direct activation code, try discount validation
+        activationErrorMsg =
+          err?.response?.data?.message ||
+          err?.data?.message ||
+          err?.message ||
+          null;
+      }
+
+      // If the code starts with ACT- and failed activation, show the activation error directly!
+      if (cleanCode.toUpperCase().startsWith('ACT-')) {
+        setCodeFeedback({
+          type: 'error',
+          message: activationErrorMsg || 'كود التفعيل غير صالح أو منتهي الصلاحية.',
+        });
+        return;
       }
 
       // 2. Validate as discount coupon
       try {
         const discountRes: any = await apiClient.post('/api/v1/discounts/validate', {
-          code: promoCode.trim(),
+          code: cleanCode,
           item_type: 'PACKAGE',
           item_id: selectedPackage.id,
         });
@@ -265,7 +289,7 @@ export default function PackagesClient() {
         if (discountRes && typeof discountRes.final_price !== 'undefined') {
           const finalVal = Number(discountRes.final_price);
           setAppliedDiscount({
-            code: promoCode.trim(),
+            code: cleanCode,
             percent: discountRes.discount_percent,
             amount: discountRes.discount_amount,
             finalPrice: finalVal,
@@ -281,11 +305,11 @@ export default function PackagesClient() {
       }
 
       // 3. Fallback generic check (e.g. 50% / 100% demo promo code matching)
-      const upperCode = promoCode.trim().toUpperCase();
+      const upperCode = cleanCode.toUpperCase();
       if (upperCode.includes('50') || upperCode.includes('HALF')) {
         const halfPrice = Math.round(basePrice * 0.5);
         setAppliedDiscount({
-          code: promoCode.trim(),
+          code: cleanCode,
           percent: 50,
           finalPrice: halfPrice,
         });
@@ -295,7 +319,7 @@ export default function PackagesClient() {
         });
       } else if (upperCode.includes('100') || upperCode.includes('FREE')) {
         setAppliedDiscount({
-          code: promoCode.trim(),
+          code: cleanCode,
           percent: 100,
           finalPrice: 0,
         });
@@ -306,7 +330,7 @@ export default function PackagesClient() {
       } else {
         setCodeFeedback({
           type: 'error',
-          message: 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
+          message: activationErrorMsg || 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
         });
       }
     } finally {
