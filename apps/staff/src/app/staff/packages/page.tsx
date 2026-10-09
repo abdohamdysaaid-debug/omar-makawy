@@ -14,6 +14,7 @@ import {
   ChevronRight,
   BookOpen,
   EyeOff,
+  Sparkles,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
@@ -21,6 +22,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import {
   PackageItem,
   PackagesListQuery,
+  PackageType,
   SystemPermissions,
   resolveMediaUrl,
 } from '@omar-makawy/shared';
@@ -45,6 +47,7 @@ export default function StaffPackagesPage() {
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [filterYearId, setFilterYearId] = useState<string>(activeAcademicYearId || 'ALL');
+  const [packageTypeFilter, setPackageTypeFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [publicFilter, setPublicFilter] = useState<string>('ALL');
   const [featuredFilter, setFeaturedFilter] = useState<string>('ALL');
@@ -92,6 +95,10 @@ export default function StaffPackagesPage() {
         academic_year_id: filterYearId !== 'ALL' ? filterYearId : undefined,
       };
 
+      if (packageTypeFilter === 'MONTHLY' || packageTypeFilter === 'TERM') {
+        query.package_type = packageTypeFilter as PackageType;
+      }
+
       if (statusFilter === 'PUBLISHED') query.is_published = true;
       else if (statusFilter === 'DRAFT') query.is_published = false;
 
@@ -110,7 +117,7 @@ export default function StaffPackagesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, debouncedSearch, filterYearId, statusFilter, publicFilter, featuredFilter, isAr]);
+  }, [page, limit, debouncedSearch, filterYearId, packageTypeFilter, statusFilter, publicFilter, featuredFilter, isAr]);
 
   useEffect(() => {
     fetchPackages();
@@ -223,6 +230,17 @@ export default function StaffPackagesPage() {
           ))}
         </select>
 
+        {/* Package Type Filter */}
+        <select
+          value={packageTypeFilter}
+          onChange={(e) => { setPackageTypeFilter(e.target.value); setPage(1); }}
+          className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-2 text-xs font-medium text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+        >
+          <option value="ALL">{isAr ? 'كل أنواع الباقات' : 'All Package Types'}</option>
+          <option value="MONTHLY">{isAr ? 'باقات شهرية' : 'Monthly Packages'}</option>
+          <option value="TERM">{isAr ? 'باقات الترم' : 'Term Packages'}</option>
+        </select>
+
         {/* Status Filter */}
         <select
           value={statusFilter}
@@ -265,6 +283,7 @@ export default function StaffPackagesPage() {
             {packages.map((pkg) => {
               const coursesCount = Array.isArray(pkg.courses) ? pkg.courses.length : 0;
               const hasDiscount = typeof pkg.discount_price === 'number' && pkg.discount_price > 0 && pkg.discount_price < pkg.price;
+              const isMonthly = (pkg.package_type || 'MONTHLY') === 'MONTHLY';
 
               return (
                 <div
@@ -314,7 +333,20 @@ export default function StaffPackagesPage() {
                   {/* Card Body */}
                   <div className="p-4 space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <StatusBadge status={pkg.status || 'PUBLISHED'} isArabic={isAr} />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <StatusBadge status={pkg.status || 'PUBLISHED'} isArabic={isAr} />
+                        {isMonthly ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[10px] font-bold">
+                            <Sparkles className="h-3 w-3" />
+                            {isAr ? 'باقة شهرية' : 'Monthly'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-[10px] font-bold">
+                            <BookOpen className="h-3 w-3" />
+                            {isAr ? 'باقة ترم' : 'Term'}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1 text-[10px] text-neutral-400">
                         <BookOpen className="h-3 w-3" />
                         <span>{coursesCount} {isAr ? 'كورس' : 'courses'}</span>

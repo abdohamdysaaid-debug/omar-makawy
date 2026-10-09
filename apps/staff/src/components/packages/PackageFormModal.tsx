@@ -53,6 +53,9 @@ export function PackageFormModal({
 
   // Form Fields
   const [academicYearId, setAcademicYearId] = useState<string>('');
+  const [packageType, setPackageType] = useState<'MONTHLY' | 'TERM'>('MONTHLY');
+  const [targetVideoCount, setTargetVideoCount] = useState<number>(8);
+  const [gracePeriodDays, setGracePeriodDays] = useState<number>(5);
   const [titleAr, setTitleAr] = useState<string>('');
   const [titleEn, setTitleEn] = useState<string>('');
   const [descriptionAr, setDescriptionAr] = useState<string>('');
@@ -92,6 +95,9 @@ export function PackageFormModal({
 
       if (initialPackage) {
         setAcademicYearId(initialPackage.academic_year_id);
+        setPackageType((initialPackage.package_type as 'MONTHLY' | 'TERM') || 'MONTHLY');
+        setTargetVideoCount(initialPackage.target_video_count ?? 8);
+        setGracePeriodDays(initialPackage.grace_period_days ?? 5);
         setTitleAr(initialPackage.title_ar || '');
         setTitleEn(initialPackage.title_en || '');
         setDescriptionAr(initialPackage.description_ar || '');
@@ -112,6 +118,9 @@ export function PackageFormModal({
       } else {
         const defaultYear = activeAcademicYearId || (availableYears[0]?.id ?? '');
         setAcademicYearId(defaultYear);
+        setPackageType('MONTHLY');
+        setTargetVideoCount(8);
+        setGracePeriodDays(5);
         setTitleAr('');
         setTitleEn('');
         setDescriptionAr('');
@@ -240,6 +249,9 @@ export function PackageFormModal({
         const payload: UpdatePackagePayload = {
           title_ar: cleanTitleAr,
           title_en: titleEn.trim() || undefined,
+          package_type: packageType,
+          target_video_count: targetVideoCount,
+          grace_period_days: gracePeriodDays,
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
           price: numPrice,
@@ -275,6 +287,9 @@ export function PackageFormModal({
           academic_year_id: academicYearId,
           title_ar: cleanTitleAr,
           title_en: titleEn.trim() || undefined,
+          package_type: packageType,
+          target_video_count: targetVideoCount,
+          grace_period_days: gracePeriodDays,
           description_ar: descriptionAr.trim() || undefined,
           description_en: descriptionEn.trim() || undefined,
           price: numPrice,
@@ -394,6 +409,66 @@ export function PackageFormModal({
                   </select>
                 </div>
 
+                {/* Package Type Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
+                    {isAr ? 'نوع الباقة *' : 'Package Type *'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPackageType('MONTHLY')}
+                      disabled={isSubmitting}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-bold transition-all ${
+                        packageType === 'MONTHLY'
+                          ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-500 shadow-sm'
+                          : 'border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                      }`}
+                    >
+                      <Sparkles className="h-4 w-4 text-brand-500" />
+                      <span>{isAr ? 'باقة شهرية' : 'Monthly Package'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPackageType('TERM')}
+                      disabled={isSubmitting}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-bold transition-all ${
+                        packageType === 'TERM'
+                          ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 dark:border-brand-500 shadow-sm'
+                          : 'border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                      }`}
+                    >
+                      <BookOpen className="h-4 w-4 text-brand-500" />
+                      <span>{isAr ? 'باقة ترم' : 'Term Package'}</span>
+                    </button>
+                  </div>
+                  <div className="mt-2 p-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200/60 dark:border-neutral-700/60 text-[11px] leading-relaxed text-neutral-600 dark:text-neutral-400">
+                    {packageType === 'MONTHLY' ? (
+                      <div className="space-y-1">
+                        <p className="font-semibold text-brand-600 dark:text-brand-400">
+                          {isAr ? '✨ خصائص الباقة الشهرية:' : '✨ Monthly Package Features:'}
+                        </p>
+                        <p>
+                          {isAr
+                            ? '• تقبل أكواد وكوبونات الخصم (100% أو نسبية).'
+                            : '• Accepts discount coupon codes.'}
+                        </p>
+                        <p>
+                          {isAr
+                            ? `• نظام صلاحية ذكي: 30 يوماً أساسية + ${gracePeriodDays} أيام مهلة عند نشر الفيديو رقم ${targetVideoCount}.`
+                            : `• Smart expiry: 30 days base + ${gracePeriodDays} days grace period when video #${targetVideoCount} is published.`}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="font-medium text-amber-600 dark:text-amber-400">
+                        {isAr
+                          ? '🔒 باقة الترم لا تقبل كوبونات الخصم المخصصة للباقات الشهرية.'
+                          : '🔒 Term packages do not accept monthly discount coupons.'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Title Arabic */}
                 <div>
                   <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 mb-1.5">
@@ -404,7 +479,7 @@ export function PackageFormModal({
                     value={titleAr}
                     onChange={(e) => setTitleAr(e.target.value)}
                     disabled={isSubmitting}
-                    placeholder={isAr ? 'مثال: باقة الترم الأول' : 'e.g. First Term Package'}
+                    placeholder={isAr ? (packageType === 'MONTHLY' ? 'مثال: باقة شهر أكتوبر' : 'مثال: باقة الترم الأول كامل') : 'e.g. Monthly Package'}
                     className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-xs font-medium text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50"
                   />
                 </div>

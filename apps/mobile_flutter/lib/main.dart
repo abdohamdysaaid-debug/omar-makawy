@@ -5,7 +5,7 @@ import 'config/theme.dart';
 import 'localization/app_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
-import 'screens/login_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/main_navigation_screen.dart';
 
 void main() {
@@ -59,39 +59,58 @@ class RootScreen extends StatelessWidget {
 
     if (auth.isInitialLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFF090A0F),
+        backgroundColor: AppColors.darkBackground,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 80,
-                height: 80,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryDark],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(26),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
+                      color: AppColors.primary.withOpacity(0.40),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
                 child: const Icon(
                   Icons.school_rounded,
-                  size: 44,
+                  size: 48,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 24),
-              const CircularProgressIndicator(
-                color: AppColors.primary,
-                strokeWidth: 2.5,
+              const SizedBox(height: 28),
+              const Text(
+                'منصة مستر عمر مكاوي',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'جاري تجهيز بيئة التعلّم...',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textMutedDark,
+                ),
+              ),
+              const SizedBox(height: 28),
+              const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 2.8,
+                ),
               ),
             ],
           ),
@@ -103,6 +122,6 @@ class RootScreen extends StatelessWidget {
       return const MainNavigationScreen();
     }
 
-    return const LoginScreen();
+    return const WelcomeScreen();
   }
 }

@@ -48,15 +48,19 @@ class _PackagesScreenState extends State<PackagesScreen> {
         list = response.map((item) => PackageModel.fromJson(item as Map<String, dynamic>)).toList();
       }
 
-      setState(() {
-        _packages = list;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _packages = list;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -74,7 +78,12 @@ class _PackagesScreenState extends State<PackagesScreen> {
         onRefresh: _fetchPackages,
         color: AppColors.primary,
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 2.8,
+                ),
+              )
             : _errorMessage != null
                 ? Center(
                     child: Padding(
@@ -82,10 +91,10 @@ class _PackagesScreenState extends State<PackagesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.error_outline, size: 56, color: AppColors.error),
-                          const SizedBox(height: 16),
+                          const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                          const SizedBox(height: 14),
                           Text(_errorMessage!, textAlign: TextAlign.center),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 18),
                           ElevatedButton(
                             onPressed: _fetchPackages,
                             child: const Text('إعادة المحاولة'),
@@ -95,147 +104,192 @@ class _PackagesScreenState extends State<PackagesScreen> {
                     ),
                   )
                 : _packages.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'لا توجد باقات شهرية متاحة حالياً',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.view_carousel_rounded,
+                                size: 48,
+                                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              'لا توجد باقات شهرية متاحة حالياً',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                              ),
+                            ),
+                          ],
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                         itemCount: _packages.length,
                         itemBuilder: (context, index) {
                           final pkg = _packages[index];
-                          return _buildPackageCard(pkg, isDark);
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                                width: 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(22),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PackageDetailScreen(packageId: pkg.id),
+                                  ),
+                                ).then((_) => _fetchPackages());
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(21)),
+                                    child: Container(
+                                      height: 130,
+                                      width: double.infinity,
+                                      color: const Color(0xFF8B5CF6).withOpacity(0.12),
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          pkg.thumbnailUrl != null && pkg.thumbnailUrl!.isNotEmpty
+                                              ? CachedNetworkImage(
+                                                  imageUrl: pkg.thumbnailUrl!,
+                                                  fit: BoxFit.cover,
+                                                  errorWidget: (_, __, ___) => const Icon(
+                                                    Icons.view_carousel_rounded,
+                                                    color: Color(0xFF8B5CF6),
+                                                    size: 44,
+                                                  ),
+                                                )
+                                              : const Icon(
+                                                  Icons.view_carousel_rounded,
+                                                  color: Color(0xFF8B5CF6),
+                                                  size: 44,
+                                                ),
+                                          Positioned(
+                                            top: 12,
+                                            right: 12,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                gradient: AppColors.goldGradient,
+                                                borderRadius: BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.3),
+                                                    blurRadius: 8,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Text(
+                                                '${pkg.price} ج.م',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          pkg.name,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 16,
+                                            color: isDark ? Colors.white : AppColors.textDark,
+                                            letterSpacing: -0.3,
+                                          ),
+                                        ),
+                                        if (pkg.description != null && pkg.description!.isNotEmpty) ...[
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            pkg.description!,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                                              height: 1.4,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                        const SizedBox(height: 12),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.school_outlined, size: 14, color: AppColors.primary),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  pkg.academicYearName ?? 'المرحلة الدراسية',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  'عرض التفاصيل',
+                                                  style: TextStyle(
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.primary),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         },
                       ),
-      ),
-    );
-  }
-
-  Widget _buildPackageCard(PackageModel pkg, bool isDark) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 14),
-      elevation: 0,
-      color: isDark ? AppColors.darkCard : AppColors.lightCard,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PackageDetailScreen(packageId: pkg.id),
-            ),
-          ).then((_) => _fetchPackages());
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  color: isDark ? const Color(0xFF1A2234) : Colors.grey.shade200,
-                  child: pkg.thumbnailUrl != null && pkg.thumbnailUrl!.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: pkg.thumbnailUrl!,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => const Center(
-                            child: Icon(Icons.calendar_month, size: 48, color: Colors.purple),
-                          ),
-                        )
-                      : const Center(
-                          child: Icon(Icons.calendar_month, size: 48, color: Colors.purple),
-                        ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.purple.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'الشهر ${pkg.monthNumber}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          pkg.name,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      if (pkg.isEnrolled)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'مشترك',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (pkg.description != null && pkg.description!.isNotEmpty)
-                    Text(
-                      pkg.description!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? Colors.white70 : Colors.black54,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  const Divider(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.layers_outlined, size: 16, color: Colors.grey),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${pkg.courses.length} كورسات مشمولة',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

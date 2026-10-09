@@ -44,7 +44,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         throw Exception('بيانات الكورس غير صالحة');
       }
 
-      // Fetch lectures for this course
       List<LectureModel> lectures = course.lectures;
       if (lectures.isEmpty) {
         try {
@@ -57,16 +56,20 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         } catch (_) {}
       }
 
-      setState(() {
-        _course = course;
-        _lectures = lectures;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _course = course;
+          _lectures = lectures;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -81,7 +84,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         showBackButton: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 2.8,
+              ),
+            )
           : _errorMessage != null
               ? Center(
                   child: Padding(
@@ -89,10 +97,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 56, color: AppColors.error),
-                        const SizedBox(height: 16),
+                        const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                        const SizedBox(height: 14),
                         Text(_errorMessage!, textAlign: TextAlign.center),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 18),
                         ElevatedButton(
                           onPressed: _fetchCourseDetails,
                           child: const Text('إعادة المحاولة'),
@@ -109,37 +117,73 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     final course = _course!;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Thumbnail Card
+          // Luxury Thumbnail Banner
           ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(22),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Container(
-                color: isDark ? AppColors.darkCard : Colors.grey.shade200,
-                child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: course.thumbnailUrl!,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => const Center(
-                          child: Icon(Icons.menu_book, size: 64, color: AppColors.primary),
+                color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: course.thumbnailUrl!,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => const Center(
+                              child: Icon(Icons.menu_book_rounded, size: 60, color: AppColors.primary),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(Icons.menu_book_rounded, size: 60, color: AppColors.primary),
+                          ),
+                    if (course.price != null && course.price! > 0)
+                      Positioned(
+                        top: 14,
+                        right: 14,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.goldGradient,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${course.price} ج.م',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ),
-                      )
-                    : const Center(
-                        child: Icon(Icons.menu_book, size: 64, color: AppColors.primary),
                       ),
+                  ],
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          // Course Info
+          // Course Title & Meta
           Text(
             course.name,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : AppColors.textDark,
+              letterSpacing: -0.4,
+            ),
           ),
           const SizedBox(height: 8),
 
@@ -147,59 +191,71 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             Text(
               course.description!,
               style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 13.5,
+                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                 height: 1.5,
               ),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 22),
 
-          if (!course.isEnrolled)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'هذا المحتوى متاح للحسابات التي لديها صلاحية وصول.',
-                style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-              ),
-            ),
-
-          const SizedBox(height: 24),
-
-          // Lectures Header
+          // Syllabus Header
           Row(
             children: [
-              const Icon(Icons.video_library, color: AppColors.primary, size: 22),
-              const SizedBox(width: 8),
-              const Text(
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(isDark ? 0.16 : 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.video_library_rounded, color: AppColors.primary, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Text(
                 'محتوى ومحاضرات الكورس',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : AppColors.textDark,
+                  letterSpacing: -0.3,
+                ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.12),
+                  color: AppColors.primary.withOpacity(isDark ? 0.16 : 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${_lectures.length} محاضرة',
                   style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.primary,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Lecture List
+          // Lectures List
           if (_lectures.isEmpty)
             Container(
               padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              ),
               alignment: Alignment.center,
-              child: const Text('لا توجد محاضرات متاحة في هذا الكورس بعد'),
+              child: Text(
+                'لا توجد محاضرات متاحة في هذا الكورس حالياً',
+                style: TextStyle(
+                  color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             )
           else
             ListView.builder(
@@ -219,62 +275,71 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Widget _buildLectureTile(LectureModel lec, int number, bool isDark, bool isCourseEnrolled) {
     final canAccess = isCourseEnrolled || lec.isFree || !lec.isLocked;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      elevation: 0,
-      color: isDark ? AppColors.darkCard : AppColors.lightCard,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: canAccess
+              ? (lec.isCompleted ? AppColors.primary.withOpacity(0.4) : (isDark ? AppColors.darkBorder : AppColors.lightBorder))
+              : (isDark ? AppColors.darkBorder.withOpacity(0.5) : AppColors.lightBorder),
+          width: 1.2,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
-          width: 42,
-          height: 42,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: canAccess ? AppColors.primary.withOpacity(0.12) : Colors.grey.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(10),
+            color: canAccess ? AppColors.primary.withOpacity(isDark ? 0.16 : 0.12) : (isDark ? AppColors.darkSurfaceLight : Colors.grey.shade100),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
             child: canAccess
                 ? (lec.isCompleted
-                    ? const Icon(Icons.check_circle, color: AppColors.primary, size: 24)
-                    : Text('$number', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)))
-                : const Icon(Icons.lock, color: Colors.grey, size: 20),
+                    ? const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 24)
+                    : Text('$number', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 16)))
+                : Icon(Icons.lock_rounded, color: isDark ? Colors.white30 : Colors.black26, size: 20),
           ),
         ),
         title: Text(
           lec.title,
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-            color: canAccess ? (isDark ? Colors.white : Colors.black87) : Colors.grey,
+            fontWeight: FontWeight.w800,
+            fontSize: 14.5,
+            color: canAccess ? (isDark ? Colors.white : AppColors.textDark) : (isDark ? Colors.white38 : Colors.black38),
           ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Row(
             children: [
-              Icon(Icons.timer_outlined, size: 14, color: isDark ? Colors.white60 : Colors.black54),
+              Icon(Icons.timer_outlined, size: 13, color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
               const SizedBox(width: 4),
               Text(
                 '${lec.durationMinutes} دقيقة',
-                style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : Colors.black54),
+                style: TextStyle(fontSize: 11.5, color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
               ),
               if (lec.isFree && !isCourseEnrolled) ...[
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(4),
+                    color: AppColors.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
-                    'مجانية',
-                    style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold),
+                    'محاضرة مجانية',
+                    style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -282,8 +347,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           ),
         ),
         trailing: canAccess
-            ? const Icon(Icons.play_circle_fill, color: AppColors.primary, size: 30)
-            : const Icon(Icons.lock_outline, color: Colors.grey),
+            ? const Icon(Icons.play_circle_fill_rounded, color: AppColors.primary, size: 28)
+            : Icon(Icons.lock_outline_rounded, color: isDark ? Colors.white30 : Colors.black26, size: 20),
         onTap: () {
           if (canAccess) {
             Navigator.push(
@@ -294,7 +359,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('يرجى الاشتراك في الكورس لمشاهدة هذه المحاضرة')),
+              SnackBar(
+                content: const Text('يرجى الاشتراك في الكورس لمشاهدة هذه المحاضرة'),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             );
           }
         },

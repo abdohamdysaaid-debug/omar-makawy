@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Package as PackageIcon, BookOpen, ArrowLeft, CheckCircle2, Star } from 'lucide-react';
+import { Package as PackageIcon, BookOpen, ArrowLeft, CheckCircle2, Star, Sparkles } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { resolveMediaUrl } from '@/lib/api/client';
@@ -27,6 +27,7 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
   const courses = Array.isArray(pkg.courses) ? pkg.courses : [];
   const coursesCount = courses.length || pkg.courses_count || (pkg as any).courseCount || 0;
   const isPopular = Boolean(pkg.is_featured || pkg.isPopular);
+  const isMonthly = (pkg.package_type || 'MONTHLY') === 'MONTHLY';
 
   const price = Number(pkg.price) || 0;
   const discountPrice = pkg.discount_price ? Number(pkg.discount_price) : null;
@@ -76,12 +77,16 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
 
         <div className="absolute -end-6 -bottom-6 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
 
-        {/* Top Badges Bar: Year/Popular on start, Price/Status on end */}
+        {/* Top Badges Bar: Year/Type/Popular on start, Price/Status on end */}
         <div className="absolute top-3 start-3 end-3 flex items-center justify-between pointer-events-none z-10">
-          <div className="flex items-center gap-1.5">
-            <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md text-emerald-200 text-xs font-bold rounded-full border border-emerald-400/20 shadow-xs flex items-center gap-1">
-              <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
-              <span>{yearTitle}</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full flex items-center gap-1 shadow-xs backdrop-blur-md ${
+              isMonthly
+                ? 'bg-blue-600/90 text-white border border-blue-400/30'
+                : 'bg-purple-600/90 text-white border border-purple-400/30'
+            }`}>
+              <Sparkles className="w-2.5 h-2.5" />
+              <span>{isMonthly ? 'باقة شهرية' : 'باقة ترم'}</span>
             </span>
             {isPopular && !isPurchased && (
               <span className="px-2 py-0.5 bg-amber-400 text-stone-950 text-[10px] font-black rounded-full shadow-xs flex items-center gap-0.5">

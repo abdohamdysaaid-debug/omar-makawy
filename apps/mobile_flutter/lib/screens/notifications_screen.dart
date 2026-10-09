@@ -41,15 +41,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             .toList();
       }
 
-      setState(() {
-        _notifications = list;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _notifications = list;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -72,11 +76,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         showBackButton: true,
         actions: [
           if (_notifications.isNotEmpty)
-            TextButton(
-              onPressed: _markAllAsRead,
-              child: const Text(
-                'تحديد الكل كمقروء',
-                style: TextStyle(color: AppColors.primary, fontSize: 12),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: TextButton(
+                onPressed: _markAllAsRead,
+                child: const Text(
+                  'قراءة الكل',
+                  style: TextStyle(color: AppColors.primary, fontSize: 12.5, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
         ],
@@ -85,7 +92,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         onRefresh: _fetchNotifications,
         color: AppColors.primary,
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 2.8,
+                ),
+              )
             : _errorMessage != null
                 ? Center(
                     child: Padding(
@@ -93,10 +105,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.error_outline, size: 56, color: AppColors.error),
-                          const SizedBox(height: 16),
+                          const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                          const SizedBox(height: 14),
                           Text(_errorMessage!, textAlign: TextAlign.center),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 18),
                           ElevatedButton(
                             onPressed: _fetchNotifications,
                             child: const Text('إعادة المحاولة'),
@@ -110,58 +122,83 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.notifications_off_outlined,
-                              size: 64,
-                              color: Colors.grey.withOpacity(0.5),
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.notifications_off_outlined,
+                                size: 48,
+                                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                              ),
                             ),
                             const SizedBox(height: 16),
-                            const Text(
+                            Text(
                               'لا توجد إشعارات جديدة حالياً',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? Colors.white : AppColors.textDark,
+                              ),
                             ),
                           ],
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                         itemCount: _notifications.length,
                         itemBuilder: (context, index) {
                           final notif = _notifications[index];
-                          return Card(
+                          return Container(
                             margin: const EdgeInsets.only(bottom: 12),
-                            elevation: 0,
-                            color: notif.isRead
-                                ? (isDark ? AppColors.darkCard : AppColors.lightCard)
-                                : (isDark
-                                    ? AppColors.primary.withOpacity(0.08)
-                                    : AppColors.primary.withOpacity(0.05)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
+                            decoration: BoxDecoration(
+                              color: notif.isRead
+                                  ? (isDark ? AppColors.darkCard : AppColors.lightCard)
+                                  : (isDark
+                                      ? AppColors.primary.withOpacity(0.10)
+                                      : AppColors.primary.withOpacity(0.06)),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
                                 color: notif.isRead
                                     ? (isDark ? AppColors.darkBorder : AppColors.lightBorder)
-                                    : AppColors.primary.withOpacity(0.3),
+                                    : AppColors.primary.withOpacity(0.35),
+                                width: notif.isRead ? 1.0 : 1.4,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: ListTile(
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              leading: CircleAvatar(
-                                backgroundColor: notif.isRead
-                                    ? Colors.grey.withOpacity(0.15)
-                                    : AppColors.primary.withOpacity(0.15),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              leading: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: notif.isRead
+                                      ? (isDark ? AppColors.darkSurfaceLight : AppColors.lightSurfaceLight)
+                                      : AppColors.primary.withOpacity(0.18),
+                                  shape: BoxShape.circle,
+                                ),
                                 child: Icon(
-                                  Icons.notifications,
-                                  color: notif.isRead ? Colors.grey : AppColors.primary,
+                                  Icons.notifications_rounded,
+                                  color: notif.isRead
+                                      ? (isDark ? AppColors.textMutedDark : AppColors.textMutedLight)
+                                      : AppColors.primary,
                                   size: 20,
                                 ),
                               ),
                               title: Text(
                                 notif.title,
                                 style: TextStyle(
-                                  fontWeight: notif.isRead ? FontWeight.normal : FontWeight.bold,
-                                  fontSize: 15,
+                                  fontWeight: notif.isRead ? FontWeight.w700 : FontWeight.w900,
+                                  fontSize: 14.5,
+                                  color: isDark ? Colors.white : AppColors.textDark,
+                                  letterSpacing: -0.2,
                                 ),
                               ),
                               subtitle: Column(
@@ -172,13 +209,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     notif.body,
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: isDark ? Colors.white70 : Colors.black87,
+                                      color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                                      height: 1.4,
                                     ),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
                                     dateFormat.format(notif.createdAt),
-                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.white30 : Colors.black38,
+                                    ),
                                   ),
                                 ],
                               ),

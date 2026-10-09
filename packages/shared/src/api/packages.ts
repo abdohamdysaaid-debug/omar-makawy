@@ -38,6 +38,9 @@ export function createPackagesApi(client = defaultApiClient) {
       if (query.is_featured !== undefined) {
         params.set('is_featured', String(query.is_featured));
       }
+      if (query.package_type) {
+        params.set('package_type', query.package_type);
+      }
       if (query.academic_year_id) {
         params.set('academic_year_id', query.academic_year_id);
       }
@@ -66,6 +69,9 @@ export function createPackagesApi(client = defaultApiClient) {
       }
       if (query.search && query.search.trim().length > 0) {
         params.set('search', query.search.trim());
+      }
+      if (query.package_type) {
+        params.set('package_type', query.package_type);
       }
       if (query.is_featured !== undefined) {
         params.set('is_featured', String(query.is_featured));

@@ -21,6 +21,11 @@ class AuthProvider extends ChangeNotifier {
   String? get selectedAcademicYearId => _selectedAcademicYearId ?? _currentUser?.academicYearId;
   List<AcademicYear> get academicYears => _academicYears;
 
+  void setSelectedAcademicYear(String? yearId) {
+    _selectedAcademicYearId = yearId;
+    notifyListeners();
+  }
+
   AuthProvider() {
     _apiService.onUnauthorized = _handleUnauthorized;
     _checkAuth();

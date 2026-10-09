@@ -247,38 +247,24 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
           return;
         }
       } catch (discErr: any) {
-        // Coupon validation returned error
+        const discErrorMsg =
+          discErr?.response?.data?.message ||
+          discErr?.data?.message ||
+          discErr?.message;
+        if (discErrorMsg) {
+          setCodeFeedback({
+            type: 'error',
+            message: discErrorMsg,
+          });
+          return;
+        }
       }
 
-      // 3. Fallback generic check
-      const upperCode = cleanCode.toUpperCase();
-      if (upperCode.includes('50') || upperCode.includes('HALF')) {
-        const halfPrice = Math.round(basePrice * 0.5);
-        setAppliedDiscount({
-          code: cleanCode,
-          percent: 50,
-          finalPrice: halfPrice,
-        });
-        setCodeFeedback({
-          type: 'success',
-          message: `تم تطبيق خصم 50% بنجاح! السعر بعد الخصم: ${halfPrice} ج.م`,
-        });
-      } else if (upperCode.includes('100') || upperCode.includes('FREE')) {
-        setAppliedDiscount({
-          code: cleanCode,
-          percent: 100,
-          finalPrice: 0,
-        });
-        setCodeFeedback({
-          type: 'success',
-          message: 'تم تفعيل خصم 100% مجاناً على الباقة!',
-        });
-      } else {
-        setCodeFeedback({
-          type: 'error',
-          message: activationErrorMsg || 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
-        });
-      }
+      // 3. Fallback generic error
+      setCodeFeedback({
+        type: 'error',
+        message: activationErrorMsg || 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
+      });
     } finally {
       setCodeLoading(false);
     }
@@ -401,6 +387,8 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
     ? discountPrice
     : price;
 
+  const isMonthly = (pkg.package_type || 'MONTHLY') === 'MONTHLY';
+
   return (
     <StudentLayout>
       <div className="space-y-8 animate-fade-in font-cairo">
@@ -411,7 +399,7 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
           </Link>
           <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180 text-gray-400" />
           <Link href="/student/packages" className="hover:text-[#0d6e4f] dark:hover:text-emerald-400 transition-colors">
-            الباقات الشهرية
+            {isMonthly ? 'الباقات الشهرية' : 'باقات الترم'}
           </Link>
           <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180 text-gray-400" />
           <span className="text-gray-900 dark:text-white font-bold line-clamp-1">{title}</span>
@@ -423,9 +411,13 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
             <div className="space-y-3 max-w-2xl text-start">
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-emerald-200 text-xs font-black backdrop-blur-md border border-white/20">
-                  <PackageIcon className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>باقة تعليمية</span>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shadow-xs ${
+                  isMonthly
+                    ? 'bg-blue-600/90 text-white border border-blue-400/40'
+                    : 'bg-purple-600/90 text-white border border-purple-400/40'
+                }`}>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{isMonthly ? 'باقة شهرية' : 'باقة ترم'}</span>
                 </span>
 
                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/30 text-emerald-100 text-xs font-bold border border-white/10">

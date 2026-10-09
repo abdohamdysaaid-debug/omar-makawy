@@ -8,12 +8,16 @@ import '../widgets/app_header.dart';
 class ExamTakingScreen extends StatefulWidget {
   final String examId;
   final bool isViewOnly;
+  final bool isReview;
 
   const ExamTakingScreen({
     super.key,
     required this.examId,
     this.isViewOnly = false,
+    this.isReview = false,
   });
+
+  bool get isReadOnly => isViewOnly || isReview;
 
   @override
   State<ExamTakingScreen> createState() => _ExamTakingScreenState();
@@ -59,7 +63,7 @@ class _ExamTakingScreenState extends State<ExamTakingScreen> {
           _secondsRemaining = exam.durationMinutes * 60;
         });
 
-        if (!widget.isViewOnly && _secondsRemaining > 0) {
+        if (!widget.isReadOnly && _secondsRemaining > 0) {
           _startTimer();
         }
       } else {

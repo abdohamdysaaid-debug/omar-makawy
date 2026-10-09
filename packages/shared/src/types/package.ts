@@ -1,4 +1,5 @@
 export type PackageStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | string;
+export type PackageType = 'MONTHLY' | 'TERM';
 
 export interface PackageCourse {
   course_id: string;
@@ -13,6 +14,9 @@ export interface PackageItem {
   academic_year_id: string;
   title_ar: string;
   title_en: string;
+  package_type?: PackageType;
+  target_video_count?: number;
+  grace_period_days?: number;
   description_ar?: string | null;
   description_en?: string | null;
   thumbnail_url?: string | null;
@@ -36,6 +40,7 @@ export interface PackagesListQuery {
   page?: number;
   limit?: number;
   search?: string;
+  package_type?: PackageType;
   is_published?: boolean;
   is_public?: boolean;
   is_featured?: boolean;
@@ -54,6 +59,9 @@ export interface CreatePackagePayload {
   academic_year_id: string;
   title_ar: string;
   title_en?: string;
+  package_type?: PackageType;
+  target_video_count?: number;
+  grace_period_days?: number;
   description_ar?: string;
   description_en?: string;
   thumbnail_url?: string;
@@ -70,6 +78,9 @@ export interface CreatePackagePayload {
 export interface UpdatePackagePayload {
   title_ar?: string;
   title_en?: string;
+  package_type?: PackageType;
+  target_video_count?: number;
+  grace_period_days?: number;
   description_ar?: string;
   description_en?: string;
   thumbnail_url?: string;

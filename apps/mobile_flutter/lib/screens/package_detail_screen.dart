@@ -37,18 +37,22 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
     try {
       final response = await _apiService.get('/packages/${widget.packageId}');
       if (response is Map<String, dynamic>) {
-        setState(() {
-          _package = PackageModel.fromJson(response);
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _package = PackageModel.fromJson(response);
+            _isLoading = false;
+          });
+        }
       } else {
         throw Exception('بيانات الباقة غير صالحة');
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -63,7 +67,12 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
         showBackButton: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 2.8,
+              ),
+            )
           : _errorMessage != null
               ? Center(
                   child: Padding(
@@ -71,10 +80,10 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 56, color: AppColors.error),
-                        const SizedBox(height: 16),
+                        const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                        const SizedBox(height: 14),
                         Text(_errorMessage!, textAlign: TextAlign.center),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 18),
                         ElevatedButton(
                           onPressed: _fetchPackageDetails,
                           child: const Text('إعادة المحاولة'),
@@ -91,75 +100,118 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
     final pkg = _package!;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Thumbnail
+          // Luxury Thumbnail Card
           ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(22),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Container(
-                color: isDark ? AppColors.darkCard : Colors.grey.shade200,
-                child: pkg.thumbnailUrl != null && pkg.thumbnailUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: pkg.thumbnailUrl!,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => const Center(
-                          child: Icon(Icons.calendar_month, size: 64, color: AppColors.primary),
+                color: const Color(0xFF8B5CF6).withOpacity(0.12),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    pkg.thumbnailUrl != null && pkg.thumbnailUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: pkg.thumbnailUrl!,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => const Center(
+                              child: Icon(Icons.view_carousel_rounded, size: 60, color: Color(0xFF8B5CF6)),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(Icons.view_carousel_rounded, size: 60, color: Color(0xFF8B5CF6)),
+                          ),
+                    Positioned(
+                      top: 14,
+                      right: 14,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: AppColors.goldGradient,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                            ),
+                          ],
                         ),
-                      )
-                    : const Center(
-                        child: Icon(Icons.calendar_month, size: 64, color: AppColors.primary),
+                        child: Text(
+                          '${pkg.price} ج.م',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
-          // Header
+          // Month Badge & Enrollment
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.purple.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFF8B5CF6).withOpacity(isDark ? 0.2 : 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.3)),
                 ),
                 child: Text(
                   'الشهر ${pkg.monthNumber}',
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF8B5CF6),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               if (pkg.isEnrolled)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.primary.withOpacity(isDark ? 0.2 : 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
                   ),
-                  child: const Text(
-                    'مشترك بالفعل',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.check_circle_rounded, size: 14, color: AppColors.primary),
+                      SizedBox(width: 4),
+                      Text(
+                        'مشترك في الباقة',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           Text(
             pkg.name,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : AppColors.textDark,
+              letterSpacing: -0.4,
+            ),
           ),
           const SizedBox(height: 8),
 
@@ -167,58 +219,87 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
             Text(
               pkg.description!,
               style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 13.5,
+                color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                 height: 1.5,
               ),
             ),
-          const SizedBox(height: 16),
-
-          if (!pkg.isEnrolled)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'هذا المحتوى متاح للحسابات التي لديها صلاحية وصول.',
-                style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-              ),
-            ),
-
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
           // Included Courses
           if (pkg.courses.isNotEmpty) ...[
-            const Row(
+            Row(
               children: [
-                Icon(Icons.menu_book, color: AppColors.primary, size: 20),
-                SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(isDark ? 0.16 : 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 18),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   'الكورسات المشمولة في الباقة',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : AppColors.textDark,
+                    letterSpacing: -0.3,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: pkg.courses.length,
               itemBuilder: (context, index) {
                 final course = pkg.courses[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  elevation: 0,
-                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
                       color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      width: 1.2,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: ListTile(
-                    leading: const Icon(Icons.menu_book, color: AppColors.primary),
-                    title: Text(course.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${course.lecturesCount} محاضرة'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(isDark ? 0.16 : 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 22),
+                    ),
+                    title: Text(
+                      course.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14.5,
+                        color: isDark ? Colors.white : AppColors.textDark,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${course.lecturesCount} محاضرة',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                      ),
+                    ),
+                    trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -236,17 +317,29 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
 
           // Direct Lectures in Package
           if (pkg.lectures.isNotEmpty) ...[
-            const Row(
+            Row(
               children: [
-                Icon(Icons.video_library, color: AppColors.primary, size: 20),
-                SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(isDark ? 0.16 : 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.video_library_rounded, color: AppColors.primary, size: 18),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   'محاضرات الباقة المباشرة',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : AppColors.textDark,
+                    letterSpacing: -0.3,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -254,24 +347,43 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
               itemBuilder: (context, index) {
                 final lec = pkg.lectures[index];
                 final canAccess = pkg.isEnrolled || lec.isFree;
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  elevation: 0,
-                  color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkCard : AppColors.lightCard,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
                       color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      width: 1.2,
                     ),
                   ),
                   child: ListTile(
-                    leading: Icon(
-                      canAccess ? Icons.play_circle_fill : Icons.lock,
-                      color: canAccess ? AppColors.primary : Colors.grey,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: canAccess ? AppColors.primary.withOpacity(isDark ? 0.16 : 0.1) : (isDark ? AppColors.darkSurfaceLight : Colors.grey.shade100),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        canAccess ? Icons.play_circle_fill_rounded : Icons.lock_rounded,
+                        color: canAccess ? AppColors.primary : (isDark ? Colors.white30 : Colors.black26),
+                        size: 22,
+                      ),
                     ),
-                    title: Text(lec.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${lec.durationMinutes} دقيقة'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                    title: Text(
+                      lec.title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14.5,
+                        color: canAccess ? (isDark ? Colors.white : AppColors.textDark) : (isDark ? Colors.white38 : Colors.black38),
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${lec.durationMinutes} دقيقة',
+                      style: TextStyle(fontSize: 12, color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
+                    ),
+                    trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
                     onTap: () {
                       if (canAccess) {
                         Navigator.push(
@@ -282,7 +394,11 @@ class _PackageDetailScreenState extends State<PackageDetailScreen> {
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('يرجى الاشتراك في الباقة لمشاهدة المحاضرة')),
+                          SnackBar(
+                            content: const Text('يرجى الاشتراك في الباقة لمشاهدة المحاضرة'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
                         );
                       }
                     },

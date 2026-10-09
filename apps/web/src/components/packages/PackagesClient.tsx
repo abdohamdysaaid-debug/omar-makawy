@@ -61,6 +61,7 @@ export default function PackagesClient() {
   });
   const [availablePackages, setAvailablePackages] = useState<any[]>(() => cachedPackagesList);
   const [loading, setLoading] = useState<boolean>(() => cachedPackagesList.length === 0);
+  const [packageTypeTab, setPackageTypeTab] = useState<'all' | 'MONTHLY' | 'TERM'>('all');
 
   // Selected package for details modal/drawer
   const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
@@ -192,8 +193,13 @@ export default function PackagesClient() {
     setPurchaseSuccess(false);
   };
 
-  // Filter packages based on selected academic year
+  // Filter packages based on selected academic year and package type
   const filteredPackages = availablePackages.filter((pkg) => {
+    if (packageTypeTab !== 'all') {
+      const pType = pkg.package_type || 'MONTHLY';
+      if (pType !== packageTypeTab) return false;
+    }
+
     if (selectedYearId === 'all') return true;
 
     const pkgYearId = String(pkg.academic_year_id || pkg.academicYearId || '');
@@ -301,38 +307,24 @@ export default function PackagesClient() {
           return;
         }
       } catch (discErr: any) {
-        // Coupon validation returned error
+        const discErrorMsg =
+          discErr?.response?.data?.message ||
+          discErr?.data?.message ||
+          discErr?.message;
+        if (discErrorMsg) {
+          setCodeFeedback({
+            type: 'error',
+            message: discErrorMsg,
+          });
+          return;
+        }
       }
 
-      // 3. Fallback generic check (e.g. 50% / 100% demo promo code matching)
-      const upperCode = cleanCode.toUpperCase();
-      if (upperCode.includes('50') || upperCode.includes('HALF')) {
-        const halfPrice = Math.round(basePrice * 0.5);
-        setAppliedDiscount({
-          code: cleanCode,
-          percent: 50,
-          finalPrice: halfPrice,
-        });
-        setCodeFeedback({
-          type: 'success',
-          message: `تم تطبيق خصم 50% بنجاح! السعر بعد الخصم: ${halfPrice} ج.م`,
-        });
-      } else if (upperCode.includes('100') || upperCode.includes('FREE')) {
-        setAppliedDiscount({
-          code: cleanCode,
-          percent: 100,
-          finalPrice: 0,
-        });
-        setCodeFeedback({
-          type: 'success',
-          message: 'تم تفعيل خصم 100% مجاناً على الباقة!',
-        });
-      } else {
-        setCodeFeedback({
-          type: 'error',
-          message: activationErrorMsg || 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
-        });
-      }
+      // 3. Fallback generic error
+      setCodeFeedback({
+        type: 'error',
+        message: activationErrorMsg || 'كود التفعيل أو الخصم غير صالح أو منتهي الصلاحية',
+      });
     } finally {
       setCodeLoading(false);
     }
@@ -445,6 +437,45 @@ export default function PackagesClient() {
               <ChevronDown className="w-4 h-4 text-gray-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
+        </div>
+
+        {/* Package Type Segmented Filter Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setPackageTypeTab('all')}
+            className={`px-4 py-2 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              packageTypeTab === 'all'
+                ? 'bg-[#0d6e4f] text-white shadow-md shadow-[#0d6e4f]/20'
+                : 'bg-white dark:bg-[#131b2e] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:border-[#0d6e4f]'
+            }`}
+          >
+            <span>جميع الباقات</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPackageTypeTab('MONTHLY')}
+            className={`px-4 py-2 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              packageTypeTab === 'MONTHLY'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'bg-white dark:bg-[#131b2e] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:border-blue-500'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>باقات شهرية</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPackageTypeTab('TERM')}
+            className={`px-4 py-2 rounded-2xl text-xs font-extrabold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              packageTypeTab === 'TERM'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-[#131b2e] text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800 hover:border-purple-500'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>باقات الترم</span>
+          </button>
         </div>
 
         {/* Packages Grid Matching Homepage Design */}

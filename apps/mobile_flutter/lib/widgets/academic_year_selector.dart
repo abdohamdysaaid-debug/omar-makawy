@@ -22,9 +22,9 @@ class AcademicYearSelector extends StatelessWidget {
       height: 44,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: years.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final year = years[index];
           final isSelected = year.id == selectedYearId;
@@ -32,30 +32,49 @@ class AcademicYearSelector extends StatelessWidget {
           return GestureDetector(
             onTap: () => onSelect(year.id),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              duration: const Duration(milliseconds: 250),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
+                gradient: isSelected ? AppColors.primaryGradient : null,
                 color: isSelected
-                    ? AppColors.primary
-                    : (isDark ? AppColors.darkSurfaceLight : AppColors.lightSurfaceLight),
-                borderRadius: BorderRadius.circular(20),
+                    ? null
+                    : (isDark ? AppColors.darkCard : AppColors.lightCard),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.primary
-                      : (isDark ? AppColors.darkSurfaceBorder : AppColors.lightSurfaceBorder),
-                  width: 1,
+                      ? Colors.transparent
+                      : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+                  width: 1.2,
                 ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
+                    : null,
               ),
               child: Center(
-                child: Text(
-                  year.name,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected
-                        ? Colors.white
-                        : (isDark ? AppColors.textMutedDark : AppColors.textDark),
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isSelected) ...[
+                      const Icon(Icons.check_circle_rounded, size: 14, color: Colors.white),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      year.name,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? AppColors.textMutedDark : AppColors.textDark),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

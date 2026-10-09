@@ -41,15 +41,19 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             .map((item) => SubscriptionModel.fromJson(item as Map<String, dynamic>))
             .toList();
       }
-      setState(() {
-        _subscriptions = list;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _subscriptions = list;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -60,7 +64,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     return Scaffold(
       appBar: const AppHeader(
-        title: 'اشتراكاتي',
+        title: 'اشتراكاتي وتفعيلاتي',
         showBackButton: false,
       ),
       body: RefreshIndicator(
@@ -74,7 +78,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Widget _buildBody(bool isDark) {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
+        child: CircularProgressIndicator(
+          color: AppColors.primary,
+          strokeWidth: 2.8,
+        ),
       );
     }
 
@@ -85,22 +92,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 56, color: AppColors.error),
+              const Icon(Icons.error_outline_rounded, size: 52, color: AppColors.error),
               const SizedBox(height: 16),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _fetchSubscriptions,
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: const Text('إعادة المحاولة'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                ),
               ),
             ],
           ),
@@ -111,35 +114,38 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     if (_subscriptions.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(28.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.card_membership_outlined,
-                  size: 64,
-                  color: AppColors.primary,
+                child: Icon(
+                  Icons.card_membership_rounded,
+                  size: 52,
+                  color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'لا توجد اشتراكات نشطة حالياً',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              const SizedBox(height: 18),
+              Text(
+                'لا توجد اشتراكات نشطة لديك حالياً',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : AppColors.textDark,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
-                'تواصل مع الدعم إذا كنت بحاجة إلى تفعيل صلاحية الوصول للمحتوى الدراسي.',
+                'تصفح الكورسات والباقات الشهرية واشترك الآن لبدء رحلة التفوق',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.white70 : Colors.black54,
-                  height: 1.5,
+                  fontSize: 13,
+                  color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
                 ),
               ),
             ],
@@ -149,175 +155,151 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       itemCount: _subscriptions.length,
       itemBuilder: (context, index) {
         final sub = _subscriptions[index];
-        return _buildSubscriptionCard(sub, isDark);
-      },
-    );
-  }
+        final bool isActive = sub.status == 'ACTIVE';
 
-  Widget _buildSubscriptionCard(SubscriptionModel sub, bool isDark) {
-    final dateFormat = DateFormat('yyyy/MM/dd');
-    final isCourse = sub.itemType == 'COURSE';
-    final isPackage = sub.itemType == 'PACKAGE';
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 14),
-      elevation: 0,
-      color: isDark ? AppColors.darkCard : AppColors.lightCard,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          if (isCourse && sub.itemId.isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => CourseDetailScreen(courseId: sub.itemId),
-              ),
-            );
-          } else if (isPackage && sub.itemId.isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PackageDetailScreen(packageId: sub.itemId),
-              ),
-            );
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      color: AppColors.primary.withOpacity(0.1),
-                      child: sub.itemThumbnail != null && sub.itemThumbnail!.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: sub.itemThumbnail!,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => Icon(
-                                isCourse ? Icons.menu_book : Icons.calendar_month,
-                                color: AppColors.primary,
-                                size: 30,
-                              ),
-                            )
-                          : Icon(
-                              isCourse ? Icons.menu_book : Icons.calendar_month,
-                              color: AppColors.primary,
-                              size: 30,
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: isCourse
-                                ? Colors.blue.withOpacity(0.12)
-                                : Colors.purple.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            isCourse ? 'كورس تعليمي' : 'باقة شهرية',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isCourse ? Colors.blue : Colors.purple,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          sub.itemName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'نشط',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                      const SizedBox(width: 6),
-                      Text(
-                        sub.createdAt != null
-                            ? 'تاريخ الاشتراك: ${dateFormat.format(sub.createdAt!)}'
-                            : 'اشتراك دائم',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white60 : Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        'دخول للمحتوى',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 12,
-                        color: AppColors.primary,
-                      ),
-                    ],
-                  ),
-                ],
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: isActive
+                  ? AppColors.primary.withOpacity(isDark ? 0.35 : 0.25)
+                  : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.25 : 0.04),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-        ),
-      ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            onTap: () {
+              if (sub.courseId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => CourseDetailScreen(courseId: sub.courseId!)),
+                ).then((_) => _fetchSubscriptions());
+              } else if (sub.packageId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => PackageDetailScreen(packageId: sub.packageId!)),
+                ).then((_) => _fetchSubscriptions());
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (isActive ? AppColors.primary : AppColors.warning).withOpacity(isDark ? 0.16 : 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isActive ? Icons.check_circle_rounded : Icons.schedule_rounded,
+                              size: 13,
+                              color: isActive ? AppColors.primary : AppColors.warning,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              isActive ? 'مفعّل ونشط' : 'غير نشط / منتهي',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: isActive ? AppColors.primary : AppColors.warning,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        sub.targetType == 'PACKAGE' ? 'باقة شهرية' : 'كورس تعليمي',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    sub.targetName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: isDark ? Colors.white : AppColors.textDark,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Divider(
+                    height: 1,
+                    color: isDark ? AppColors.darkBorder.withOpacity(0.6) : AppColors.lightBorder,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 14,
+                            color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            sub.expiresAt != null
+                                ? 'ينتهي: ${DateFormat('yyyy/MM/dd').format(sub.expiresAt!)}'
+                                : 'صلاحية مفتوحة',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.textMutedDark : AppColors.textMutedLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            'الدخول للمحتوى',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.primary),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -8,12 +8,16 @@ class PackageModel {
   final String? thumbnailUrl;
   final double price;
   final double? discountPrice;
+  final String packageType;
   final int monthNumber;
   final bool isEnrolled;
   final String? academicYearId;
+  final String? academicYearName;
   final List<CourseModel> courses;
   final List<LectureModel> lectures;
   final int lecturesCount;
+
+  bool get isMonthly => packageType == 'MONTHLY';
 
   PackageModel({
     required this.id,
@@ -22,9 +26,11 @@ class PackageModel {
     this.thumbnailUrl,
     required this.price,
     this.discountPrice,
+    this.packageType = 'MONTHLY',
     this.monthNumber = 1,
     this.isEnrolled = false,
     this.academicYearId,
+    this.academicYearName,
     this.courses = const [],
     this.lectures = const [],
     this.lecturesCount = 0,
@@ -60,9 +66,14 @@ class PackageModel {
       thumbnailUrl: json['thumbnail_url']?.toString() ?? json['thumbnail']?.toString() ?? json['image_url']?.toString(),
       price: parseDouble(json['price']),
       discountPrice: json['discount_price'] != null ? parseDouble(json['discount_price']) : null,
+      packageType: json['package_type']?.toString() ?? 'MONTHLY',
       monthNumber: parseInt(json['month_number'] ?? json['month'] ?? 1),
       isEnrolled: json['is_enrolled'] == true || json['is_subscribed'] == true,
-      academicYearId: json['academic_year_id']?.toString(),
+      academicYearId: json['academic_year_id']?.toString() ?? json['academic_year']?['id']?.toString(),
+      academicYearName: json['academic_year_name']?.toString() ??
+          json['academic_year_name_ar']?.toString() ??
+          json['academic_year']?['name_ar']?.toString() ??
+          json['academic_year']?['name']?.toString(),
       courses: courseList,
       lectures: lectureList,
       lecturesCount: parseInt(json['lectures_count'] ?? lectureList.length),

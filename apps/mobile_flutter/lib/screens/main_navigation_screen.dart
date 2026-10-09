@@ -30,6 +30,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ProfileScreen(),
   ];
 
+  final List<Map<String, dynamic>> _navItems = const [
+    {'icon': Icons.home_rounded, 'outlined': Icons.home_outlined, 'label': 'الرئيسية'},
+    {'icon': Icons.card_membership_rounded, 'outlined': Icons.card_membership_outlined, 'label': 'اشتراكاتي'},
+    {'icon': Icons.menu_book_rounded, 'outlined': Icons.menu_book_outlined, 'label': 'الكورسات'},
+    {'icon': Icons.view_carousel_rounded, 'outlined': Icons.view_carousel_outlined, 'label': 'الباقات'},
+    {'icon': Icons.assignment_turned_in_rounded, 'outlined': Icons.assignment_outlined, 'label': 'الامتحانات'},
+    {'icon': Icons.person_rounded, 'outlined': Icons.person_outline_rounded, 'label': 'حسابي'},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -54,69 +63,80 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : AppColors.lightCard,
+          color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
           border: Border(
             top: BorderSide(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              color: isDark ? AppColors.darkBorder.withOpacity(0.8) : AppColors.lightBorder,
               width: 1.0,
             ),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
+              color: Colors.black.withOpacity(isDark ? 0.35 : 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
             ),
           ],
         ),
         child: SafeArea(
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            type: BottomNavigationBarThemeData().type ?? BottomNavigationBarType.fixed,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            selectedItemColor: AppColors.primary,
-            unselectedItemColor: isDark ? Colors.white54 : Colors.black45,
-            selectedFontSize: 11,
-            unselectedFontSize: 11,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'الرئيسية',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.card_membership_outlined),
-                activeIcon: Icon(Icons.card_membership),
-                label: 'اشتراكاتي',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.menu_book_outlined),
-                activeIcon: Icon(Icons.menu_book),
-                label: 'الكورسات',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_month_outlined),
-                activeIcon: Icon(Icons.calendar_month),
-                label: 'الباقات',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.assignment_outlined),
-                activeIcon: Icon(Icons.assignment),
-                label: 'الامتحانات',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'الحساب',
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_navItems.length, (index) {
+                final item = _navItems[index];
+                final isSelected = _currentIndex == index;
+
+                return InkWell(
+                  onTap: () {
+                    if (_currentIndex != index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSelected ? 12 : 8,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withOpacity(isDark ? 0.16 : 0.12)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isSelected ? item['icon'] as IconData : item['outlined'] as IconData,
+                          size: 22,
+                          color: isSelected
+                              ? AppColors.primary
+                              : (isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item['label'] as String,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                            color: isSelected
+                                ? AppColors.primary
+                                : (isDark ? AppColors.textMutedDark : AppColors.textMutedLight),
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
           ),
         ),
       ),

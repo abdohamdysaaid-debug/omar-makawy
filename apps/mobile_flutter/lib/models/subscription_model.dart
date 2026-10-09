@@ -21,6 +21,11 @@ class SubscriptionModel {
     this.expiresAt,
   });
 
+  String? get courseId => itemType == 'COURSE' ? itemId : null;
+  String? get packageId => itemType == 'PACKAGE' ? itemId : null;
+  String get targetName => itemName;
+  String get targetType => itemType;
+
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
     double parseDouble(dynamic val) {
       if (val == null) return 0.0;

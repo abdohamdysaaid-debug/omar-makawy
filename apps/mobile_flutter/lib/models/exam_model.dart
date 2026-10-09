@@ -100,6 +100,8 @@ class ExamModel {
     this.packageId,
   });
 
+  double? get score => myScore;
+
   factory ExamModel.fromJson(Map<String, dynamic> json) {
     var rawQuestions = json['questions'] as List? ?? [];
     var qList = rawQuestions
