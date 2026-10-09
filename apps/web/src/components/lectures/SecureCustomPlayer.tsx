@@ -11,6 +11,8 @@ import {
   Settings,
   ShieldCheck,
   Check,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 
 interface SecureCustomPlayerProps {
@@ -90,18 +92,17 @@ export function SecureCustomPlayer({
     }
   }, [currentTime]);
 
-  // Strict Seek helper: Prevents forward seeking and accidental reset to 0
+  // Strict Seek helper
   const handleSeek = (seconds: number) => {
     const maxAllowed = maxWatchedTimeRef.current;
 
-    // 1. Block any attempt to seek forward beyond watched position: stay fixed!
+    // Block seeking forward beyond watched position
     if (seconds > maxAllowed + 2) {
       sendCommand('seekTo', [maxAllowed, true]);
       setCurrentTime(maxAllowed);
       return;
     }
 
-    // 2. Prevent accidental reset to 0 if student clicks on the progress bar when already deep into the video
     if (seconds < 2 && maxAllowed > 5) {
       sendCommand('seekTo', [currentTime, true]);
       return;
@@ -180,7 +181,6 @@ export function SecureCustomPlayer({
       }
 
       if (data.event === 'onStateChange') {
-        // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
         if (data.info === 1) setIsPlaying(true);
         if (data.info === 2) setIsPlaying(false);
         if (data.info === 0) {
@@ -231,7 +231,7 @@ export function SecureCustomPlayer({
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowSpeedMenu(false);
-      }, 3500);
+      }, 4000);
     }
   };
 
@@ -248,7 +248,7 @@ export function SecureCustomPlayer({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // Embed URL with controls=0 (Hides YouTube title, share, logo, and control bar)
+  // Embed URL with controls=0 to eliminate native controls & video actions
   const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&controls=0&rel=0&playsinline=1&modestbranding=1&showinfo=0&iv_load_policy=3&disablekb=1&fs=0${
     resumePosition > 0 ? `&start=${Math.floor(resumePosition)}` : ''
   }`;
@@ -258,9 +258,9 @@ export function SecureCustomPlayer({
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
-      className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border-2 border-[#0d6e4f]/40 dark:border-emerald-500/30 shadow-2xl group select-none font-cairo"
+      className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border-2 border-[#0d6e4f] shadow-2xl shadow-[#0d6e4f]/20 group select-none font-cairo"
     >
-      {/* 1. Underlying YouTube IFrame with controls=0 */}
+      {/* 1. Underlying YouTube IFrame */}
       <iframe
         ref={iframeRef}
         src={embedUrl}
@@ -269,74 +269,71 @@ export function SecureCustomPlayer({
         className="w-full h-full border-0 pointer-events-none"
       />
 
-      {/* 2. FULL TRANSPARENT CLICK SHIELD (Catches 100% of clicks over video) */}
+      {/* 2. FULL TRANSPARENT CLICK SHIELD */}
       <div
         className="absolute inset-0 z-20 cursor-pointer"
         onClick={togglePlay}
         onDoubleClick={toggleFullscreen}
       />
 
-      {/* 3. CENTER PLAY / PAUSE FEEDBACK ANIMATION */}
-      {centerFeedback && (
-        <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center animate-ping duration-500">
-          <div className="w-20 h-20 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center text-emerald-400 border border-emerald-500/40">
-            {centerFeedback === 'play' ? (
-              <Play className="w-10 h-10 fill-current ms-1" />
-            ) : (
-              <Pause className="w-10 h-10 fill-current" />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* INITIAL PLAY OVERLAY (Before video starts) */}
-      {!isPlaying && currentTime === resumePosition && (
+      {/* 3. CENTER CUSTOM PLAY / PAUSE BUTTON (Hides native YouTube play button) */}
+      {(!isPlaying || centerFeedback) && (
         <div
-          className="absolute inset-0 z-25 bg-black/50 backdrop-blur-[2px] flex flex-col items-center justify-center gap-4 cursor-pointer"
+          className="absolute inset-0 z-25 bg-black/40 backdrop-blur-[1px] flex flex-col items-center justify-center gap-3 cursor-pointer transition-all animate-fade-in"
           onClick={togglePlay}
         >
-          <div className="w-20 h-20 rounded-full bg-[#0d6e4f] text-white flex items-center justify-center shadow-2xl shadow-[#0d6e4f]/50 hover:scale-110 transition-transform">
-            <Play className="w-9 h-9 fill-current ms-1" />
+          <div className="w-20 sm:w-24 h-20 sm:h-24 rounded-full bg-gradient-to-tr from-[#064e3b] via-[#0d6e4f] to-[#10b981] text-white flex items-center justify-center shadow-2xl shadow-[#0d6e4f]/60 hover:scale-110 transition-transform border-2 border-white/30">
+            {isPlaying ? (
+              <Pause className="w-10 sm:w-12 h-10 sm:h-12 fill-current" />
+            ) : (
+              <Play className="w-10 sm:w-12 h-10 sm:h-12 fill-current ms-1.5" />
+            )}
           </div>
-          <span className="text-sm font-black text-white bg-black/60 px-4 py-1.5 rounded-full border border-white/10">
-            اضغط لبدء مشاهدة المحاضرة
-          </span>
+
+          {!isPlaying && (
+            <div className="flex items-center gap-2 bg-[#064e3b]/90 text-white text-xs sm:text-sm font-black px-4 py-1.5 rounded-full border border-emerald-400/40 shadow-lg backdrop-blur-md">
+              <Sparkles className="w-4 h-4 text-emerald-300" />
+              <span>{currentTime > 0 ? 'استئناف تشغيل المحاضرة' : 'اضغط لبدء مشاهدة المحاضرة'}</span>
+            </div>
+          )}
         </div>
       )}
 
-      {/* 4. TOP SECURE FRAME OVERLAY */}
+      {/* 4. TOP GREEN BRANDING & SECURITY FRAME (Covers YouTube channel logo, title, and buttons) */}
       <div
-        className={`absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent transition-opacity duration-300 pointer-events-auto flex items-center justify-between text-white ${
+        className={`absolute top-0 inset-x-0 z-30 px-4 sm:px-6 py-3 bg-gradient-to-r from-[#042f24] via-[#0d6e4f] to-[#042f24] text-white border-b border-emerald-500/30 shadow-lg flex items-center justify-between transition-opacity duration-300 pointer-events-auto ${
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        <div className="flex items-center gap-2 max-w-[70%]">
-          <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span className="font-black text-xs sm:text-sm text-gray-100 truncate">
+        <div className="flex items-center gap-2.5 max-w-[65%]">
+          <div className="w-7 h-7 rounded-lg bg-black/30 border border-white/20 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-4 h-4 text-emerald-300" />
+          </div>
+          <span className="font-black text-xs sm:text-sm text-white truncate drop-shadow-xs">
             {title}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           {studentName && (
-            <span className="hidden sm:inline text-[11px] font-mono text-gray-400 bg-black/60 px-2.5 py-1 rounded-lg border border-white/10">
+            <span className="hidden md:inline text-[11px] font-mono text-emerald-100 bg-black/40 px-2.5 py-1 rounded-lg border border-white/10">
               طالب: {studentName}
             </span>
           )}
-          <span className="text-[10px] font-black bg-[#0d6e4f] text-white px-2.5 py-1 rounded-lg shadow-sm">
+          <span className="text-[10px] sm:text-xs font-black bg-white/20 text-white px-3 py-1 rounded-xl backdrop-blur-md border border-white/30 shadow-xs">
             منصة مستر عمر مكاوي
           </span>
         </div>
       </div>
 
-      {/* 5. CUSTOM BOTTOM CONTROL BAR LAYER */}
+      {/* 5. BOTTOM GREEN CONTROLS FRAME (Covers YouTube control bar with custom platform controls) */}
       <div
-        className={`absolute bottom-0 inset-x-0 z-30 p-3 sm:p-4 bg-gradient-to-t from-black/95 via-black/75 to-transparent transition-opacity duration-300 pointer-events-auto space-y-2.5 text-white ${
+        className={`absolute bottom-0 inset-x-0 z-30 p-3 sm:p-4 bg-gradient-to-r from-[#042f24] via-[#0d6e4f] to-[#042f24] text-white border-t border-emerald-500/30 shadow-2xl transition-opacity duration-300 pointer-events-auto space-y-2 ${
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Interactive Progress Slider */}
+        {/* Custom Progress Bar with Green Theme */}
         <div className="relative group/timeline flex items-center">
           <input
             type="range"
@@ -344,22 +341,22 @@ export function SecureCustomPlayer({
             max={duration || 100}
             value={currentTime}
             onChange={(e) => handleSeek(Number(e.target.value))}
-            className="w-full h-1.5 bg-gray-700/80 rounded-lg appearance-none cursor-pointer accent-[#0d6e4f] hover:h-2.5 transition-all"
+            className="w-full h-2 bg-black/50 rounded-lg appearance-none cursor-pointer accent-emerald-300 hover:h-2.5 transition-all"
             style={{
-              background: `linear-[#0d6e4f] linear-gradient(to right, #0d6e4f 0%, #10b981 ${(currentTime / (duration || 1)) * 100}%, #374151 ${(currentTime / (duration || 1)) * 100}%, #374151 100%)`,
+              background: `linear-gradient(to right, #34d399 0%, #10b981 ${(currentTime / (duration || 1)) * 100}%, rgba(0,0,0,0.6) ${(currentTime / (duration || 1)) * 100}%, rgba(0,0,0,0.6) 100%)`,
             }}
           />
         </div>
 
         {/* Controls Row */}
         <div className="flex items-center justify-between text-xs font-bold gap-2">
-          {/* Left Controls: Play/Pause, Rewind, FastForward, Volume, Time */}
+          {/* Left Controls: Play/Pause, Volume, Timer */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Play/Pause Button */}
             <button
               type="button"
               onClick={togglePlay}
-              className="p-2 rounded-xl bg-[#0d6e4f] hover:bg-[#0a4834] text-white transition-all shadow-md shadow-[#0d6e4f]/30 cursor-pointer"
+              className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-white transition-all shadow-sm cursor-pointer border border-white/20"
               title={isPlaying ? 'إيقاف مؤقت' : 'تشغيل'}
             >
               {isPlaying ? (
@@ -370,15 +367,15 @@ export function SecureCustomPlayer({
             </button>
 
             {/* Volume Control */}
-            <div className="flex items-center gap-1.5 group/vol relative">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={toggleMute}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-emerald-100 hover:text-white transition-all cursor-pointer"
                 title={isMuted ? 'إلغاء كتم الصوت' : 'كتم الصوت'}
               >
                 {isMuted || volume === 0 ? (
-                  <VolumeX className="w-4 h-4 text-rose-400" />
+                  <VolumeX className="w-4 h-4 text-rose-300" />
                 ) : (
                   <Volume2 className="w-4 h-4" />
                 )}
@@ -390,12 +387,12 @@ export function SecureCustomPlayer({
                 max={100}
                 value={isMuted ? 0 : volume}
                 onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                className="w-16 sm:w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-emerald-400 hidden sm:block"
+                className="w-16 sm:w-20 h-1.5 bg-black/40 rounded-lg appearance-none cursor-pointer accent-emerald-300 hidden sm:block"
               />
             </div>
 
-            {/* Current / Duration Time */}
-            <span className="text-[11px] font-mono text-gray-300 ps-1">
+            {/* Time Display */}
+            <span className="text-[11px] font-mono text-emerald-100 ps-1 font-bold">
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
@@ -407,7 +404,7 @@ export function SecureCustomPlayer({
               <button
                 type="button"
                 onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-emerald-400 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer border border-emerald-500/30"
+                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-white text-[11px] font-black flex items-center gap-1 transition-all cursor-pointer border border-white/20 shadow-xs"
               >
                 <Settings className="w-3.5 h-3.5" />
                 <span>{playbackSpeed}x</span>
@@ -415,8 +412,8 @@ export function SecureCustomPlayer({
 
               {/* Speed Menu Popover */}
               {showSpeedMenu && (
-                <div className="absolute bottom-full end-0 mb-2 w-32 bg-stone-900 border border-stone-700 rounded-2xl p-1.5 shadow-2xl z-50 text-xs font-bold space-y-0.5 animate-in fade-in slide-in-from-bottom-2">
-                  <div className="px-3 py-1.5 text-[10px] text-gray-400 border-b border-stone-800">
+                <div className="absolute bottom-full end-0 mb-2 w-32 bg-[#064e3b] border border-emerald-500/40 rounded-2xl p-1.5 shadow-2xl z-50 text-xs font-bold space-y-0.5 animate-in fade-in slide-in-from-bottom-2">
+                  <div className="px-3 py-1.5 text-[10px] text-emerald-200 border-b border-emerald-700/50">
                     سرعة التشغيل
                   </div>
                   {SPEED_OPTIONS.map((rate) => (
@@ -426,8 +423,8 @@ export function SecureCustomPlayer({
                       onClick={() => handleSpeedChange(rate)}
                       className={`w-full px-3 py-1.5 rounded-xl text-start flex items-center justify-between text-xs transition-colors cursor-pointer ${
                         playbackSpeed === rate
-                          ? 'bg-[#0d6e4f] text-white'
-                          : 'text-gray-300 hover:bg-white/10'
+                          ? 'bg-[#0d6e4f] text-white font-black'
+                          : 'text-emerald-100 hover:bg-white/10'
                       }`}
                     >
                       <span>{rate === 1 ? '1x (عادي)' : `${rate}x`}</span>
@@ -442,7 +439,7 @@ export function SecureCustomPlayer({
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer"
+              className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-white transition-all cursor-pointer border border-white/20 shadow-xs"
               title={isFullscreen ? 'إلغاء ملء الشاشة' : 'ملء الشاشة'}
             >
               {isFullscreen ? (
