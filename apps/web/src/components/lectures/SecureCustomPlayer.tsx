@@ -16,6 +16,7 @@ import {
 interface SecureCustomPlayerProps {
   videoId: string;
   resumePosition?: number;
+  initialDuration?: number;
   title: string;
   studentName?: string;
   onStateChange?: (isPlaying: boolean) => void;
@@ -27,6 +28,7 @@ const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 export function SecureCustomPlayer({
   videoId,
   resumePosition = 0,
+  initialDuration = 0,
   title,
   studentName,
   onStateChange,
@@ -37,7 +39,7 @@ export function SecureCustomPlayer({
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(resumePosition);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState<number>(initialDuration || 0);
   const [volume, setVolume] = useState(100);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
@@ -47,12 +49,22 @@ export function SecureCustomPlayer({
   const [centerFeedback, setCenterFeedback] = useState<'play' | 'pause' | null>(null);
 
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const maxWatchedTimeRef = useRef<number>(resumePosition || 0);
 
   // Send JSON-RPC command to YouTube iframe API
   const sendCommand = useCallback((func: string, args: any[] = []) => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func, args }),
+        '*'
+      );
+    }
+  }, []);
+
+  const sendListening = useCallback(() => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'listening' }),
         '*'
       );
     }
@@ -73,15 +85,21 @@ export function SecureCustomPlayer({
       sendCommand('pauseVideo');
       setIsPlaying(false);
       setCenterFeedback('pause');
+      setShowControls(true);
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     } else {
       sendCommand('playVideo');
       setIsPlaying(true);
       setCenterFeedback('play');
+      // Set 11-second auto-hide timeout when starting play
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+        setShowSpeedMenu(false);
+      }, 11000);
     }
     setTimeout(() => setCenterFeedback(null), 800);
   }, [isPlaying, sendCommand]);
-
-  const maxWatchedTimeRef = useRef<number>(resumePosition || 0);
 
   // Keep maxWatchedTimeRef updated as video plays forward
   useEffect(() => {
@@ -90,11 +108,11 @@ export function SecureCustomPlayer({
     }
   }, [currentTime]);
 
-  // Strict Seek helper: Prevents forward seeking and accidental reset to 0
+  // Strict Seek helper: Prevents forward seeking beyond watched time and accidental reset to 0
   const handleSeek = (seconds: number) => {
     const maxAllowed = maxWatchedTimeRef.current;
 
-    // 1. Block any attempt to seek forward beyond watched position: stay fixed!
+    // 1. Block any attempt to seek forward beyond watched position
     if (seconds > maxAllowed + 2) {
       sendCommand('seekTo', [maxAllowed, true]);
       setCurrentTime(maxAllowed);
@@ -161,10 +179,18 @@ export function SecureCustomPlayer({
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
+      setShowControls(true);
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      if (isPlaying) {
+        controlsTimeoutRef.current = setTimeout(() => {
+          setShowControls(false);
+          setShowSpeedMenu(false);
+        }, 11000);
+      }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+  }, [isPlaying]);
 
   // Listen to postMessage from YouTube iframe
   useEffect(() => {
@@ -179,22 +205,31 @@ export function SecureCustomPlayer({
         }
       }
 
+      if (data.event === 'onReady' || data.event === 'initialDelivery') {
+        sendListening();
+        sendCommand('getDuration');
+        sendCommand('getCurrentTime');
+      }
+
       if (data.event === 'onStateChange') {
-        // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
-        if (data.info === 1) setIsPlaying(true);
-        if (data.info === 2) setIsPlaying(false);
-        if (data.info === 0) {
+        // 1 = PLAYING, 2 = PAUSED, 0 = ENDED, 3 = BUFFERING
+        if (data.info === 1) {
+          setIsPlaying(true);
+        } else if (data.info === 2 || data.info === 0) {
           setIsPlaying(false);
+        }
+        if (data.info === 0 && duration > 0) {
           setCurrentTime(duration);
         }
       }
 
-      if (data.event === 'infoDelivery' && data.info) {
-        if (typeof data.info.currentTime === 'number') {
-          setCurrentTime(data.info.currentTime);
-        }
+      // Continuous telemetry infoDelivery
+      if (data.info && typeof data.info === 'object') {
         if (typeof data.info.duration === 'number' && data.info.duration > 0) {
           setDuration(data.info.duration);
+        }
+        if (typeof data.info.currentTime === 'number') {
+          setCurrentTime(data.info.currentTime);
         }
         if (typeof data.info.playerState === 'number') {
           if (data.info.playerState === 1) setIsPlaying(true);
@@ -205,35 +240,33 @@ export function SecureCustomPlayer({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [duration]);
+  }, [duration, sendListening, sendCommand]);
 
-  // Polling position backup while playing
+  // Periodic heartbeat sync to query exact duration and current time from YouTube iframe
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime((prev) => {
-          const next = prev + 0.5 * playbackSpeed;
-          return duration > 0 ? Math.min(duration, next) : next;
-        });
-      }, 500);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isPlaying, playbackSpeed, duration]);
+    sendListening();
+    const interval = setInterval(() => {
+      sendListening();
+      if (iframeRef.current?.contentWindow) {
+        sendCommand('getDuration');
+        sendCommand('getCurrentTime');
+      }
+    }, 1000);
 
-  // Mouse activity auto-hide controls
-  const handleMouseMove = () => {
+    return () => clearInterval(interval);
+  }, [sendListening, sendCommand]);
+
+  // Mouse activity: show controls and auto-hide after 11 seconds when playing
+  const handleMouseMove = useCallback(() => {
     setShowControls(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     if (isPlaying) {
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowSpeedMenu(false);
-      }, 3500);
+      }, 11000); // 11-second duration as requested
     }
-  };
+  }, [isPlaying]);
 
   // Format seconds to MM:SS or HH:MM:SS
   const formatTime = (seconds: number) => {
@@ -248,7 +281,9 @@ export function SecureCustomPlayer({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // Embed URL with controls=0 (Hides YouTube title, share, logo, and control bar)
+  const effectiveDuration = duration > 0 ? duration : initialDuration > 0 ? initialDuration : 0;
+
+  // Embed URL with controls=0 (Hides YouTube title, share, logo, and native control bar)
   const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&controls=0&rel=0&playsinline=1&modestbranding=1&showinfo=0&iv_load_policy=3&disablekb=1&fs=0${
     resumePosition > 0 ? `&start=${Math.floor(resumePosition)}` : ''
   }`;
@@ -268,12 +303,6 @@ export function SecureCustomPlayer({
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         className="w-full h-full border-0 pointer-events-none"
       />
-
-      {/* TOP PERMANENT SOLID BLACK COVER (Hides YouTube channel logo and title) */}
-      <div className="absolute top-0 inset-x-0 h-14 sm:h-16 bg-black z-22 pointer-events-none" />
-
-      {/* BOTTOM PERMANENT SOLID BLACK COVER (Hides YouTube logo and watermark) */}
-      <div className="absolute bottom-0 inset-x-0 h-14 sm:h-16 bg-black z-22 pointer-events-none" />
 
       {/* 2. FULL TRANSPARENT CLICK SHIELD (Catches 100% of clicks over video) */}
       <div
@@ -298,21 +327,21 @@ export function SecureCustomPlayer({
       {/* INITIAL PLAY OVERLAY (Before video starts) */}
       {!isPlaying && currentTime === resumePosition && (
         <div
-          className="absolute inset-0 z-25 bg-black/50 backdrop-blur-[2px] flex flex-col items-center justify-center gap-4 cursor-pointer"
+          className="absolute inset-0 z-25 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-4 cursor-pointer"
           onClick={togglePlay}
         >
           <div className="w-20 h-20 rounded-full bg-[#0d6e4f] text-white flex items-center justify-center shadow-2xl shadow-[#0d6e4f]/50 hover:scale-110 transition-transform">
             <Play className="w-9 h-9 fill-current ms-1" />
           </div>
-          <span className="text-sm font-black text-white bg-black/60 px-4 py-1.5 rounded-full border border-white/10">
+          <span className="text-sm font-black text-white bg-black/70 px-4 py-1.5 rounded-full border border-white/10">
             اضغط لبدء مشاهدة المحاضرة
           </span>
         </div>
       )}
 
-      {/* 4. TOP SECURE FRAME OVERLAY */}
+      {/* 4. TOP SOLID BLACK FRAME (Hides channel logo & title completely as part of the frame) */}
       <div
-        className={`absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/90 via-black/40 to-transparent transition-opacity duration-300 pointer-events-auto flex items-center justify-between text-white ${
+        className={`absolute top-0 inset-x-0 z-30 p-3 sm:p-4 bg-black border-b border-white/10 transition-opacity duration-300 pointer-events-auto flex items-center justify-between text-white ${
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
         }`}
       >
@@ -325,7 +354,7 @@ export function SecureCustomPlayer({
 
         <div className="flex items-center gap-2">
           {studentName && (
-            <span className="hidden sm:inline text-[11px] font-mono text-gray-400 bg-black/60 px-2.5 py-1 rounded-lg border border-white/10">
+            <span className="hidden sm:inline text-[11px] font-mono text-gray-400 bg-neutral-900 px-2.5 py-1 rounded-lg border border-white/10">
               طالب: {studentName}
             </span>
           )}
@@ -335,9 +364,9 @@ export function SecureCustomPlayer({
         </div>
       </div>
 
-      {/* 5. CUSTOM BOTTOM CONTROL BAR LAYER */}
+      {/* 5. BOTTOM SOLID BLACK CONTROL BAR FRAME (Hides YouTube watermark logo completely) */}
       <div
-        className={`absolute bottom-0 inset-x-0 z-30 p-3 sm:p-4 bg-gradient-to-t from-black/95 via-black/75 to-transparent transition-opacity duration-300 pointer-events-auto space-y-2.5 text-white ${
+        className={`absolute bottom-0 inset-x-0 z-30 p-3 sm:p-4 bg-black border-t border-white/10 transition-opacity duration-300 pointer-events-auto space-y-2.5 text-white ${
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -347,19 +376,23 @@ export function SecureCustomPlayer({
           <input
             type="range"
             min={0}
-            max={duration || 100}
+            max={effectiveDuration > 0 ? effectiveDuration : 100}
             value={currentTime}
             onChange={(e) => handleSeek(Number(e.target.value))}
             className="w-full h-1.5 bg-gray-700/80 rounded-lg appearance-none cursor-pointer accent-[#0d6e4f] hover:h-2.5 transition-all"
             style={{
-              background: `linear-[#0d6e4f] linear-gradient(to right, #0d6e4f 0%, #10b981 ${(currentTime / (duration || 1)) * 100}%, #374151 ${(currentTime / (duration || 1)) * 100}%, #374151 100%)`,
+              background: `linear-gradient(to right, #0d6e4f 0%, #10b981 ${
+                effectiveDuration > 0 ? (currentTime / effectiveDuration) * 100 : 0
+              }%, #374151 ${
+                effectiveDuration > 0 ? (currentTime / effectiveDuration) * 100 : 0
+              }%, #374151 100%)`,
             }}
           />
         </div>
 
         {/* Controls Row */}
         <div className="flex items-center justify-between text-xs font-bold gap-2">
-          {/* Left Controls: Play/Pause, Rewind, FastForward, Volume, Time */}
+          {/* Left Controls: Play/Pause, Volume, Time */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Play/Pause Button */}
             <button
@@ -402,7 +435,7 @@ export function SecureCustomPlayer({
 
             {/* Current / Duration Time */}
             <span className="text-[11px] font-mono text-gray-300 ps-1">
-              {formatTime(currentTime)} / {formatTime(duration)}
+              {formatTime(currentTime)} / {effectiveDuration > 0 ? formatTime(effectiveDuration) : '--:--'}
             </span>
           </div>
 

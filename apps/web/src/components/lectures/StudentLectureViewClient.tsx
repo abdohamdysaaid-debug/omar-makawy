@@ -632,6 +632,11 @@ export function StudentLectureViewClient({
               key={cleanVideoId}
               videoId={cleanVideoId}
               resumePosition={resumePosition}
+              initialDuration={
+                (currentVideoType === 'MAIN' ? mainVideo?.duration_seconds : solutionVideo?.duration_seconds) ||
+                lecture.duration_seconds ||
+                0
+              }
               title={lecture.title_ar}
               studentName={student?.fullName}
               onStateChange={(playing) => setIsPlaying(playing)}
