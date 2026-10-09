@@ -1,4 +1,9 @@
-export type StudentAccountStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'BLOCKED';
+export type StudentAccountStatus =
+  | 'ACTIVE'
+  | 'INACTIVE'
+  | 'SUSPENDED'
+  | 'BLOCKED'
+  | 'PENDING_APPROVAL';
 
 export interface StudentItem {
   id: string;

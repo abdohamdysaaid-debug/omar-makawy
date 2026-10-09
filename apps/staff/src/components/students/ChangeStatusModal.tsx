@@ -137,7 +137,8 @@ export function ChangeStatusModal({
               onChange={(e) => setStatus(e.target.value as StudentAccountStatus)}
               className="block w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 py-2.5 px-3.5 text-xs font-semibold text-neutral-900 dark:text-white focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors cursor-pointer"
             >
-              <option value="ACTIVE">{isArabic ? 'نشط (ACTIVE)' : 'Active'}</option>
+              <option value="ACTIVE">{isArabic ? 'نشط ومفعّل (ACTIVE)' : 'Active'}</option>
+              <option value="PENDING_APPROVAL">{isArabic ? 'بانتظار المراجعة (PENDING_APPROVAL)' : 'Pending Approval'}</option>
               <option value="INACTIVE">{isArabic ? 'غير نشط (INACTIVE)' : 'Inactive'}</option>
               <option value="SUSPENDED">{isArabic ? 'معلق مؤقتاً (SUSPENDED)' : 'Suspended'}</option>
               <option value="BLOCKED">{isArabic ? 'محظور نهائياً (BLOCKED)' : 'Blocked'}</option>

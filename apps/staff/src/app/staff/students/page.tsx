@@ -14,6 +14,11 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
+  ShieldCheck,
+  Clock,
+  UserCheck,
+  UserX,
+  AlertCircle,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
@@ -52,6 +57,11 @@ export default function StaffStudentsPage() {
 
   const canManage = isTeacher || hasPermission(SystemPermissions.STUDENTS_MANAGE);
 
+  // Approval Setting State
+  const [requireApproval, setRequireApproval] = useState<boolean>(false);
+  const [isTogglingApproval, setIsTogglingApproval] = useState<boolean>(false);
+  const [approvalSettingLoaded, setApprovalSettingLoaded] = useState<boolean>(false);
+
   // Filters State
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
@@ -68,6 +78,9 @@ export default function StaffStudentsPage() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Quick Action State
+  const [approvingStudentId, setApprovingStudentId] = useState<string | null>(null);
 
   // Modals State
   const [studentForEdit, setStudentForEdit] = useState<StudentDetail | null>(null);
@@ -93,13 +106,21 @@ export default function StaffStudentsPage() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Load Governorates list for filter dropdown
+  // Load Governorates list and Approval Setting
   useEffect(() => {
     async function loadMeta() {
       try {
         const govs = await staffAuthApi.getGovernorates();
         setGovernorates(govs || []);
       } catch {}
+
+      try {
+        const res = await staffStudentsApi.getApprovalSetting();
+        setRequireApproval(Boolean(res?.require_approval));
+        setApprovalSettingLoaded(true);
+      } catch {
+        setApprovalSettingLoaded(true);
+      }
     }
     loadMeta();
   }, []);
@@ -143,6 +164,66 @@ export default function StaffStudentsPage() {
     fetchStudents();
   }, [fetchStudents]);
 
+  // Handle Toggle Approval Requirement
+  const handleToggleApproval = async (newVal: boolean) => {
+    if (isTogglingApproval) return;
+    setIsTogglingApproval(true);
+
+    try {
+      await staffStudentsApi.setApprovalSetting(newVal);
+      setRequireApproval(newVal);
+      setActionSuccessMessage(
+        newVal
+          ? (isAr
+              ? 'تم تفعيل نظام المراجعة: يجب مراجعة واعتماد أي طالب جديد قبل دخوله.'
+              : 'Student approval enabled: New registrations require admin review.')
+          : (isAr
+              ? 'تم تفعيل القبول التلقائي: يتم قبول وتفعيل أي طالب جديد فور تسجيله.'
+              : 'Auto approval enabled: New registrations are activated immediately.')
+      );
+      setTimeout(() => setActionSuccessMessage(null), 5000);
+    } catch (err: any) {
+      setError(
+        err?.message ||
+          (isAr ? 'فشل تحديث إعداد مراجعة الطلاب' : 'Failed to update approval setting')
+      );
+    } finally {
+      setIsTogglingApproval(false);
+    }
+  };
+
+  // Handle 1-Click Quick Approval
+  const handleQuickApprove = async (student: StudentItem) => {
+    if (approvingStudentId) return;
+    setApprovingStudentId(student.id);
+
+    try {
+      await staffStudentsApi.updateStudentStatus(
+        student.id,
+        {
+          status: 'ACTIVE',
+          reason: 'تمت مراجعة وقبول الحساب من إدارة المنصة',
+        },
+        student.academic_year_id || undefined
+      );
+
+      setActionSuccessMessage(
+        isAr
+          ? `تمت الموافقة على حساب الطالب "${student.full_name}" وتفعيله بنجاح.`
+          : `Student "${student.full_name}" approved and activated successfully.`
+      );
+      setTimeout(() => setActionSuccessMessage(null), 5000);
+      fetchStudents();
+    } catch (err: any) {
+      setError(
+        err?.message ||
+          (isAr ? 'فشل قبول حساب الطالب' : 'Failed to approve student account')
+      );
+    } finally {
+      setApprovingStudentId(null);
+    }
+  };
+
   const handleEditSuccess = (updated: StudentDetail) => {
     setActionSuccessMessage(
       isAr
@@ -178,11 +259,97 @@ export default function StaffStudentsPage() {
           </div>
           <p className="text-xs text-neutral-400 font-medium">
             {isAr
-              ? `إجمالي الطلاب المسجلين: ${total} طالب`
-              : `Total registered students: ${total}`}
+              ? `إجمالي الطلاب في هذا العرض: ${total} طالب`
+              : `Total students in this view: ${total}`}
           </p>
         </div>
       </div>
+
+      {/* Student Approval System Settings Card */}
+      {canManage && (
+        <div className="p-4 sm:p-5 rounded-2xl border border-neutral-800 bg-[#121815] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
+          <div className="flex items-start gap-3.5">
+            <div
+              className={`p-3 rounded-2xl border transition-colors shrink-0 ${
+                requireApproval
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+              }`}
+            >
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-sm sm:text-base font-bold text-white">
+                  {isAr ? 'نظام مراجعة وقبول الطلاب الجدد' : 'New Student Approval System'}
+                </h2>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${
+                    requireApproval
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  }`}
+                >
+                  {requireApproval
+                    ? isAr
+                      ? 'المراجعة والاعتماد مفعّلة'
+                      : 'Manual Review Required'
+                    : isAr
+                    ? 'القبول التلقائي الفوري مفعّل'
+                    : 'Auto-Accept Active'}
+                </span>
+              </div>
+              <p className="text-xs text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                {requireApproval
+                  ? isAr
+                    ? 'الوضع الحالي: أي طالب يسجل حسابه جديداً يدخل في حالة (بانتظار المراجعة) ولن يتمكن من الدخول إلا بعد قيامك بمراجعة بياناته والموافقة عليها.'
+                    : 'Currently: New registrations enter "Pending Approval" and cannot log in until approved.'
+                  : isAr
+                  ? 'الوضع الحالي: أي طالب يسجل في المنصة يتم قبوله وتفعيله تلقائياً وبشكل فوري دون الحاجة للمراجعة اليدوية.'
+                  : 'Currently: New students are accepted and activated immediately upon registration.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+            <button
+              type="button"
+              disabled={isTogglingApproval || !approvalSettingLoaded}
+              onClick={() => handleToggleApproval(!requireApproval)}
+              className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-neutral-900 disabled:opacity-50 ${
+                requireApproval ? 'bg-amber-500' : 'bg-neutral-700'
+              }`}
+              role="switch"
+              aria-checked={requireApproval}
+              title={
+                isAr
+                  ? requireApproval
+                    ? 'انقر للتبديل إلى القبول التلقائي الفوري'
+                    : 'انقر لتفعيل نظام المراجعة اليدوية'
+                  : 'Toggle approval requirement'
+              }
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  requireApproval ? (isAr ? '-translate-x-7' : 'translate-x-7') : 'translate-x-0'
+                }`}
+              />
+            </button>
+            <span className="text-xs font-bold min-w-[50px]">
+              {isTogglingApproval ? (
+                <span className="inline-flex items-center gap-1 text-neutral-400">
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                </span>
+              ) : requireApproval ? (
+                <span className="text-amber-400 font-bold">{isAr ? 'مُفعّل' : 'ON'}</span>
+              ) : (
+                <span className="text-neutral-400 font-bold">{isAr ? 'معطّل' : 'OFF'}</span>
+              )}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Success Notification Alert */}
       {actionSuccessMessage && (
@@ -191,6 +358,85 @@ export default function StaffStudentsPage() {
           <span>{actionSuccessMessage}</span>
         </div>
       )}
+
+      {/* Quick Status Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('ALL');
+            setPage(1);
+          }}
+          className={`px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+            statusFilter === 'ALL'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-[#121815] text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-800/80'
+          }`}
+        >
+          {isAr ? 'جميع الطلاب' : 'All Students'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('PENDING_APPROVAL');
+            setPage(1);
+          }}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+            statusFilter === 'PENDING_APPROVAL'
+              ? 'bg-amber-600 text-white shadow-xs'
+              : 'bg-amber-950/30 text-amber-400 border border-amber-800/60 hover:bg-amber-900/40'
+          }`}
+        >
+          <Clock className="h-3.5 w-3.5" />
+          <span>{isAr ? 'بانتظار المراجعة' : 'Pending Approval'}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('ACTIVE');
+            setPage(1);
+          }}
+          className={`px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+            statusFilter === 'ACTIVE'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-[#121815] text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-800/80'
+          }`}
+        >
+          {isAr ? 'النشطون' : 'Active'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('SUSPENDED');
+            setPage(1);
+          }}
+          className={`px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+            statusFilter === 'SUSPENDED'
+              ? 'bg-amber-700 text-white shadow-xs'
+              : 'bg-[#121815] text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-800/80'
+          }`}
+        >
+          {isAr ? 'المعلقون' : 'Suspended'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter('BLOCKED');
+            setPage(1);
+          }}
+          className={`px-3.5 py-2 rounded-xl font-bold transition-all shrink-0 cursor-pointer ${
+            statusFilter === 'BLOCKED'
+              ? 'bg-rose-600 text-white shadow-xs'
+              : 'bg-[#121815] text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-800/80'
+          }`}
+        >
+          {isAr ? 'المحظورون' : 'Blocked'}
+        </button>
+      </div>
 
       {/* Filters Toolbar */}
       <div className="p-4 rounded-2xl border border-neutral-800/80 bg-[#101412] shadow-xs space-y-3">
@@ -237,6 +483,7 @@ export default function StaffStudentsPage() {
               className="block w-full rounded-xl border border-neutral-800 bg-[#171d19] py-2.5 px-3 text-xs font-semibold text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors cursor-pointer"
             >
               <option value="ALL">{isAr ? 'كل الحالات' : 'All Statuses'}</option>
+              <option value="PENDING_APPROVAL">{isAr ? 'بانتظار المراجعة (PENDING_APPROVAL)' : 'Pending Approval'}</option>
               <option value="ACTIVE">{isAr ? 'نشط (ACTIVE)' : 'Active'}</option>
               <option value="INACTIVE">{isAr ? 'غير نشط (INACTIVE)' : 'Inactive'}</option>
               <option value="SUSPENDED">{isAr ? 'معلق (SUSPENDED)' : 'Suspended'}</option>
@@ -291,7 +538,11 @@ export default function StaffStudentsPage() {
         <EmptyState
           title={isAr ? 'لا يوجد طلاب مطابقون' : 'No Students Found'}
           description={
-            isAr
+            statusFilter === 'PENDING_APPROVAL'
+              ? isAr
+                ? 'لا يوجد أي طلاب بانتظار المراجعة والاعتماد حالياً. جميع الطلاب مفعلون ومقبولون.'
+                : 'No pending student registrations currently.'
+              : isAr
               ? 'لم يتم العثور على أي حسابات طلاب تطابق معايير البحث أو المرحلة المحددة.'
               : 'No student accounts match the current filter or search criteria.'
           }
@@ -316,6 +567,8 @@ export default function StaffStudentsPage() {
               <tbody className="divide-y divide-neutral-800/80 font-medium text-neutral-200">
                 {students.map((student) => {
                   const waNumber = (student.whatsapp_phone || student.phone || '').replace(/[^0-9]/g, '');
+                  const isPending = student.status === 'PENDING_APPROVAL';
+
                   return (
                     <tr
                       key={student.id}
@@ -325,7 +578,11 @@ export default function StaffStudentsPage() {
                           router.push(`/staff/students/detail?id=${student.id}`);
                         }
                       }}
-                      className="hover:bg-emerald-950/25 transition-colors cursor-pointer group"
+                      className={`transition-colors cursor-pointer group ${
+                        isPending
+                          ? 'bg-amber-950/15 hover:bg-amber-950/25'
+                          : 'hover:bg-emerald-950/25'
+                      }`}
                     >
                       {/* Name and Email */}
                       <td className="py-3.5 px-4">
@@ -417,10 +674,28 @@ export default function StaffStudentsPage() {
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-end" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center gap-1.5">
+                          {/* 1-Click Approve Button for Pending Students */}
+                          {canManage && isPending && (
+                            <button
+                              type="button"
+                              onClick={() => handleQuickApprove(student)}
+                              disabled={approvingStudentId === student.id}
+                              title={isAr ? 'قبول وتفعيل حساب الطالب فوراً' : 'Approve & Activate Now'}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                            >
+                              {approvingStudentId === student.id ? (
+                                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <UserCheck className="h-3.5 w-3.5" />
+                              )}
+                              <span>{isAr ? 'قبول وتفعيل' : 'Approve'}</span>
+                            </button>
+                          )}
+
                           <Link
                             href={`/staff/students/detail?id=${student.id}`}
                             title={isAr ? 'عرض الملف الكامل والمعلومات' : 'View Full Profile & Details'}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-xs transition-all active:scale-95"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#1a231e] hover:bg-emerald-700/60 border border-neutral-700/80 shadow-xs transition-all active:scale-95"
                           >
                             <Eye className="h-3.5 w-3.5" />
                             <span className="hidden sm:inline">{isAr ? 'عرض الملف' : 'Profile'}</span>
@@ -440,7 +715,7 @@ export default function StaffStudentsPage() {
                               <button
                                 type="button"
                                 onClick={() => setStudentForStatus(student as StudentDetail)}
-                                title={isAr ? 'تغيير حالة الحساب' : 'Change Account Status'}
+                                title={isAr ? 'تغيير حالة الحساب (قبول/حظر/تعليق)' : 'Change Account Status'}
                                 className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-amber-400 transition-colors"
                               >
                                 <ShieldAlert className="h-4 w-4" />
@@ -469,10 +744,16 @@ export default function StaffStudentsPage() {
           <div className="md:hidden space-y-3">
             {students.map((student) => {
               const waNumber = (student.whatsapp_phone || student.phone || '').replace(/[^0-9]/g, '');
+              const isPending = student.status === 'PENDING_APPROVAL';
+
               return (
                 <div
                   key={student.id}
-                  className="rounded-2xl border border-neutral-800/80 bg-[#101412] p-4 shadow-xs space-y-3"
+                  className={`rounded-2xl border p-4 shadow-xs space-y-3 transition-colors ${
+                    isPending
+                      ? 'border-amber-700/60 bg-[#16130b]'
+                      : 'border-neutral-800/80 bg-[#101412]'
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -514,33 +795,60 @@ export default function StaffStudentsPage() {
                     </div>
                   </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-neutral-800">
-                  <span className="text-[10px] text-neutral-500 font-mono">
-                    {new Date(student.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
-                  </span>
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-neutral-800">
+                    <span className="text-[10px] text-neutral-500 font-mono">
+                      {new Date(student.created_at).toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}
+                    </span>
 
-                  <div className="flex items-center gap-1">
-                    <Link
-                      href={`/staff/students/detail?id=${student.id}`}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-xs transition-colors"
-                    >
-                      {isAr ? 'عرض الملف' : 'Profile'}
-                    </Link>
-                    {canManage && (
-                      <button
-                        type="button"
-                        onClick={() => setStudentForEdit(student as StudentDetail)}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-emerald-400"
+                    <div className="flex items-center gap-1.5">
+                      {/* Quick Approve Button Mobile */}
+                      {canManage && isPending && (
+                        <button
+                          type="button"
+                          onClick={() => handleQuickApprove(student)}
+                          disabled={approvingStudentId === student.id}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-xs transition-colors flex items-center gap-1 disabled:opacity-50"
+                        >
+                          {approvingStudentId === student.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <UserCheck className="h-3 w-3" />
+                          )}
+                          <span>{isAr ? 'قبول وتفعيل' : 'Approve'}</span>
+                        </button>
+                      )}
+
+                      <Link
+                        href={`/staff/students/detail?id=${student.id}`}
+                        className="px-3 py-1.5 rounded-xl bg-[#1a231e] border border-neutral-700 text-white text-[11px] font-bold shadow-xs transition-colors"
                       >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                    )}
+                        {isAr ? 'الملف' : 'Profile'}
+                      </Link>
+
+                      {canManage && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setStudentForEdit(student as StudentDetail)}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-emerald-400"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setStudentForStatus(student as StudentDetail)}
+                            className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-amber-400"
+                          >
+                            <ShieldAlert className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
@@ -548,51 +856,32 @@ export default function StaffStudentsPage() {
               <div>
                 {isAr
                   ? `عرض الصفحة ${page} من إجمالي ${totalPages} صفحات`
-                  : `Page ${page} of ${totalPages}`}
+                  : `Showing page ${page} of ${totalPages}`}
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  disabled={page <= 1 || loading}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-neutral-800 bg-[#171d19] text-xs font-semibold text-neutral-200 hover:bg-neutral-800 disabled:opacity-40 transition-colors cursor-pointer"
+                  disabled={page <= 1}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-neutral-800 bg-[#171d19] hover:bg-neutral-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                   <span>{isAr ? 'السابق' : 'Previous'}</span>
                 </button>
 
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                    .map((p, idx, arr) => (
-                      <React.Fragment key={p}>
-                        {idx > 0 && arr[idx - 1] !== p - 1 && (
-                          <span className="px-1 text-neutral-600">...</span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setPage(p)}
-                          className={`h-7 w-7 rounded-lg text-xs font-bold transition-colors ${
-                            p === page
-                              ? 'bg-emerald-600 text-white shadow-xs'
-                              : 'border border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white'
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      </React.Fragment>
-                    ))}
+                <div className="px-3 py-1.5 rounded-xl bg-neutral-800 text-white font-mono">
+                  {page} / {totalPages}
                 </div>
 
                 <button
                   type="button"
-                  disabled={page >= totalPages || loading}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-neutral-800 bg-[#171d19] text-xs font-semibold text-neutral-200 hover:bg-neutral-800 disabled:opacity-40 transition-colors cursor-pointer"
+                  disabled={page >= totalPages}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-neutral-800 bg-[#171d19] hover:bg-neutral-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
                 >
                   <span>{isAr ? 'التالي' : 'Next'}</span>
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
@@ -604,9 +893,9 @@ export default function StaffStudentsPage() {
       {studentForEdit && (
         <EditStudentModal
           isOpen={Boolean(studentForEdit)}
+          onClose={() => setStudentForEdit(null)}
           student={studentForEdit}
           onSuccess={handleEditSuccess}
-          onClose={() => setStudentForEdit(null)}
           isArabic={isAr}
         />
       )}
@@ -615,19 +904,19 @@ export default function StaffStudentsPage() {
       {studentForStatus && (
         <ChangeStatusModal
           isOpen={Boolean(studentForStatus)}
+          onClose={() => setStudentForStatus(null)}
           student={studentForStatus}
           onSuccess={handleStatusSuccess}
-          onClose={() => setStudentForStatus(null)}
           isArabic={isAr}
         />
       )}
 
-      {/* Password Reset Modal */}
+      {/* Reset Password Modal */}
       {studentForResetPwd && (
         <ResetPasswordModal
           isOpen={Boolean(studentForResetPwd)}
-          student={studentForResetPwd}
           onClose={() => setStudentForResetPwd(null)}
+          student={studentForResetPwd}
           isArabic={isAr}
         />
       )}

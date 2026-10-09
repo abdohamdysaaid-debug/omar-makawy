@@ -20,7 +20,8 @@ import {
   Loader2,
   Edit3,
   ShieldCheck,
-  Check
+  Check,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -101,6 +102,8 @@ function RegisterForm() {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isPendingApproval, setIsPendingApproval] = useState<boolean>(false);
+  const [pendingMessage, setPendingMessage] = useState<string>('');
 
   // Form Fields State
   const [formData, setFormData] = useState({
@@ -375,7 +378,7 @@ function RegisterForm() {
     };
 
     try {
-      await setAuthContextState({
+      const regRes = await setAuthContextState({
         fullName: formData.fullName,
         phone: formData.studentPhone,
         whatsapp: formData.whatsappPhone,
@@ -391,12 +394,22 @@ function RegisterForm() {
         section: isPrep3 ? undefined : (formData.section || undefined),
       });
 
-      setStep(4); // Success screen
-      
-      const returnUrl = searchParams.get('returnUrl') || '/student';
-      setTimeout(() => {
-        router.push(returnUrl);
-      }, 2000);
+      if (regRes && typeof regRes === 'object' && regRes.pending_approval) {
+        setIsPendingApproval(true);
+        setPendingMessage(
+          regRes.message ||
+            'تم تسجيل بياناتك بنجاح. حسابك قيد المراجعة والاعتماد من قبل إدارة المنصة وسيتم تفعيله بعد مراجعة البيانات.'
+        );
+        setStep(4);
+      } else {
+        setIsPendingApproval(false);
+        setStep(4); // Success screen
+        
+        const returnUrl = searchParams.get('returnUrl') || '/student';
+        setTimeout(() => {
+          router.push(returnUrl);
+        }, 2000);
+      }
     } catch (err: any) {
       let msg = err?.message || err?.details?.message;
       if (err?.details?.errors?.general && Array.isArray(err.details.errors.general)) {
@@ -1264,19 +1277,47 @@ function RegisterForm() {
         {/* ============================================================ */}
         {step === 4 && (
           <div className="py-12 px-4 text-center space-y-4 animate-scale-up">
-            <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-600/20">
-              <CheckCircle2 className="w-12 h-12 stroke-[2.5]" />
-            </div>
+            {isPendingApproval ? (
+              <>
+                <div className="w-20 h-20 mx-auto rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-lg shadow-amber-600/20">
+                  <Clock className="w-12 h-12 stroke-[2.5]" />
+                </div>
 
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
-                تم إنشاء حسابك بنجاح!
-              </h2>
-              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                جاري تحويلك إلى لوحة التحكم الخاصة بك...
-              </p>
-            </div>
+                <div className="space-y-3 max-w-md mx-auto">
+                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
+                    تم تسجيل بياناتك بنجاح!
+                  </h2>
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 leading-relaxed">
+                    {pendingMessage ||
+                      'حسابك قيد المراجعة والاعتماد من قبل إدارة المنصة. سيتم إشعارك وتفعيل حسابك فور الموافقة على طلب التسجيل.'}
+                  </p>
+                  <div className="pt-4">
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all"
+                    >
+                      الذهاب لصفحة تسجيل الدخول
+                    </Link>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                  <CheckCircle2 className="w-12 h-12 stroke-[2.5]" />
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">
+                    تم إنشاء حسابك بنجاح!
+                  </h2>
+                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    جاري تحويلك إلى لوحة التحكم الخاصة بك...
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

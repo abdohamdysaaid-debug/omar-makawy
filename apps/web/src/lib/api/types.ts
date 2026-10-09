@@ -4,7 +4,7 @@ export interface User {
   email?: string;
   full_name: string;
   role: 'TEACHER' | 'SUPERVISOR' | 'STUDENT';
-  status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED' | 'SUSPENDED';
+  status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED' | 'SUSPENDED' | 'PENDING_APPROVAL';
   two_factor_enabled: boolean;
   is_phone_verified: boolean;
   academic_year_id?: string;
@@ -22,7 +22,9 @@ export interface Tokens {
 
 export interface AuthSuccessResponse {
   user: User;
-  tokens: Tokens;
+  tokens: Tokens | null;
+  pending_approval?: boolean;
+  message?: string;
 }
 
 export interface TwoFactorChallengeResponse {

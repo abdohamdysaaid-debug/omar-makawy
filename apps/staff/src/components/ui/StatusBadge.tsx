@@ -18,6 +18,13 @@ export function StatusBadge({ status, isArabic = true }: StatusBadgeProps) {
           {isArabic ? 'نشط' : 'Active'}
         </span>
       );
+    case 'PENDING_APPROVAL':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          {isArabic ? 'بانتظار المراجعة' : 'Pending Approval'}
+        </span>
+      );
     case 'PUBLISHED':
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">

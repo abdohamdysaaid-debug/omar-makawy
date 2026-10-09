@@ -133,6 +133,16 @@ export function createStudentsApi(client = defaultApiClient) {
         options
       );
     },
+
+    async getApprovalSetting(): Promise<{ require_approval: boolean }> {
+      return client.get<{ require_approval: boolean }>('/admin/students/settings/approval');
+    },
+
+    async setApprovalSetting(requireApproval: boolean): Promise<{ require_approval: boolean }> {
+      return client.put<{ require_approval: boolean }>('/admin/students/settings/approval', {
+        require_approval: requireApproval,
+      });
+    },
   };
 }
 

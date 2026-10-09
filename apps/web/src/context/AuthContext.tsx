@@ -13,13 +13,19 @@ import {
 } from '@/lib/api/client';
 import { AuthSuccessResponse, User } from '@/lib/api/types';
 
+export interface RegisterResponse {
+  success: boolean;
+  pending_approval?: boolean;
+  message?: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   isInitialized: boolean;
   student: Student | null;
   returnUrl: string | null;
   login: (phoneOrEmail: string, password: string) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<RegisterResponse | boolean>;
   logout: () => Promise<void>;
   setReturnUrl: (url: string | null) => void;
   showAuthGate: boolean;
@@ -164,23 +170,8 @@ function mapUserToStudent(user: User): Student {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const token = getStoredAccessToken();
-    const cachedUser = getStoredUser();
-    return !!token && cachedUser?.role === 'STUDENT';
-  });
-
-  const [student, setStudent] = useState<Student | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const token = getStoredAccessToken();
-    const cachedUser = getStoredUser();
-    if (token && cachedUser && cachedUser.role === 'STUDENT') {
-      return mapUserToStudent(cachedUser);
-    }
-    return null;
-  });
-
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [student, setStudent] = useState<Student | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
   const [showAuthGate, setShowAuthGate] = useState(false);
@@ -336,46 +327,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   }, []);
 
-  const register = useCallback(async (data: RegisterData): Promise<boolean> => {
-    const isPrep3 = String(data.academicYearId) === 'a0000000-0000-0000-0000-000000000001';
-    const isSec1 = String(data.academicYearId) === 'a0000000-0000-0000-0000-000000000002';
-    const needsNoSection = isPrep3 || isSec1;
+  const register = useCallback(
+    async (data: RegisterData): Promise<RegisterResponse | boolean> => {
+      const isPrep3 = String(data.academicYearId) === 'a0000000-0000-0000-0000-000000000001';
+      const isSec1 = String(data.academicYearId) === 'a0000000-0000-0000-0000-000000000002';
+      const needsNoSection = isPrep3 || isSec1;
 
-    const payload: RegisterPayload = {
-      full_name: data.fullName.trim(),
-      phone: data.phone.trim(),
-      whatsapp_phone: (data.whatsapp || data.phone).trim(),
-      parent_phone: data.parentPhone.trim(),
-      email: data.email?.trim() || undefined,
-      governorate_id: data.governorateId || 'b0000000-0000-0000-0000-000000000001',
-      gender: data.gender || 'MALE',
-      password: data.password,
-      education_type: data.educationType || 'GENERAL',
-      study_type: data.studyType || 'ARABIC',
-      academic_year_id: String(data.academicYearId),
-      section: needsNoSection ? undefined : (data.section || undefined),
-      address: data.address?.trim() || undefined,
-    };
+      const payload: RegisterPayload = {
+        full_name: data.fullName.trim(),
+        phone: data.phone.trim(),
+        whatsapp_phone: (data.whatsapp || data.phone).trim(),
+        parent_phone: data.parentPhone.trim(),
+        email: data.email?.trim() || undefined,
+        governorate_id: data.governorateId || 'b0000000-0000-0000-0000-000000000001',
+        gender: data.gender || 'MALE',
+        password: data.password,
+        education_type: data.educationType || 'GENERAL',
+        study_type: data.studyType || 'ARABIC',
+        academic_year_id: String(data.academicYearId),
+        section: needsNoSection ? undefined : (data.section || undefined),
+        address: data.address?.trim() || undefined,
+      };
 
-    const res = await authApi.register(payload);
-    if (res && res.tokens && res.user) {
-      if (res.user.role !== 'STUDENT') {
-        clearStoredAuth();
-        throw new Error('نوع الحساب المسجل غير صالح لبوابة الطلاب.');
+      const res = await authApi.register(payload);
+      if (res?.pending_approval || res?.user?.status === 'PENDING_APPROVAL') {
+        return {
+          success: true,
+          pending_approval: true,
+          message:
+            res.message ||
+            'تم تسجيل بياناتك بنجاح. حسابك قيد المراجعة والاعتماد من قبل إدارة المنصة وسيتم تفعيله قريباً.',
+        };
       }
 
-      storeTokens(res.tokens);
-      storeUser(res.user);
+      if (res && res.tokens && res.user) {
+        if (res.user.role !== 'STUDENT') {
+          clearStoredAuth();
+          throw new Error('نوع الحساب المسجل غير صالح لبوابة الطلاب.');
+        }
 
-      const studentData = mapUserToStudent(res.user);
-      setStudent(studentData);
-      setIsAuthenticated(true);
-      setShowAuthGate(false);
+        storeTokens(res.tokens);
+        storeUser(res.user);
 
-      return true;
-    }
-    return false;
-  }, []);
+        const studentData = mapUserToStudent(res.user);
+        setStudent(studentData);
+        setIsAuthenticated(true);
+        setShowAuthGate(false);
+
+        return {
+          success: true,
+          pending_approval: false,
+        };
+      }
+      return false;
+    },
+    []
+  );
 
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [walletBalance, setWalletBalance] = useState<number>(0);
