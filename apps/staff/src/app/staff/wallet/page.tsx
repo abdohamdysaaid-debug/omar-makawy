@@ -27,6 +27,7 @@ import {
   TrendingUp,
   BarChart3,
   BookOpen,
+  Video,
   Package,
   Book,
 } from 'lucide-react';
@@ -69,16 +70,18 @@ export default function StaffWalletPage() {
 
   // Revenue Analytics state
   const [revenuePeriod, setRevenuePeriod] = useState<'ALL_TIME' | 'MONTHLY' | 'WEEKLY'>('ALL_TIME');
-  const [revenueCategory, setRevenueCategory] = useState<'ALL' | 'COURSES' | 'PACKAGES' | 'BOOKS'>('ALL');
+  const [revenueCategory, setRevenueCategory] = useState<'ALL' | 'COURSES' | 'LECTURES' | 'PACKAGES' | 'BOOKS'>('ALL');
   const [revenueData, setRevenueData] = useState<{
     total_revenue: number;
     courses_revenue: number;
+    lectures_revenue: number;
     packages_revenue: number;
     books_revenue: number;
     top_selling_items: any[];
   }>({
     total_revenue: 0,
     courses_revenue: 0,
+    lectures_revenue: 0,
     packages_revenue: 0,
     books_revenue: 0,
     top_selling_items: [],
@@ -915,6 +918,7 @@ export default function StaffWalletPage() {
                 {[
                   { value: 'ALL', label: 'الكل' },
                   { value: 'COURSES', label: 'الكورسات' },
+                  { value: 'LECTURES', label: 'المحاضرات' },
                   { value: 'PACKAGES', label: 'الباقات' },
                   { value: 'BOOKS', label: 'الكتب' },
                 ].map((c) => (
@@ -935,7 +939,7 @@ export default function StaffWalletPage() {
           </div>
 
           {/* Revenue Breakdown Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="p-5 rounded-2xl bg-[#111813] border border-emerald-500/30 shadow-sm relative overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-neutral-300">إجمالي الإيرادات</span>
@@ -966,6 +970,22 @@ export default function StaffWalletPage() {
                 <span className="text-xs font-bold text-blue-400">ج.م</span>
               </div>
               <p className="text-[11px] text-neutral-500 mt-1">مبيعات اشتراكات الكورسات</p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#111813] border border-neutral-800/80 shadow-sm relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-400">إيرادات المحاضرات</span>
+                <div className="p-2 rounded-xl bg-teal-500/10 text-teal-400">
+                  <Video className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">
+                  {(Number(revenueData?.lectures_revenue) || 0).toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-teal-400">ج.م</span>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-1">مبيعات المحاضرات الفردية</p>
             </div>
 
             <div className="p-5 rounded-2xl bg-[#111813] border border-neutral-800/80 shadow-sm relative overflow-hidden">
@@ -1016,7 +1036,7 @@ export default function StaffWalletPage() {
                   <table className="w-full text-start text-xs">
                     <thead>
                       <tr className="border-b border-neutral-800/80 bg-neutral-900/40 text-neutral-400 font-bold">
-                        <th className="p-4 text-start">المنتج / الكورس</th>
+                        <th className="p-4 text-start">المنتج / الكورس / المحاضرة</th>
                         <th className="p-4 text-start">التصنيف</th>
                         <th className="p-4 text-center">عدد المبيعات</th>
                         <th className="p-4 text-start">إجمالي الإيرادات</th>
@@ -1027,6 +1047,8 @@ export default function StaffWalletPage() {
                         const catBadge =
                           item.category === 'COURSES'
                             ? { label: 'كورس', bg: 'bg-blue-950 text-blue-400 border-blue-800' }
+                            : item.category === 'LECTURES'
+                            ? { label: 'محاضرة', bg: 'bg-teal-950 text-teal-300 border-teal-800' }
                             : item.category === 'PACKAGES'
                             ? { label: 'باقة', bg: 'bg-purple-950 text-purple-300 border-purple-800' }
                             : { label: 'كتاب', bg: 'bg-amber-950 text-amber-400 border-amber-800' };
