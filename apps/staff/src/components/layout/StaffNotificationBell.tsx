@@ -47,6 +47,7 @@ export function StaffNotificationBell() {
 
   // Fetch unread count
   const fetchUnreadCount = useCallback(async () => {
+    if (!staffApiClient.getAccessToken()) return;
     try {
       const res: any = await staffApiClient.get('/admin/notifications/unread-count').catch(() => null);
       if (res && typeof res.total === 'number') {
@@ -59,6 +60,7 @@ export function StaffNotificationBell() {
 
   // Fetch recent activity feed
   const fetchRecentFeed = useCallback(async () => {
+    if (!staffApiClient.getAccessToken()) return;
     setLoading(true);
     try {
       const res: any = await staffApiClient.get('/admin/notifications/activity-feed?limit=8').catch(() => null);
