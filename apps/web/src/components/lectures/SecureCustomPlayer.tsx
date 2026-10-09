@@ -215,8 +215,16 @@ export function SecureCustomPlayer({
         // 1 = PLAYING, 2 = PAUSED, 0 = ENDED, 3 = BUFFERING
         if (data.info === 1) {
           setIsPlaying(true);
+          setShowControls(true);
+          if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+          controlsTimeoutRef.current = setTimeout(() => {
+            setShowControls(false);
+            setShowSpeedMenu(false);
+          }, 11000);
         } else if (data.info === 2 || data.info === 0) {
           setIsPlaying(false);
+          setShowControls(true);
+          if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
         }
         if (data.info === 0 && duration > 0) {
           setCurrentTime(duration);
@@ -232,8 +240,14 @@ export function SecureCustomPlayer({
           setCurrentTime(data.info.currentTime);
         }
         if (typeof data.info.playerState === 'number') {
-          if (data.info.playerState === 1) setIsPlaying(true);
-          if (data.info.playerState === 2) setIsPlaying(false);
+          if (data.info.playerState === 1) {
+            setIsPlaying(true);
+          }
+          if (data.info.playerState === 2) {
+            setIsPlaying(false);
+            setShowControls(true);
+            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+          }
         }
       }
     };
@@ -255,18 +269,6 @@ export function SecureCustomPlayer({
 
     return () => clearInterval(interval);
   }, [sendListening, sendCommand]);
-
-  // Mouse activity: show controls and auto-hide after 11 seconds when playing
-  const handleMouseMove = useCallback(() => {
-    setShowControls(true);
-    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (isPlaying) {
-      controlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false);
-        setShowSpeedMenu(false);
-      }, 11000); // 11-second duration as requested
-    }
-  }, [isPlaying]);
 
   // Format seconds to MM:SS or HH:MM:SS
   const formatTime = (seconds: number) => {
@@ -291,8 +293,6 @@ export function SecureCustomPlayer({
   return (
     <div
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => isPlaying && setShowControls(false)}
       className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border-2 border-[#0d6e4f]/40 dark:border-emerald-500/30 shadow-2xl group select-none font-cairo"
     >
       {/* 1. Underlying YouTube IFrame with controls=0 */}
