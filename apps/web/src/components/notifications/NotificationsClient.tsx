@@ -23,8 +23,38 @@ export default function NotificationsClient() {
         setLoading(true);
       }
       try {
-        const res = await apiClient.get<Notification[]>('/notifications/my-notifications').catch(() => []);
-        const list = Array.isArray(res) ? res : [];
+        let res: any = await apiClient.get('/notifications/my-notifications').catch(() => null);
+        if (!res || (!Array.isArray(res) && !Array.isArray(res?.data) && !Array.isArray(res?.items))) {
+          res = await apiClient.get('/notifications').catch(() => null);
+        }
+        const rawList = Array.isArray(res?.items)
+          ? res.items
+          : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+          ? res
+          : [];
+
+        const list: Notification[] = rawList.map((item: any) => ({
+          id: item.id || String(Math.random()),
+          title: item.title_ar || item.title_en || item.title || 'إشعار جديد',
+          message: item.body_ar || item.body_en || item.body || item.message || '',
+          date: item.created_at
+            ? new Date(item.created_at).toLocaleDateString('ar-EG', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
+            : item.date || 'الآن',
+          isRead:
+            typeof item.is_read !== 'undefined'
+              ? Boolean(item.is_read)
+              : typeof item.isRead !== 'undefined'
+              ? Boolean(item.isRead)
+              : false,
+          type: item.type || 'info',
+        }));
+
         cachedNotificationsList = list;
         if (isMounted) {
           setNotifications(list);
@@ -44,8 +74,10 @@ export default function NotificationsClient() {
   }, []);
 
   const markAllAsRead = async () => {
-    setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
-    await apiClient.post('/notifications/mark-read', {}).catch(() => null);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    await apiClient.patch('/notifications/read-all', {}).catch(async () => {
+      await apiClient.post('/notifications/mark-read', {}).catch(() => null);
+    });
   };
 
   const getIcon = (type: string) => {
