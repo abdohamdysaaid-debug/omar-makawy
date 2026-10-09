@@ -91,17 +91,42 @@ function CourseDetailsInner({ courseId }: CourseDetailsClientProps) {
         // 2. Fetch Course Lectures
         let apiLectures: any = await apiClient.get<any>(`/courses/${effectiveCourseId}/lectures`).catch(() => null);
 
-        if (!apiLectures || (!Array.isArray(apiLectures) && !Array.isArray(apiLectures?.data))) {
+        if (!apiLectures || (!Array.isArray(apiLectures) && !Array.isArray(apiLectures?.data) && !Array.isArray(apiLectures?.items))) {
           apiLectures = await apiClient.get<any>(`/lectures?course_id=${effectiveCourseId}&limit=100`).catch(() => null);
         }
 
         let rawLecturesList: any[] = [];
-        if (Array.isArray(apiLectures)) {
-          rawLecturesList = apiLectures;
-        } else if (apiLectures && Array.isArray(apiLectures.data)) {
-          rawLecturesList = apiLectures.data;
-        } else {
-          // Fallback to local data
+        if (apiLectures) {
+          if (Array.isArray(apiLectures.items)) {
+            rawLecturesList = apiLectures.items;
+          } else if (Array.isArray(apiLectures.data)) {
+            rawLecturesList = apiLectures.data;
+          } else if (Array.isArray(apiLectures)) {
+            rawLecturesList = apiLectures;
+          } else if (apiLectures.data && Array.isArray(apiLectures.data.items)) {
+            rawLecturesList = apiLectures.data.items;
+          }
+        }
+
+        if (rawLecturesList.length === 0) {
+          const publicLecRes: any = await apiClient
+            .get<any>(`/lectures/public?course_id=${effectiveCourseId}&limit=100`)
+            .catch(() => null);
+          if (publicLecRes) {
+            if (Array.isArray(publicLecRes.items)) {
+              rawLecturesList = publicLecRes.items;
+            } else if (Array.isArray(publicLecRes.data)) {
+              rawLecturesList = publicLecRes.data;
+            } else if (Array.isArray(publicLecRes)) {
+              rawLecturesList = publicLecRes;
+            } else if (publicLecRes.data && Array.isArray(publicLecRes.data.items)) {
+              rawLecturesList = publicLecRes.data.items;
+            }
+          }
+        }
+
+        if (rawLecturesList.length === 0) {
+          // Fallback to local data if any
           const localLectures = lectures.filter((l) => String(l.courseId) === String(effectiveCourseId));
           if (localLectures.length > 0) rawLecturesList = localLectures;
         }

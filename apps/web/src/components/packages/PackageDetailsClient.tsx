@@ -82,40 +82,69 @@ function PackageDetailsInner({ packageId }: PackageDetailsClientProps) {
         }
 
         // 2. Fetch lectures associated with this package
-        const pkgLecturesRes: any = await apiClient
+        let pkgLecturesRes: any = await apiClient
           .get<any>(`/lectures?package_id=${effectivePackageId}&limit=100`)
           .catch(() => null);
 
         let lecturesList: any[] = [];
-        if (pkgLecturesRes && Array.isArray(pkgLecturesRes.data)) {
-          lecturesList = pkgLecturesRes.data;
-        } else if (Array.isArray(pkgLecturesRes)) {
-          lecturesList = pkgLecturesRes;
+        if (pkgLecturesRes) {
+          if (Array.isArray(pkgLecturesRes.items)) {
+            lecturesList = pkgLecturesRes.items;
+          } else if (Array.isArray(pkgLecturesRes.data)) {
+            lecturesList = pkgLecturesRes.data;
+          } else if (Array.isArray(pkgLecturesRes)) {
+            lecturesList = pkgLecturesRes;
+          } else if (pkgLecturesRes.data && Array.isArray(pkgLecturesRes.data.items)) {
+            lecturesList = pkgLecturesRes.data.items;
+          }
+        }
+
+        if (lecturesList.length === 0) {
+          const publicLecRes: any = await apiClient
+            .get<any>(`/lectures/public?package_id=${effectivePackageId}&limit=100`)
+            .catch(() => null);
+          if (publicLecRes) {
+            if (Array.isArray(publicLecRes.items)) {
+              lecturesList = publicLecRes.items;
+            } else if (Array.isArray(publicLecRes.data)) {
+              lecturesList = publicLecRes.data;
+            } else if (Array.isArray(publicLecRes)) {
+              lecturesList = publicLecRes;
+            } else if (publicLecRes.data && Array.isArray(publicLecRes.data.items)) {
+              lecturesList = publicLecRes.data.items;
+            }
+          }
         }
 
         // 3. If no direct lectures found but package has member courses, load lectures from courses
         if (lecturesList.length === 0 && apiPkg?.courses && Array.isArray(apiPkg.courses) && apiPkg.courses.length > 0) {
           const courseLecturesPromises = apiPkg.courses.map((c: any) =>
-            apiClient.get<any[]>(`/courses/${c.course_id || c.id}/lectures`).catch(() => [])
+            apiClient.get<any>(`/courses/${c.course_id || c.id}/lectures`).catch(() => [])
           );
           const results = await Promise.all(courseLecturesPromises);
           const aggregated: any[] = [];
           const seenIds = new Set<string>();
 
-          results.forEach((cList, idx) => {
+          results.forEach((cList: any, idx: number) => {
             const courseObj = apiPkg.courses[idx];
-            if (Array.isArray(cList)) {
-              cList.forEach((lec) => {
-                if (lec && !seenIds.has(String(lec.id))) {
-                  seenIds.add(String(lec.id));
-                  aggregated.push({
-                    ...lec,
-                    course_title: courseObj?.title_ar || courseObj?.title || lec.course_title,
-                    course_id: courseObj?.course_id || courseObj?.id || lec.course_id,
-                  });
-                }
-              });
-            }
+            const parsedList = Array.isArray(cList)
+              ? cList
+              : Array.isArray(cList?.items)
+              ? cList.items
+              : Array.isArray(cList?.data)
+              ? cList.data
+              : [];
+
+            parsedList.forEach((lec: any) => {
+              if (lec && !seenIds.has(String(lec.id))) {
+                seenIds.add(String(lec.id));
+                aggregated.push({
+                  ...lec,
+                  course_title: courseObj?.title_ar || courseObj?.title || lec.course_title,
+                  course_id: courseObj?.course_id || courseObj?.id || lec.course_id,
+                });
+              }
+            });
           });
           lecturesList = aggregated;
         }
