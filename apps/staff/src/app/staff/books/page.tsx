@@ -1480,37 +1480,48 @@ export default function StaffBooksPage() {
             {/* State Machine Action Transitions */}
             <div className="space-y-3 pt-2">
               <span className="text-xs font-bold text-neutral-400 block">
-                تغيير حالة الطلب (متاح التغيير والتبديل في أي وقت):
+                تحديث حالة الطلب:
               </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { st: 'PENDING', label: 'قيد الانتظار', activeBg: 'bg-neutral-700 border-neutral-600', color: 'hover:border-neutral-500' },
-                  { st: 'CONFIRMED', label: 'تأكيد الطلب', activeBg: 'bg-blue-600 border-blue-500', color: 'hover:border-blue-500' },
-                  { st: 'PREPARING', label: 'قيد التجهيز', activeBg: 'bg-purple-600 border-purple-500', color: 'hover:border-purple-500' },
-                  { st: 'SHIPPED', label: 'إلى الشحن', activeBg: 'bg-cyan-600 border-cyan-500', color: 'hover:border-cyan-500' },
-                  { st: 'DELIVERED', label: 'تم التسليم', activeBg: 'bg-emerald-600 border-emerald-500', color: 'hover:border-emerald-500' },
-                  { st: 'RETURNED', label: 'مرتجع واسترداد', activeBg: 'bg-amber-600 border-amber-500', color: 'hover:border-amber-500' },
-                  { st: 'CANCELLED', label: 'إلغاء واسترداد', activeBg: 'bg-red-600 border-red-500', color: 'hover:border-red-500' },
-                ].map(({ st, label, activeBg, color }) => {
-                  const isCurrent = selectedOrder.status === st;
-                  return (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => handleUpdateOrderStatus(selectedOrder.id, st, trackingNumberInput)}
-                      disabled={actionProcessing || isCurrent}
-                      className={`h-10 px-3 rounded-xl text-xs font-bold transition-all border ${
-                        isCurrent
-                          ? `${activeBg} text-white shadow-sm ring-1 ring-white/20`
-                          : `bg-neutral-900 border-neutral-800 text-neutral-300 ${color} hover:text-white`
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      {label}
-                      {isCurrent && ' ✓'}
-                    </button>
-                  );
-                })}
-              </div>
+
+              {selectedOrder.status === 'DELIVERED' ? (
+                <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-center gap-3 text-emerald-300 text-xs font-bold">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <div>
+                    <p className="text-white">تم تسليم هذا الطلب بنجاح للعميل</p>
+                    <p className="text-[11px] text-emerald-400/80 font-normal mt-0.5">
+                      حالة الطلب نهائية ومكتملة، ولا يمكن التراجع أو تعديل حالة الطلب بعد التسليم.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { st: 'CONFIRMED', label: 'تأكيد الطلب', activeBg: 'bg-blue-600 border-blue-500', color: 'hover:border-blue-500' },
+                    { st: 'PREPARING', label: 'قيد التجهيز', activeBg: 'bg-purple-600 border-purple-500', color: 'hover:border-purple-500' },
+                    { st: 'SHIPPED', label: 'إلى الشحن', activeBg: 'bg-cyan-600 border-cyan-500', color: 'hover:border-cyan-500' },
+                    { st: 'DELIVERED', label: 'تسليم (نهائي)', activeBg: 'bg-emerald-600 border-emerald-500', color: 'hover:border-emerald-500' },
+                    { st: 'CANCELLED', label: 'إلغاء واسترداد', activeBg: 'bg-red-600 border-red-500', color: 'hover:border-red-500' },
+                  ].map(({ st, label, activeBg, color }) => {
+                    const isCurrent = selectedOrder.status === st;
+                    return (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => handleUpdateOrderStatus(selectedOrder.id, st, trackingNumberInput)}
+                        disabled={actionProcessing || isCurrent}
+                        className={`h-10 px-3 rounded-xl text-xs font-bold transition-all border ${
+                          isCurrent
+                            ? `${activeBg} text-white shadow-sm ring-1 ring-white/20`
+                            : `bg-neutral-900 border-neutral-800 text-neutral-300 ${color} hover:text-white`
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {label}
+                        {isCurrent && ' ✓'}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
