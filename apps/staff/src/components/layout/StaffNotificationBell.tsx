@@ -16,7 +16,7 @@ import {
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';
-import { staffApiClient } from '@/context/StaffAuthContext';
+import { useStaffAuth, staffApiClient } from '@/context/StaffAuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 
 export interface ActivityFeedItem {
@@ -37,6 +37,7 @@ export interface ActivityFeedItem {
 export function StaffNotificationBell() {
   const router = useRouter();
   const { language } = useLanguage();
+  const { isAuthenticated } = useStaffAuth();
   const isAr = language === 'ar';
 
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +48,7 @@ export function StaffNotificationBell() {
 
   // Fetch unread count
   const fetchUnreadCount = useCallback(async () => {
-    if (!staffApiClient.getAccessToken()) return;
+    if (!isAuthenticated || !staffApiClient.getAccessToken()) return;
     try {
       const res: any = await staffApiClient.get('/admin/notifications/unread-count').catch(() => null);
       if (res && typeof res.total === 'number') {
@@ -56,11 +57,11 @@ export function StaffNotificationBell() {
     } catch {
       // ignore
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch recent activity feed
   const fetchRecentFeed = useCallback(async () => {
-    if (!staffApiClient.getAccessToken()) return;
+    if (!isAuthenticated || !staffApiClient.getAccessToken()) return;
     setLoading(true);
     try {
       const res: any = await staffApiClient.get('/admin/notifications/activity-feed?limit=8').catch(() => null);
@@ -76,24 +77,25 @@ export function StaffNotificationBell() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Polling every 30 seconds
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchUnreadCount();
     const interval = setInterval(() => {
       fetchUnreadCount();
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+  }, [isAuthenticated, fetchUnreadCount]);
 
   // When opening dropdown, fetch feed
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && isAuthenticated) {
       fetchRecentFeed();
       fetchUnreadCount();
     }
-  }, [isOpen, fetchRecentFeed, fetchUnreadCount]);
+  }, [isOpen, isAuthenticated, fetchRecentFeed, fetchUnreadCount]);
 
   // Click outside to close
   useEffect(() => {

@@ -25,7 +25,7 @@ import {
   ArrowUpRight,
   Sparkles,
 } from 'lucide-react';
-import { staffApiClient } from '@/context/StaffAuthContext';
+import { useStaffAuth, staffApiClient } from '@/context/StaffAuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface AcademicYear {
@@ -83,6 +83,7 @@ const DEEP_LINK_OPTIONS = [
 
 export default function StaffNotificationsClient() {
   const { language } = useLanguage();
+  const { isAuthenticated } = useStaffAuth();
   const isAr = language === 'ar';
 
   // Active Top-level Tab
@@ -139,6 +140,7 @@ export default function StaffNotificationsClient() {
 
   // Fetch Activity Feed & Counters
   const fetchActivityFeed = useCallback(async () => {
+    if (!isAuthenticated || !staffApiClient.getAccessToken()) return;
     setActivityLoading(true);
     try {
       const categoryParam = activityCategory !== 'ALL' ? `?category=${activityCategory}` : '';
@@ -163,7 +165,7 @@ export default function StaffNotificationsClient() {
     } finally {
       setActivityLoading(false);
     }
-  }, [activityCategory]);
+  }, [isAuthenticated, activityCategory]);
 
   // Fetch Academic Years from Canonical Backend Source
   const fetchAcademicYears = useCallback(async () => {
@@ -195,6 +197,7 @@ export default function StaffNotificationsClient() {
 
   // Fetch Sent Notifications History
   const fetchHistory = useCallback(async () => {
+    if (!isAuthenticated || !staffApiClient.getAccessToken()) return;
     setLoadingHistory(true);
     try {
       const queryParams = historyFilter !== 'ALL' ? `?target_type=${historyFilter}` : '';
@@ -211,13 +214,15 @@ export default function StaffNotificationsClient() {
     } finally {
       setLoadingHistory(false);
     }
-  }, [historyFilter]);
+  }, [isAuthenticated, historyFilter]);
 
   useEffect(() => {
     fetchAcademicYears();
-    fetchActivityFeed();
-    fetchHistory();
-  }, [fetchAcademicYears, fetchActivityFeed, fetchHistory]);
+    if (isAuthenticated) {
+      fetchActivityFeed();
+      fetchHistory();
+    }
+  }, [isAuthenticated, fetchAcademicYears, fetchActivityFeed, fetchHistory]);
 
   // Student Autocomplete Search with Debounce
   useEffect(() => {
