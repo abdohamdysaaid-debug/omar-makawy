@@ -184,7 +184,7 @@ export default function StaffNotificationsClient() {
         const canonical = [
           { id: 'a0000000-0000-0000-0000-000000000001', code: 'THIRD_PREPARATORY', name_ar: 'الصف الثالث الإعدادي', name_en: 'Third Preparatory' },
           { id: 'a0000000-0000-0000-0000-000000000002', code: 'FIRST_SECONDARY', name_ar: 'الصف الأول الثانوي', name_en: 'First Secondary' },
-          { id: 'a0000000-0000-0000-0000-000000000003', code: 'SECOND_SECONDARY', name_ar: 'الصف الثاني الثانوي', name_en: 'Second Secondary' },
+          { id: 'a0000000-0000-0000-0000-000000000003', code: 'SECOND_SECONDARY', name_ar: 'الصف الثاني بكالوريا', name_en: 'Second Secondary' },
           { id: 'a0000000-0000-0000-0000-000000000004', code: 'THIRD_SECONDARY', name_ar: 'الصف الثالث الثانوي', name_en: 'Third Secondary' },
         ];
         setAcademicYears(canonical);

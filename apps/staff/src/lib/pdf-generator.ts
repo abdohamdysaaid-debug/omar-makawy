@@ -1,7 +1,8 @@
 export interface PDFBatchInput {
   title: string;
-  type: 'WALLET' | 'DISCOUNT';
+  type: 'WALLET' | 'DISCOUNT' | 'PACKAGE' | 'COURSE';
   amount?: number | string;
+  targetName?: string;
   discountType?: string;
   discountValue?: number | string;
   codes: Array<{
@@ -114,11 +115,19 @@ export async function generateBatchPDF(batch: PDFBatchInput, filename?: string) 
       if (batch.type === 'WALLET') {
         const amountText = `CARD VALUE: ${batch.amount || item.amount || 100} EGP`;
         doc.text(amountText, x + cardWidth / 2, y + 15.2, { align: 'center' });
-      } else {
+      } else if (batch.type === 'DISCOUNT') {
         const discVal = batch.discountValue || item.discount_value || 10;
         const discType = batch.discountType || item.discount_type || 'PERCENTAGE';
         const discText = `COUPON DISCOUNT: ${discVal}${discType === 'PERCENTAGE' ? '%' : ' EGP'} OFF`;
         doc.text(discText, x + cardWidth / 2, y + 15.2, { align: 'center' });
+      } else if (batch.type === 'PACKAGE') {
+        doc.setFontSize(8.5);
+        const pkgText = `PACKAGE ACCESS VOUCHER`;
+        doc.text(pkgText, x + cardWidth / 2, y + 15.2, { align: 'center' });
+      } else if (batch.type === 'COURSE') {
+        doc.setFontSize(8.5);
+        const crsText = `COURSE ACCESS VOUCHER`;
+        doc.text(crsText, x + cardWidth / 2, y + 15.2, { align: 'center' });
       }
 
       // 4. Code Box (High Contrast White Box with Solid Black Border)
@@ -137,7 +146,14 @@ export async function generateBatchPDF(batch: PDFBatchInput, filename?: string) 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(5.5);
       doc.setTextColor(0, 0, 0); // Solid Black
-      const subLabel = batch.type === 'DISCOUNT' ? 'ENTER COUPON CODE TO APPLY DISCOUNT' : 'SCRATCH OR ENTER CODE TO REDEEM';
+      let subLabel = 'SCRATCH OR ENTER CODE TO REDEEM';
+      if (batch.type === 'DISCOUNT') {
+        subLabel = 'ENTER COUPON CODE TO APPLY DISCOUNT';
+      } else if (batch.type === 'PACKAGE') {
+        subLabel = 'REDEEM CODE FOR INSTANT PACKAGE ACCESS';
+      } else if (batch.type === 'COURSE') {
+        subLabel = 'REDEEM CODE FOR INSTANT COURSE ACCESS';
+      }
       doc.text(subLabel, x + cardWidth / 2, y + 30.5, { align: 'center' });
 
       // 5. Card Footer (Solid Black on Green)

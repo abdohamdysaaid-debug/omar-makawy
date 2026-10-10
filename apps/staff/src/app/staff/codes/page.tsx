@@ -28,6 +28,9 @@ import {
   Layers,
   List,
   Eye,
+  Package,
+  GraduationCap,
+  BookOpen,
   FileText,
   Sparkles,
   ExternalLink,
@@ -38,19 +41,26 @@ import { LoadingState, ErrorState, EmptyState } from '@/components/ui/FeedbackSt
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { generateBatchPDF } from '@/lib/pdf-generator';
 
-type TabType = 'wallet' | 'discounts';
+type TabType = 'packages' | 'courses' | 'wallet' | 'discounts';
 type ViewMode = 'batches' | 'table';
 
 interface CodeItem {
   id: string;
   code_preview?: string;
   code?: string;
+  type?: string;
   amount?: string | number;
   discount_type?: string;
   discount_value?: any;
   target_type?: string;
   target_title?: string;
+  package_title?: string;
+  course_title?: string;
   target_id?: string;
+  academic_year_id?: string;
+  academic_year_name?: string;
+  academic_year_name_ar?: string;
+  academic_year_name_en?: string;
   batch_id?: string;
   status: string;
   max_uses?: number;
@@ -65,9 +75,10 @@ interface CodeItem {
 
 interface BatchGroup {
   batchId: string;
-  type: 'WALLET' | 'DISCOUNT';
+  type: 'PACKAGE' | 'COURSE' | 'WALLET' | 'DISCOUNT';
   title: string;
   amount?: number | string;
+  targetName?: string;
   discountType?: string;
   discountValue?: number | string;
   targetTitle?: string;
@@ -82,7 +93,7 @@ interface BatchGroup {
 
 interface GeneratedBatchResult {
   title: string;
-  type: 'WALLET' | 'DISCOUNT';
+  type: 'PACKAGE' | 'COURSE' | 'WALLET' | 'DISCOUNT';
   targetName?: string;
   amount?: number | string;
   discountType?: string;
@@ -157,6 +168,8 @@ export default function StaffCodesManagementPage() {
   });
 
   // Generation Modals Open State
+  const [isPkgModalOpen, setIsPkgModalOpen] = useState<boolean>(false);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState<boolean>(false);
   const [isRechargeModalOpen, setIsRechargeModalOpen] = useState<boolean>(false);
   const [isSingleDiscModalOpen, setIsSingleDiscModalOpen] = useState<boolean>(false);
   const [isBulkDiscModalOpen, setIsBulkDiscModalOpen] = useState<boolean>(false);
@@ -168,14 +181,40 @@ export default function StaffCodesManagementPage() {
   const [isPrintModeOpen, setIsPrintModeOpen] = useState<boolean>(false);
   const [printTargetBatch, setPrintTargetBatch] = useState<{
     title: string;
-    type: 'WALLET' | 'DISCOUNT';
+    type: 'PACKAGE' | 'COURSE' | 'WALLET' | 'DISCOUNT';
     amount?: number | string;
+    targetName?: string;
     discountType?: string;
     discountValue?: number | string;
     codes: Array<{ raw?: string; code?: string; preview?: string; code_preview?: string; expires_at?: any }>;
   } | null>(null);
 
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
+
+  // Forms State
+  // 0. Package Activation Codes Form
+  const [pkgTargetId, setPkgTargetId] = useState<string>('');
+  const [pkgCount, setPkgCount] = useState<number>(50);
+  const [pkgMaxUses, setPkgMaxUses] = useState<number>(1);
+  const [pkgExpiresAt, setPkgExpiresAt] = useState<string>(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 6);
+    return d.toISOString().split('T')[0];
+  });
+  const [pkgConfirmStep, setPkgConfirmStep] = useState<boolean>(false);
+  const [isGeneratingPkg, setIsGeneratingPkg] = useState<boolean>(false);
+
+  // 0.1 Course Activation Codes Form
+  const [courseTargetId, setCourseTargetId] = useState<string>('');
+  const [courseCount, setCourseCount] = useState<number>(50);
+  const [courseMaxUses, setCourseMaxUses] = useState<number>(1);
+  const [courseExpiresAt, setCourseExpiresAt] = useState<string>(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 6);
+    return d.toISOString().split('T')[0];
+  });
+  const [courseConfirmStep, setCourseConfirmStep] = useState<boolean>(false);
+  const [isGeneratingCourse, setIsGeneratingCourse] = useState<boolean>(false);
 
   // Forms State
   // 1. Recharge Cards Form
@@ -279,7 +318,13 @@ export default function StaffCodesManagementPage() {
           params.search = debouncedSearch.trim();
         }
 
-        if (activeTab === 'wallet') {
+        if (activeTab === 'packages') {
+          endpoint = '/admin/activation-codes';
+          params.type = 'PACKAGE';
+        } else if (activeTab === 'courses') {
+          endpoint = '/admin/activation-codes';
+          params.type = 'COURSE';
+        } else if (activeTab === 'wallet') {
           endpoint = '/admin/recharge-codes';
         } else {
           endpoint = '/admin/discounts';
@@ -333,22 +378,40 @@ export default function StaffCodesManagementPage() {
       const bKey =
         item.batch_id ||
         `BATCH-${item.created_at ? new Date(item.created_at).toISOString().slice(0, 10) : 'GENERAL'}-${
-          activeTab === 'wallet' ? item.amount : item.discount_value
+          activeTab === 'packages'
+            ? `PKG-${item.target_id || ''}`
+            : activeTab === 'courses'
+            ? `CRS-${item.target_id || ''}`
+            : activeTab === 'wallet'
+            ? item.amount
+            : item.discount_value
         }`;
 
       if (!map.has(bKey)) {
-        const title =
-          activeTab === 'wallet'
-            ? `${isAr ? 'دفعة كروت شحن' : 'Recharge Batch'} (${item.amount} ${isAr ? 'ج.م' : 'EGP'})`
-            : `${isAr ? 'دفعة كوبونات' : 'Coupon Batch'} (${
-                item.discount_type === 'PERCENTAGE' ? `${item.discount_value}%` : `${item.discount_value} ج.م`
-              })`;
+        let title = '';
+        let bType: 'PACKAGE' | 'COURSE' | 'WALLET' | 'DISCOUNT' = 'DISCOUNT';
+        if (activeTab === 'packages') {
+          bType = 'PACKAGE';
+          title = `${isAr ? 'دفعة أكواد باقة' : 'Package Codes'} (${item.target_title || (isAr ? 'باقة تعليمية' : 'Package')})`;
+        } else if (activeTab === 'courses') {
+          bType = 'COURSE';
+          title = `${isAr ? 'دفعة أكواد كورس' : 'Course Codes'} (${item.target_title || (isAr ? 'كورس تعليمي' : 'Course')})`;
+        } else if (activeTab === 'wallet') {
+          bType = 'WALLET';
+          title = `${isAr ? 'دفعة كروت شحن' : 'Recharge Batch'} (${item.amount} ${isAr ? 'ج.م' : 'EGP'})`;
+        } else {
+          bType = 'DISCOUNT';
+          title = `${isAr ? 'دفعة كوبونات' : 'Coupon Batch'} (${
+            item.discount_type === 'PERCENTAGE' ? `${item.discount_value}%` : `${item.discount_value} ج.م`
+          })`;
+        }
 
         map.set(bKey, {
           batchId: item.batch_id || bKey,
-          type: activeTab === 'wallet' ? 'WALLET' : 'DISCOUNT',
+          type: bType,
           title,
           amount: item.amount,
+          targetName: item.target_title,
           discountType: item.discount_type,
           discountValue: item.discount_value,
           targetTitle: item.target_title,
@@ -387,6 +450,124 @@ export default function StaffCodesManagementPage() {
   }, [items, activeTab, isAr, rawBatchesMap]);
 
   // Actions
+  // 0.1 Generate Package Activation Codes
+  const handleGeneratePackageCodes = async () => {
+    if (!pkgTargetId || pkgCount <= 0) return;
+    const pkgObj = packagesList.find((p) => p.id === pkgTargetId) || packagesList[0];
+    if (!pkgObj) return;
+
+    setIsGeneratingPkg(true);
+    setFeedback(null);
+    try {
+      const generatedBatchId = `PKG-${pkgObj.id.slice(0, 4)}-${Date.now().toString().slice(-5)}`;
+      const payload: any = {
+        type: 'PACKAGE',
+        target_id: pkgTargetId,
+        count: Number(pkgCount),
+        max_uses: Number(pkgMaxUses || 1),
+        expires_at: new Date(pkgExpiresAt).toISOString(),
+        batch_id: generatedBatchId,
+      };
+      if (pkgObj.academic_year_id && pkgObj.academic_year_id.length === 36) {
+        payload.academic_year_id = pkgObj.academic_year_id;
+      }
+
+      const res: any = await apiClient.post('/admin/activation-codes/generate', payload);
+      const generatedList = res?.codes || [];
+
+      setRawBatchesMap((prev) => ({
+        ...prev,
+        [generatedBatchId]: generatedList,
+      }));
+
+      setBatchResult({
+        title: isAr
+          ? `تم توليد دفعة أكواد باقة (${pkgCount} كود - ${pkgObj.title_ar || pkgObj.title})`
+          : `Generated ${pkgCount} Package Codes (${pkgObj.title_ar || pkgObj.title})`,
+        type: 'PACKAGE',
+        targetName: pkgObj.title_ar || pkgObj.title,
+        codes: generatedList,
+      });
+
+      setIsPkgModalOpen(false);
+      setPkgConfirmStep(false);
+      setFeedback({
+        type: 'success',
+        message: isAr
+          ? `تم توليد دفعة الأكواد للباقة بنجاح (${generatedList.length} كود)`
+          : `Successfully generated ${generatedList.length} package activation codes`,
+      });
+      loadData(1);
+    } catch (err: any) {
+      console.error('Package generation error', err);
+      setFeedback({
+        type: 'error',
+        message: err?.message || (isAr ? 'فشل توليد أكواد الباقة' : 'Failed to generate package codes'),
+      });
+    } finally {
+      setIsGeneratingPkg(false);
+    }
+  };
+
+  // 0.2 Generate Course Activation Codes
+  const handleGenerateCourseCodes = async () => {
+    if (!courseTargetId || courseCount <= 0) return;
+    const crsObj = coursesList.find((c) => c.id === courseTargetId) || coursesList[0];
+    if (!crsObj) return;
+
+    setIsGeneratingCourse(true);
+    setFeedback(null);
+    try {
+      const generatedBatchId = `CRS-${crsObj.id.slice(0, 4)}-${Date.now().toString().slice(-5)}`;
+      const payload: any = {
+        type: 'COURSE',
+        target_id: courseTargetId,
+        count: Number(courseCount),
+        max_uses: Number(courseMaxUses || 1),
+        expires_at: new Date(courseExpiresAt).toISOString(),
+        batch_id: generatedBatchId,
+      };
+      if (crsObj.academic_year_id && crsObj.academic_year_id.length === 36) {
+        payload.academic_year_id = crsObj.academic_year_id;
+      }
+
+      const res: any = await apiClient.post('/admin/activation-codes/generate', payload);
+      const generatedList = res?.codes || [];
+
+      setRawBatchesMap((prev) => ({
+        ...prev,
+        [generatedBatchId]: generatedList,
+      }));
+
+      setBatchResult({
+        title: isAr
+          ? `تم توليد دفعة أكواد كورس (${courseCount} كود - ${crsObj.title_ar || crsObj.title})`
+          : `Generated ${courseCount} Course Codes (${crsObj.title_ar || crsObj.title})`,
+        type: 'COURSE',
+        targetName: crsObj.title_ar || crsObj.title,
+        codes: generatedList,
+      });
+
+      setIsCourseModalOpen(false);
+      setCourseConfirmStep(false);
+      setFeedback({
+        type: 'success',
+        message: isAr
+          ? `تم توليد دفعة الأكواد للكورس بنجاح (${generatedList.length} كود)`
+          : `Successfully generated ${generatedList.length} course activation codes`,
+      });
+      loadData(1);
+    } catch (err: any) {
+      console.error('Course generation error', err);
+      setFeedback({
+        type: 'error',
+        message: err?.message || (isAr ? 'فشل توليد أكواد الكورس' : 'Failed to generate course codes'),
+      });
+    } finally {
+      setIsGeneratingCourse(false);
+    }
+  };
+
   // 1. Generate Recharge Codes
   const handleGenerateRechargeCodes = async () => {
     if (rechargeAmount <= 0 || rechargeCount <= 0) return;
@@ -556,7 +737,7 @@ export default function StaffCodesManagementPage() {
   };
 
   // Disable Code Actions with Confirmation
-  const confirmDisableItem = (id: string, codePreview: string, type: 'RECHARGE' | 'DISCOUNT') => {
+  const confirmDisableItem = (id: string, codePreview: string, type: 'PACKAGE' | 'COURSE' | 'RECHARGE' | 'DISCOUNT') => {
     let title = isAr ? 'تعطيل الكود' : 'Disable Code';
     let message = isAr
       ? `هل أنت متأكد من تعطيل الكود (${codePreview})؟ لن يتمكن أي طالب من استخدامه بعد الآن.`
@@ -568,6 +749,8 @@ export default function StaffCodesManagementPage() {
           await apiClient.patch(`/admin/recharge-codes/${id}/disable`, {});
         } else if (type === 'DISCOUNT') {
           await apiClient.patch(`/admin/discounts/${id}/disable`, {});
+        } else {
+          await apiClient.patch(`/admin/activation-codes/${id}/disable`, {});
         }
 
         setFeedback({
@@ -593,10 +776,14 @@ export default function StaffCodesManagementPage() {
 
   // Delete Batch Action with Confirmation
   const confirmDeleteBatch = (batch: BatchGroup) => {
-    const isDiscount = batch.type === 'DISCOUNT';
-    const title = isDiscount
-      ? (isAr ? 'حذف دفعة الكوبونات' : 'Delete Coupon Batch')
-      : (isAr ? 'حذف دفعة كروت الشحن' : 'Delete Recharge Batch');
+    let title = isAr ? 'حذف دفعة الكوبونات' : 'Delete Coupon Batch';
+    if (batch.type === 'PACKAGE') {
+      title = isAr ? 'حذف دفعة أكواد الباقة' : 'Delete Package Batch';
+    } else if (batch.type === 'COURSE') {
+      title = isAr ? 'حذف دفعة أكواد الكورس' : 'Delete Course Batch';
+    } else if (batch.type === 'WALLET') {
+      title = isAr ? 'حذف دفعة كروت الشحن' : 'Delete Recharge Batch';
+    }
 
     const message = isAr
       ? `هل أنت متأكد من حذف (${batch.title}) بالكامل؟ سيتم إزالة جميع الأكواد المرتبطة بهذه الدفعة نهائياً.`
@@ -605,17 +792,24 @@ export default function StaffCodesManagementPage() {
     const action = async () => {
       try {
         const codeIds = batch.codes.map((c) => c.id).filter(Boolean);
-        if (isDiscount) {
+        if (batch.type === 'DISCOUNT') {
           if (batch.batchId && !batch.batchId.startsWith('BATCH-')) {
             await apiClient.delete(`/admin/discounts/batch/${encodeURIComponent(batch.batchId)}`);
           } else {
             await apiClient.delete('/admin/discounts/batch', { ids: codeIds, batch_id: batch.batchId });
           }
-        } else {
+        } else if (batch.type === 'WALLET') {
           if (batch.batchId && !batch.batchId.startsWith('BATCH-')) {
             await apiClient.delete(`/admin/recharge-codes/batch/${encodeURIComponent(batch.batchId)}`);
           } else {
             await apiClient.delete('/admin/recharge-codes/batch', { ids: codeIds, batch_id: batch.batchId });
+          }
+        } else {
+          // PACKAGE or COURSE
+          if (batch.batchId && !batch.batchId.startsWith('BATCH-')) {
+            await apiClient.delete(`/admin/activation-codes/batch/${encodeURIComponent(batch.batchId)}`);
+          } else {
+            await apiClient.post('/admin/activation-codes/batch/delete', { code_ids: codeIds, batch_id: batch.batchId });
           }
         }
 
@@ -653,7 +847,7 @@ export default function StaffCodesManagementPage() {
   };
 
   // Delete Single Code Action with Confirmation
-  const confirmDeleteItem = (id: string, codePreview: string, type: 'RECHARGE' | 'DISCOUNT') => {
+  const confirmDeleteItem = (id: string, codePreview: string, type: 'PACKAGE' | 'COURSE' | 'RECHARGE' | 'DISCOUNT') => {
     let title = isAr ? 'حذف الكود' : 'Delete Code';
     let message = isAr
       ? `هل أنت متأكد من حذف الكود (${codePreview}) نهائياً؟`
@@ -665,6 +859,8 @@ export default function StaffCodesManagementPage() {
           await apiClient.delete(`/admin/recharge-codes/${id}`);
         } else if (type === 'DISCOUNT') {
           await apiClient.delete(`/admin/discounts/${id}`);
+        } else {
+          await apiClient.delete(`/admin/activation-codes/${id}`);
         }
 
         setFeedback({
@@ -699,7 +895,7 @@ export default function StaffCodesManagementPage() {
   // Export Batch or Results to CSV
   const exportCodesCSV = (
     codes: Array<any>,
-    type: 'WALLET' | 'DISCOUNT',
+    type: 'WALLET' | 'DISCOUNT' | 'PACKAGE' | 'COURSE',
     amount?: number | string,
     discVal?: number | string,
     discType?: string,
@@ -791,6 +987,32 @@ export default function StaffCodesManagementPage() {
         {/* Primary Action Buttons */}
         {canManage && (
           <div className="flex flex-wrap items-center gap-2.5">
+            {activeTab === 'packages' && (
+              <button
+                onClick={() => {
+                  setPkgConfirmStep(false);
+                  setIsPkgModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{isAr ? 'توليد أكواد باقة' : 'Generate Package Codes'}</span>
+              </button>
+            )}
+
+            {activeTab === 'courses' && (
+              <button
+                onClick={() => {
+                  setCourseConfirmStep(false);
+                  setIsCourseModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{isAr ? 'توليد أكواد كورس' : 'Generate Course Codes'}</span>
+              </button>
+            )}
+
             {activeTab === 'wallet' && (
               <button
                 onClick={() => {
@@ -832,10 +1054,34 @@ export default function StaffCodesManagementPage() {
       {/* Tabs & View Mode Selector */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-3">
         {/* Category Tabs */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab('packages')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              activeTab === 'packages'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            <span>{isAr ? 'أكواد الباقات' : 'Package Codes'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('courses')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              activeTab === 'courses'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>{isAr ? 'أكواد الكورسات' : 'Course Codes'}</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('wallet')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
               activeTab === 'wallet'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -847,7 +1093,7 @@ export default function StaffCodesManagementPage() {
 
           <button
             onClick={() => setActiveTab('discounts')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
               activeTab === 'discounts'
                 ? 'bg-primary-600 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -1145,6 +1391,22 @@ export default function StaffCodesManagementPage() {
                   <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-800/50 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                     <th className="py-3.5 px-4 text-start">{isAr ? 'الكود (المعاينة)' : 'Code Preview'}</th>
 
+                    {activeTab === 'packages' && (
+                      <>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'الباقة المستهدفة' : 'Target Package'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'المرحلة الدراسية' : 'Academic Year'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'مرات الاستخدام' : 'Usage'}</th>
+                      </>
+                    )}
+
+                    {activeTab === 'courses' && (
+                      <>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'الكورس المستهدف' : 'Target Course'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'المرحلة الدراسية' : 'Academic Year'}</th>
+                        <th className="py-3.5 px-4 text-start">{isAr ? 'مرات الاستخدام' : 'Usage'}</th>
+                      </>
+                    )}
+
                     {activeTab === 'wallet' && (
                       <th className="py-3.5 px-4 text-start">{isAr ? 'القيمة' : 'Value'}</th>
                     )}
@@ -1184,6 +1446,44 @@ export default function StaffCodesManagementPage() {
                           {row.code_preview || row.code || 'CODE'}
                         </span>
                       </td>
+
+                      {activeTab === 'packages' && (
+                        <>
+                          <td className="py-3.5 px-4 font-medium text-slate-900 dark:text-white">
+                            {row.target_title || row.package_title || (isAr ? 'باقة تعليمية' : 'Package')}
+                          </td>
+                          <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400">
+                            {row.academic_year_name_ar || row.academic_year_name || '—'}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                              <span className="text-slate-900 dark:text-white font-bold">{row.used_count ?? 0}</span>
+                              <span>/</span>
+                              <span>{row.max_uses ?? 1}</span>
+                              <span>{isAr ? 'استخدام' : 'uses'}</span>
+                            </div>
+                          </td>
+                        </>
+                      )}
+
+                      {activeTab === 'courses' && (
+                        <>
+                          <td className="py-3.5 px-4 font-medium text-slate-900 dark:text-white">
+                            {row.target_title || row.course_title || (isAr ? 'كورس تعليمي' : 'Course')}
+                          </td>
+                          <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400">
+                            {row.academic_year_name_ar || row.academic_year_name || '—'}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                              <span className="text-slate-900 dark:text-white font-bold">{row.used_count ?? 0}</span>
+                              <span>/</span>
+                              <span>{row.max_uses ?? 1}</span>
+                              <span>{isAr ? 'استخدام' : 'uses'}</span>
+                            </div>
+                          </td>
+                        </>
+                      )}
 
                       {activeTab === 'wallet' && (
                         <td className="py-3.5 px-4">
@@ -1263,7 +1563,13 @@ export default function StaffCodesManagementPage() {
                                   confirmDisableItem(
                                     row.id,
                                     row.code_preview || row.code || 'CODE',
-                                    activeTab === 'wallet' ? 'RECHARGE' : 'DISCOUNT',
+                                    activeTab === 'wallet'
+                                      ? 'RECHARGE'
+                                      : activeTab === 'discounts'
+                                      ? 'DISCOUNT'
+                                      : activeTab === 'packages'
+                                      ? 'PACKAGE'
+                                      : 'COURSE',
                                   )
                                 }
                                 title={isAr ? 'تعطيل الكود' : 'Disable Code'}
@@ -1278,7 +1584,13 @@ export default function StaffCodesManagementPage() {
                                 confirmDeleteItem(
                                   row.id,
                                   row.code_preview || row.code || 'CODE',
-                                  activeTab === 'wallet' ? 'RECHARGE' : 'DISCOUNT',
+                                  activeTab === 'wallet'
+                                    ? 'RECHARGE'
+                                    : activeTab === 'discounts'
+                                    ? 'DISCOUNT'
+                                    : activeTab === 'packages'
+                                    ? 'PACKAGE'
+                                    : 'COURSE',
                                 )
                               }
                               title={isAr ? 'حذف الكود' : 'Delete Code'}
@@ -1541,6 +1853,366 @@ export default function StaffCodesManagementPage() {
               >
                 {isAr ? 'إغلاق' : 'Close'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. PACKAGE ACTIVATION CODES GENERATION MODAL                              */}
+      {/* ========================================================================= */}
+      {isPkgModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400">
+                  <Package className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  {isAr ? 'توليد أكواد تفعيل باقة تعليمية' : 'Generate Package Activation Codes'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsPkgModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              {!pkgConfirmStep ? (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {isAr ? 'اختر الباقة التعليمية' : 'Select Package'} *
+                    </label>
+                    <select
+                      value={pkgTargetId}
+                      onChange={(e) => setPkgTargetId(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                    >
+                      <option value="">{isAr ? '-- اضغط لاختيار الباقة --' : '-- Select Package --'}</option>
+                      {packagesList.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title_ar || p.title_en} {p.price ? `(${p.price} ج.م)` : ''} {p.academic_year_name_ar ? ` - [${p.academic_year_name_ar}]` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {isAr ? 'عدد الأكواد' : 'Codes Count'} *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={pkgCount}
+                        onChange={(e) => setPkgCount(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {isAr ? 'أقصى عدد استخدام لكل كود' : 'Max Uses'} *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={pkgMaxUses}
+                        onChange={(e) => setPkgMaxUses(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {isAr ? 'تاريخ انتهاء الصلاحية' : 'Expiration Date'} *
+                    </label>
+                    <input
+                      type="date"
+                      value={pkgExpiresAt}
+                      onChange={(e) => setPkgExpiresAt(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                    />
+                  </div>
+
+                  {pkgTargetId && (
+                    <div className="p-4 rounded-xl bg-primary-50/50 dark:bg-primary-950/20 border border-primary-100 dark:border-primary-900/40 text-xs space-y-2 text-slate-700 dark:text-slate-300">
+                      <p className="font-bold text-primary-900 dark:text-primary-300">{isAr ? 'بيانات الباقة المختارة:' : 'Selected Package:'}</p>
+                      {(() => {
+                        const sel = packagesList.find((p) => p.id === pkgTargetId);
+                        return (
+                          <>
+                            <div className="flex justify-between">
+                              <span>{isAr ? 'اسم الباقة:' : 'Package Title:'}</span>
+                              <span className="font-bold text-slate-900 dark:text-white">{sel?.title_ar || sel?.title_en || '—'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>{isAr ? 'عدد الأكواد المطلوبة:' : 'Requested Codes:'}</span>
+                              <span className="font-bold text-slate-900 dark:text-white">{pkgCount} كود</span>
+                            </div>
+                            <div className="flex justify-between border-t border-primary-200 dark:border-primary-800 pt-1.5 text-primary-700 dark:text-primary-400 font-bold text-sm">
+                              <span>{isAr ? 'سعر الباقة الأصلي:' : 'Package Price:'}</span>
+                              <span>{sel?.price ? `${sel.price} ج.م` : (isAr ? 'مجاني' : 'Free')}</span>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-4 space-y-4">
+                  <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 mx-auto flex items-center justify-center">
+                    <Package className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-slate-900 dark:text-white">
+                      {isAr ? 'تأكيد توليد أكواد تفعيل الباقة' : 'Confirm Package Activation Codes'}
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      {isAr
+                        ? `سيتم توليد ${pkgCount} كود تفعيل للباقة المحددة بصلاحية حتى ${new Date(pkgExpiresAt).toLocaleDateString('en-GB')}.`
+                        : `Generating ${pkgCount} activation codes for the package, valid until ${new Date(pkgExpiresAt).toLocaleDateString('en-GB')}.`}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+              {!pkgConfirmStep ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsPkgModalOpen(false)}
+                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    {isAr ? 'إلغاء' : 'Cancel'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!pkgTargetId || pkgCount <= 0}
+                    onClick={() => setPkgConfirmStep(true)}
+                    className="px-5 py-2 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white shadow-sm"
+                  >
+                    {isAr ? 'متابعة وتأكيد' : 'Continue'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setPkgConfirmStep(false)}
+                    disabled={isGeneratingPkg}
+                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    {isAr ? 'تعديل البيانات' : 'Back'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGeneratePackageCodes}
+                    disabled={isGeneratingPkg}
+                    className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 text-white shadow-sm"
+                  >
+                    {isGeneratingPkg ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>{isAr ? 'جاري التوليد...' : 'Generating...'}</span>
+                      </>
+                    ) : (
+                      <span>{isAr ? 'تأكيد وتوليد الآن' : 'Confirm & Generate'}</span>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. COURSE ACTIVATION CODES GENERATION MODAL                               */}
+      {/* ========================================================================= */}
+      {isCourseModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  {isAr ? 'توليد أكواد تفعيل لكورس تعليمي' : 'Generate Course Activation Codes'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsCourseModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              {!courseConfirmStep ? (
+                <>
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {isAr ? 'اختر الكورس التعليمي' : 'Select Course'} *
+                    </label>
+                    <select
+                      value={courseTargetId}
+                      onChange={(e) => setCourseTargetId(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                    >
+                      <option value="">{isAr ? '-- اضغط لاختيار الكورس --' : '-- Select Course --'}</option>
+                      {coursesList.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title_ar || c.title_en || c.title} {c.price ? `(${c.price} ج.م)` : ''} {c.academic_year_name_ar ? ` - [${c.academic_year_name_ar}]` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {isAr ? 'عدد الأكواد' : 'Codes Count'} *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={courseCount}
+                        onChange={(e) => setCourseCount(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {isAr ? 'أقصى عدد استخدام لكل كود' : 'Max Uses'} *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={courseMaxUses}
+                        onChange={(e) => setCourseMaxUses(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {isAr ? 'تاريخ انتهاء الصلاحية' : 'Expiration Date'} *
+                    </label>
+                    <input
+                      type="date"
+                      value={courseExpiresAt}
+                      onChange={(e) => setCourseExpiresAt(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none"
+                    />
+                  </div>
+
+                  {courseTargetId && (
+                    <div className="p-4 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/40 text-xs space-y-2 text-slate-700 dark:text-slate-300">
+                      <p className="font-bold text-sky-900 dark:text-sky-300">{isAr ? 'بيانات الكورس المختار:' : 'Selected Course:'}</p>
+                      {(() => {
+                        const sel = coursesList.find((c) => c.id === courseTargetId);
+                        return (
+                          <>
+                            <div className="flex justify-between">
+                              <span>{isAr ? 'اسم الكورس:' : 'Course Title:'}</span>
+                              <span className="font-bold text-slate-900 dark:text-white">{sel?.title_ar || sel?.title_en || sel?.title || '—'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>{isAr ? 'عدد الأكواد المطلوبة:' : 'Requested Codes:'}</span>
+                              <span className="font-bold text-slate-900 dark:text-white">{courseCount} كود</span>
+                            </div>
+                            <div className="flex justify-between border-t border-sky-200 dark:border-sky-800 pt-1.5 text-sky-700 dark:text-sky-400 font-bold text-sm">
+                              <span>{isAr ? 'سعر الكورس الأصلي:' : 'Course Price:'}</span>
+                              <span>{sel?.price ? `${sel.price} ج.م` : (isAr ? 'مجاني' : 'Free')}</span>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-4 space-y-4">
+                  <div className="w-12 h-12 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-600 mx-auto flex items-center justify-center">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-slate-900 dark:text-white">
+                      {isAr ? 'تأكيد توليد أكواد تفعيل الكورس' : 'Confirm Course Activation Codes'}
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      {isAr
+                        ? `سيتم توليد ${courseCount} كود تفعيل للكورس المختار بصلاحية حتى ${new Date(courseExpiresAt).toLocaleDateString('en-GB')}.`
+                        : `Generating ${courseCount} activation codes for the course, valid until ${new Date(courseExpiresAt).toLocaleDateString('en-GB')}.`}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+              {!courseConfirmStep ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsCourseModalOpen(false)}
+                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    {isAr ? 'إلغاء' : 'Cancel'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!courseTargetId || courseCount <= 0}
+                    onClick={() => setCourseConfirmStep(true)}
+                    className="px-5 py-2 text-sm font-semibold rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white shadow-sm"
+                  >
+                    {isAr ? 'متابعة وتأكيد' : 'Continue'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setCourseConfirmStep(false)}
+                    disabled={isGeneratingCourse}
+                    className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    {isAr ? 'تعديل البيانات' : 'Back'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateCourseCodes}
+                    disabled={isGeneratingCourse}
+                    className="inline-flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
+                  >
+                    {isGeneratingCourse ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>{isAr ? 'جاري التوليد...' : 'Generating...'}</span>
+                      </>
+                    ) : (
+                      <span>{isAr ? 'تأكيد وتوليد الآن' : 'Confirm & Generate'}</span>
+                    )}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -2335,6 +3007,10 @@ export default function StaffCodesManagementPage() {
               <p className="text-xs text-slate-500 mt-1">
                 {printTargetBatch.type === 'WALLET'
                   ? isAr ? 'كروت شحن رصيد المحفظة التعليمية' : 'Educational Wallet Recharge Vouchers'
+                  : printTargetBatch.type === 'PACKAGE'
+                  ? isAr ? `كروت تفعيل باقة تعليمية ${printTargetBatch.targetName ? `(${printTargetBatch.targetName})` : ''}` : 'Package Activation Vouchers'
+                  : printTargetBatch.type === 'COURSE'
+                  ? isAr ? `كروت تفعيل كورس تعليمي ${printTargetBatch.targetName ? `(${printTargetBatch.targetName})` : ''}` : 'Course Activation Vouchers'
                   : isAr ? 'كوبونات خصم' : 'Discount Vouchers'}
               </p>
             </div>
@@ -2368,6 +3044,24 @@ export default function StaffCodesManagementPage() {
                           {printTargetBatch.discountType === 'PERCENTAGE' ? '%' : 'ج.م'} {isAr ? 'خصم' : 'OFF'}
                         </div>
                       )}
+                      {printTargetBatch.type === 'PACKAGE' && (
+                        <div className="text-black font-bold text-sm sm:text-base">
+                          {isAr ? 'كود تفعيل باقة:' : 'Package:'}{' '}
+                          {(printTargetBatch.targetName || '')
+                            .replace(/الصف الثاني الثانوي/g, 'الصف الثاني بكالوريا')
+                            .replace(/الصف الثاني ثانوي/g, 'الصف الثاني بكالوريا') ||
+                            (isAr ? 'باقة تعليمية' : 'Package')}
+                        </div>
+                      )}
+                      {printTargetBatch.type === 'COURSE' && (
+                        <div className="text-black font-bold text-sm sm:text-base">
+                          {isAr ? 'كود تفعيل كورس:' : 'Course:'}{' '}
+                          {(printTargetBatch.targetName || '')
+                            .replace(/الصف الثاني الثانوي/g, 'الصف الثاني بكالوريا')
+                            .replace(/الصف الثاني ثانوي/g, 'الصف الثاني بكالوريا') ||
+                            (isAr ? 'كورس تعليمي' : 'Course')}
+                        </div>
+                      )}
 
                       {/* Code Box */}
                       <div className="bg-white border-2 border-black rounded-lg py-2 px-3 mt-1.5 shadow-xs">
@@ -2379,7 +3073,9 @@ export default function StaffCodesManagementPage() {
                       <p className="text-[10px] font-bold text-black pt-0.5">
                         {printTargetBatch.type === 'DISCOUNT'
                           ? isAr ? 'استخدم الكوبون عند إتمام الشراء' : 'ENTER COUPON CODE AT CHECKOUT'
-                          : isAr ? 'اشحن الكود للاستفادة بالرصيد' : 'SCRATCH OR ENTER CODE TO REDEEM'}
+                          : printTargetBatch.type === 'WALLET'
+                          ? isAr ? 'اشحن الكود للاستفادة بالرصيد' : 'SCRATCH OR ENTER CODE TO REDEEM'
+                          : isAr ? 'أدخل الكود لتفعيل الاشتراك فوراً' : 'ENTER CODE TO ACTIVATE SUBSCRIPTION'}
                       </p>
                     </div>
 
