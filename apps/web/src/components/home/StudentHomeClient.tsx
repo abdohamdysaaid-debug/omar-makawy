@@ -479,6 +479,7 @@ export default function StudentHomeClient() {
                     is_featured: item.isFeatured,
                     academic_year_name_ar: item.academicYearName,
                     courses_count: item.courseCount,
+                    lectures_count: (item as any).lectureCount || (item as any).lectures_count || 0,
                   };
                   return <PackageCard key={`pkg-${item.id}`} pkg={pkgObj} />;
                 }
