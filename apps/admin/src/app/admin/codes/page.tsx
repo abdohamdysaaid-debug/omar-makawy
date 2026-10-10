@@ -80,6 +80,7 @@ export default function StaffCodesManagementPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [yearFilter, setYearFilter] = useState('ALL');
   const [discountTypeFilter, setDiscountTypeFilter] = useState('ALL');
+  const [pageSize, setPageSize] = useState<number>(1000);
   const [isLoading, setIsLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -190,7 +191,7 @@ export default function StaffCodesManagementPage() {
       try {
         const queryParams = new URLSearchParams();
         queryParams.set('page', pageNumber.toString());
-        queryParams.set('limit', '20');
+        queryParams.set('limit', pageSize.toString());
 
         if (searchQuery.trim()) queryParams.set('search', searchQuery.trim());
         if (statusFilter !== 'ALL') queryParams.set('status', statusFilter);
@@ -220,8 +221,8 @@ export default function StaffCodesManagementPage() {
           setMeta({
             total: res.meta.total || list.length,
             page: res.meta.page || pageNumber,
-            limit: res.meta.limit || 20,
-            pages: res.meta.pages || Math.ceil((res.meta.total || list.length) / 20) || 1,
+            limit: res.meta.limit || pageSize,
+            pages: res.meta.pages || Math.ceil((res.meta.total || list.length) / pageSize) || 1,
           });
         } else {
           setMeta((prev) => ({ ...prev, total: list.length, page: pageNumber, pages: 1 }));
@@ -237,7 +238,7 @@ export default function StaffCodesManagementPage() {
         setIsLoading(false);
       }
     },
-    [activeTab, searchQuery, statusFilter, yearFilter, discountTypeFilter, meta.page],
+    [activeTab, searchQuery, statusFilter, yearFilter, discountTypeFilter, meta.page, pageSize],
   );
 
   useEffect(() => {
@@ -1114,11 +1115,27 @@ export default function StaffCodesManagementPage() {
         )}
 
         {/* Pagination Bar */}
-        {meta.pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 bg-neutral-950/80 border-t border-neutral-800 text-xs">
-            <span className="text-neutral-400">
-              إجمالي النتائج: <strong className="text-white">{meta.total}</strong> كود (صفحة {meta.page} من {meta.pages})
-            </span>
+        {meta.total > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-neutral-950/80 border-t border-neutral-800 text-xs">
+            <div className="flex items-center gap-3 text-neutral-400">
+              <span>
+                إجمالي النتائج: <strong className="text-white">{meta.total}</strong> كود (صفحة {meta.page} من {meta.pages})
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span>عرض بالصفحة:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-white font-semibold text-xs focus:outline-none"
+                >
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={300}>300</option>
+                  <option value={600}>600</option>
+                  <option value={1000}>1000</option>
+                </select>
+              </div>
+            </div>
             <div className="flex items-center gap-1.5">
               <button
                 disabled={meta.page <= 1}

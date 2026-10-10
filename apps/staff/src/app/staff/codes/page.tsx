@@ -146,6 +146,7 @@ export default function StaffCodesManagementPage() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [discountTypeFilter, setDiscountTypeFilter] = useState<string>('ALL');
   const [discountTargetFilter, setDiscountTargetFilter] = useState<string>('ALL');
+  const [pageSize, setPageSize] = useState<number>(1000);
 
   // Feedback Notification
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -308,7 +309,7 @@ export default function StaffCodesManagementPage() {
         let endpoint = '';
         const params: Record<string, any> = {
           page: pageNumber,
-          limit: 100, // Load comprehensive batch pool
+          limit: pageSize, // Comprehensive batch pool
         };
 
         if (statusFilter !== 'ALL') {
@@ -349,7 +350,7 @@ export default function StaffCodesManagementPage() {
           response?.totalPages ??
           response?.meta?.totalPages ??
           response?.meta?.pages ??
-          Math.max(1, Math.ceil(resTotal / 100));
+          Math.max(1, Math.ceil(resTotal / pageSize));
 
         setItems(resData);
         setTotal(resTotal);
@@ -363,7 +364,7 @@ export default function StaffCodesManagementPage() {
         setIsLoading(false);
       }
     },
-    [activeTab, statusFilter, debouncedSearch, discountTypeFilter, discountTargetFilter, isAr],
+    [activeTab, statusFilter, debouncedSearch, discountTypeFilter, discountTargetFilter, isAr, pageSize],
   );
 
   useEffect(() => {
@@ -925,15 +926,110 @@ export default function StaffCodesManagementPage() {
     document.body.removeChild(link);
   };
 
+  // Open batch modal and ensure all codes of this batch are fetched from backend if incomplete
+  const openBatchDetails = async (batch: BatchGroup) => {
+    setSelectedBatch(batch);
+    if (batch.batchId) {
+      try {
+        let endpoint = '';
+        if (batch.type === 'PACKAGE') {
+          endpoint = `/admin/activation-codes?type=PACKAGE&batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else if (batch.type === 'COURSE') {
+          endpoint = `/admin/activation-codes?type=COURSE&batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else if (batch.type === 'WALLET') {
+          endpoint = `/admin/recharge-codes?batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else {
+          endpoint = `/admin/discounts?batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        }
+
+        const res: any = await apiClient.get(endpoint);
+        const batchCodes = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        if (batchCodes.length > 0) {
+          setSelectedBatch((prev) => {
+            if (!prev || prev.batchId !== batch.batchId) return prev;
+            return {
+              ...prev,
+              codes: batchCodes,
+              totalCodes: Math.max(prev.totalCodes, batchCodes.length),
+              activeCount: batchCodes.filter((c: any) => c.status === 'ACTIVE').length,
+              usedCount: batchCodes.filter((c: any) => c.status === 'USED').length,
+              disabledCount: batchCodes.filter((c: any) => c.status === 'DISABLED').length,
+            };
+          });
+        }
+      } catch (e) {
+        console.error('Failed to load full batch codes', e);
+      }
+    }
+  };
+
+  // Download PDF for Batch with full data fetching
+  const handleDownloadBatchPDF = async (batch: BatchGroup) => {
+    let fullCodes = batch.codes;
+    if (batch.batchId) {
+      try {
+        let endpoint = '';
+        if (batch.type === 'PACKAGE') {
+          endpoint = `/admin/activation-codes?type=PACKAGE&batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else if (batch.type === 'COURSE') {
+          endpoint = `/admin/activation-codes?type=COURSE&batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else if (batch.type === 'WALLET') {
+          endpoint = `/admin/recharge-codes?batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else {
+          endpoint = `/admin/discounts?batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        }
+
+        const res: any = await apiClient.get(endpoint);
+        const batchCodes = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        if (batchCodes.length > 0) fullCodes = batchCodes;
+      } catch (e) {
+        console.error('Failed to load full batch codes for PDF', e);
+      }
+    }
+
+    generateBatchPDF({
+      title: batch.title,
+      type: batch.type,
+      amount: batch.amount,
+      targetName: batch.targetName,
+      discountType: batch.discountType,
+      discountValue: batch.discountValue,
+      codes: fullCodes,
+    });
+  };
+
   // Launch Print View for Batch
-  const openBatchPrint = (batch: BatchGroup) => {
+  const openBatchPrint = async (batch: BatchGroup) => {
+    let fullCodes = batch.codes;
+    if (batch.batchId) {
+      try {
+        let endpoint = '';
+        if (batch.type === 'PACKAGE') {
+          endpoint = `/admin/activation-codes?type=PACKAGE&batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else if (batch.type === 'COURSE') {
+          endpoint = `/admin/activation-codes?type=COURSE&batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else if (batch.type === 'WALLET') {
+          endpoint = `/admin/recharge-codes?batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        } else {
+          endpoint = `/admin/discounts?batch_id=${encodeURIComponent(batch.batchId)}&limit=5000`;
+        }
+
+        const res: any = await apiClient.get(endpoint);
+        const batchCodes = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+        if (batchCodes.length > 0) fullCodes = batchCodes;
+      } catch (e) {
+        console.error('Failed to load full batch codes for print', e);
+      }
+    }
+
     setPrintTargetBatch({
       title: batch.title,
       type: batch.type,
       amount: batch.amount,
+      targetName: batch.targetName,
       discountType: batch.discountType,
       discountValue: batch.discountValue,
-      codes: batch.codes.map((c) => ({
+      codes: fullCodes.map((c) => ({
         code: c.code || c.raw || c.code_preview || 'CODE',
         raw: c.code || c.raw || c.code_preview || 'CODE',
         expires_at: c.expires_at,
@@ -1231,7 +1327,7 @@ export default function StaffCodesManagementPage() {
               {batches.map((batch, idx) => (
                 <div
                   key={idx}
-                  onClick={() => setSelectedBatch(batch)}
+                  onClick={() => openBatchDetails(batch)}
                   className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs hover:shadow-xl hover:border-primary-500/50 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4"
                 >
                   {/* Card Top / Header */}
@@ -1312,16 +1408,7 @@ export default function StaffCodesManagementPage() {
 
                     <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() =>
-                          generateBatchPDF({
-                            title: batch.title,
-                            type: batch.type,
-                            amount: batch.amount,
-                            discountType: batch.discountType,
-                            discountValue: batch.discountValue,
-                            codes: batch.codes,
-                          })
-                        }
+                        onClick={() => handleDownloadBatchPDF(batch)}
                         title={isAr ? 'تحميل مباشر كملف PDF' : 'Download PDF File'}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 font-semibold text-xs transition-colors border border-emerald-200 dark:border-emerald-800"
                       >
@@ -1336,7 +1423,7 @@ export default function StaffCodesManagementPage() {
                         <Printer className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => setSelectedBatch(batch)}
+                        onClick={() => openBatchDetails(batch)}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold text-xs transition-colors shadow-xs"
                       >
                         <Eye className="w-3 h-3" />
@@ -1625,26 +1712,43 @@ export default function StaffCodesManagementPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => loadData(page - 1)}
-                  disabled={page <= 1}
-                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <ChevronRight className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
-                </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span>{isAr ? 'عرض في الصفحة:' : 'Per page:'}</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold focus:outline-none"
+                  >
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={300}>300</option>
+                    <option value={600}>600</option>
+                    <option value={1000}>1000</option>
+                  </select>
+                </div>
 
-                <span className="px-3 py-1 text-xs font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                  {page} / {totalPages}
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => loadData(page - 1)}
+                    disabled={page <= 1}
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <ChevronRight className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
+                  </button>
 
-                <button
-                  onClick={() => loadData(page + 1)}
-                  disabled={page >= totalPages}
-                  className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <ChevronLeft className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
-                </button>
+                  <span className="px-3 py-1 text-xs font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    {page} / {totalPages}
+                  </span>
+
+                  <button
+                    onClick={() => loadData(page + 1)}
+                    disabled={page >= totalPages}
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <ChevronLeft className={`w-4 h-4 ${isAr ? '' : 'rotate-180'}`} />
+                  </button>
+                </div>
               </div>
             </div>
           )}
