@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Package as PackageIcon, BookOpen, ArrowLeft, CheckCircle2, Star, Sparkles } from 'lucide-react';
+import { Package as PackageIcon, BookOpen, ArrowLeft, CheckCircle2, Star, Sparkles, GraduationCap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { resolveMediaUrl } from '@/lib/api/client';
@@ -34,7 +34,18 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
   const hasDiscount = discountPrice !== null && discountPrice > 0 && discountPrice < price;
 
   const isPurchased = isSubscribedToPackage(pkg.id);
-  const yearTitle = pkg.academic_year_name_ar || 'باقة معتمدة';
+  const rawYearName = pkg.academic_year_name_ar || pkg.academic_year_name || (pkg as any).academicYearName || '';
+  const yearTitle = rawYearName
+    ? (rawYearName.includes('الثاني') && !rawYearName.includes('بكالوريا')
+        ? rawYearName.replace('الثانوي', 'بكالوريا')
+        : rawYearName)
+    : (pkg.academic_year_id === 'a0000000-0000-0000-0000-000000000002' || pkg.academic_year_id === 'FIRST_SECONDARY' || pkg.academic_year_id === 2 || pkg.academic_year_id === '2'
+        ? 'الصف الأول الثانوي'
+        : pkg.academic_year_id === 'a0000000-0000-0000-0000-000000000003' || pkg.academic_year_id === 'SECOND_SECONDARY' || pkg.academic_year_id === 3 || pkg.academic_year_id === '3'
+        ? 'الصف الثاني بكالوريا'
+        : pkg.academic_year_id === 'a0000000-0000-0000-0000-000000000004' || pkg.academic_year_id === 'THIRD_SECONDARY' || pkg.academic_year_id === 4 || pkg.academic_year_id === '4'
+        ? 'الصف الثالث الثانوي'
+        : 'باقة تعليمية');
 
   const handleCardClick = () => {
     if (onOpenDetails) {
@@ -127,19 +138,19 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
           </p>
         </div>
 
-        {/* Meta Row */}
-        <div className="flex items-center justify-between text-xs font-bold text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-1.5">
+        {/* Meta Row - Academic Year and Courses count */}
+        <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-1.5 font-black text-sm text-[#0d6e4f] dark:text-emerald-400">
+            <GraduationCap className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400 shrink-0" />
+            <span className="font-bold tracking-tight">{yearTitle}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
             <BookOpen className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
             <span>
               {coursesCount > 0
-                ? `${coursesCount} ${coursesCount === 1 ? 'كورس مضمن' : 'كورسات مضمنة'}`
-                : 'شامل كافة الكورسات'}
+                ? `${coursesCount} ${coursesCount === 1 ? 'كورس' : 'كورسات'}`
+                : 'شامل المنهج'}
             </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#0d6e4f] dark:text-emerald-400" />
-            <span>وصول شامل</span>
           </div>
         </div>
 
