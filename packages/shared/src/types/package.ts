@@ -32,6 +32,10 @@ export interface PackageItem {
   academic_year_name_ar?: string | null;
   academic_year_name_en?: string | null;
   courses?: PackageCourse[];
+  lecture_count?: number;
+  lectures_count?: number;
+  student_count?: number;
+  students_count?: number;
 }
 
 export type PackageDetail = PackageItem;

@@ -16,6 +16,10 @@ export interface CourseItem {
   is_featured?: boolean;
   status: CourseStatus;
   sort_order: number;
+  lecture_count?: number;
+  lectures_count?: number;
+  student_count?: number;
+  students_count?: number;
   created_at: string;
   updated_at: string;
   academic_year_name_ar?: string | null;

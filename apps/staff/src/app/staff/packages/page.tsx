@@ -15,6 +15,8 @@ import {
   BookOpen,
   EyeOff,
   Sparkles,
+  Users,
+  PlayCircle,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
@@ -282,8 +284,10 @@ export default function StaffPackagesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {packages.map((pkg) => {
               const coursesCount = Array.isArray(pkg.courses) ? pkg.courses.length : 0;
-              const hasDiscount = typeof pkg.discount_price === 'number' && pkg.discount_price > 0 && pkg.discount_price < pkg.price;
               const isMonthly = (pkg.package_type || 'MONTHLY') === 'MONTHLY';
+              const lecturesCount = pkg.lecture_count ?? pkg.lectures_count ?? (isMonthly ? (pkg.target_video_count || 8) : 0);
+              const studentsCount = pkg.student_count ?? pkg.students_count ?? 0;
+              const hasDiscount = typeof pkg.discount_price === 'number' && pkg.discount_price > 0 && pkg.discount_price < pkg.price;
 
               return (
                 <div
@@ -356,6 +360,18 @@ export default function StaffPackagesPage() {
                     <h3 className="font-bold text-sm text-neutral-900 dark:text-white line-clamp-1">
                       {pkg.title_ar}
                     </h3>
+
+                    {/* Statistics Row: Enrolled Students & Included Lectures */}
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-neutral-50 dark:bg-neutral-850/70 border border-neutral-100 dark:border-neutral-800 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-neutral-800 dark:text-neutral-200">
+                        <Users className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                        <span>{studentsCount} {isAr ? 'طالب مشترك' : 'students'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-semibold text-neutral-600 dark:text-neutral-400">
+                        <PlayCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <span>{lecturesCount} {isAr ? 'محاضرة' : 'lectures'}</span>
+                      </div>
+                    </div>
 
                     {/* Price */}
                     <div className="flex items-baseline gap-1.5">

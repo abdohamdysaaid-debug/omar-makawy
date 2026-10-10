@@ -17,6 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Users,
+  PlayCircle,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAcademicYearScope } from '@/context/AcademicYearContext';
@@ -355,6 +357,7 @@ export default function StaffCoursesPage() {
                 <tr>
                   <th className="py-3 px-4 text-start">{isAr ? 'الكورس والغلاف' : 'Course & Thumbnail'}</th>
                   <th className="py-3 px-4 text-start">{isAr ? 'المرحلة الدراسية' : 'Academic Year'}</th>
+                  <th className="py-3 px-4 text-start">{isAr ? 'الإحصائيات' : 'Statistics'}</th>
                   <th className="py-3 px-4 text-start">{isAr ? 'السعر والخصم' : 'Pricing'}</th>
                   <th className="py-3 px-4 text-center">{isAr ? 'الرئيسية والتمييز' : 'Visibility'}</th>
                   <th className="py-3 px-4 text-center">{isAr ? 'الحالة' : 'Status'}</th>
@@ -398,6 +401,20 @@ export default function StaffCoursesPage() {
                       {/* Academic Year */}
                       <td className="py-3.5 px-4 text-neutral-700 dark:text-neutral-300 font-semibold">
                         {isAr ? course.academic_year_name_ar : course.academic_year_name_en || course.academic_year_name_ar}
+                      </td>
+
+                      {/* Statistics: Students and Lectures */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col gap-1 text-[11px]">
+                          <span className="inline-flex items-center gap-1.5 font-bold text-neutral-800 dark:text-neutral-200">
+                            <Users className="h-3.5 w-3.5 text-blue-500" />
+                            <span>{(course.student_count ?? course.students_count ?? 0)} {isAr ? 'طالب مشترك' : 'students'}</span>
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 font-semibold text-neutral-600 dark:text-neutral-400">
+                            <PlayCircle className="h-3.5 w-3.5 text-emerald-500" />
+                            <span>{(course.lecture_count ?? course.lectures_count ?? 0)} {isAr ? 'محاضرة' : 'lectures'}</span>
+                          </span>
+                        </div>
                       </td>
 
                       {/* Pricing */}
@@ -522,6 +539,18 @@ export default function StaffCoursesPage() {
                       <p className="text-xs text-neutral-500 font-semibold">
                         {isAr ? course.academic_year_name_ar : course.academic_year_name_en}
                       </p>
+
+                      {/* Stats badges */}
+                      <div className="flex items-center gap-3 mt-1.5 text-[11px]">
+                        <span className="inline-flex items-center gap-1 font-bold text-neutral-800 dark:text-neutral-200">
+                          <Users className="h-3 w-3 text-blue-500" />
+                          <span>{(course.student_count ?? course.students_count ?? 0)} {isAr ? 'مشترك' : 'students'}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-neutral-600 dark:text-neutral-400">
+                          <PlayCircle className="h-3 w-3 text-emerald-500" />
+                          <span>{(course.lecture_count ?? course.lectures_count ?? 0)} {isAr ? 'محاضرة' : 'lectures'}</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
 
