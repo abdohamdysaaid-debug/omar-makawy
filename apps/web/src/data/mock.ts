@@ -32,9 +32,9 @@ export const academicYears: AcademicYear[] = [
   },
   {
     id: 3,
-    title: 'الصف الثاني الثانوي',
+    title: 'الصف الثاني بكالوريا',
     slug: '2-sec',
-    description: 'محتوى شامل للصف الثاني الثانوي - مادة اللغة الإنجليزية',
+    description: 'محتوى شامل للصف الثاني بكالوريا - مادة اللغة الإنجليزية',
     imageUrl: '/images/academic-2sec.jpg',
   },
   {
@@ -148,7 +148,7 @@ export const courses: Course[] = [
     title: 'كورس اللغة الإنجليزية - تانية ثانوي',
     academicYearId: 3,
     imageUrl: '/images/course-4.jpg',
-    description: 'شرح منهج الصف الثاني الثانوي كاملاً',
+    description: 'شرح منهج الصف الثاني بكالوريا كاملاً',
     price: 300,
     lectureCount: 32,
     duration: '48 ساعة',
@@ -258,7 +258,7 @@ export const packages: Package[] = [
     title: 'باقة 3 شهور - ثانية ثانوي',
     academicYearId: 3,
     imageUrl: '/images/package-3.jpg',
-    description: 'اشتراك التوفير لطلاب الصف الثاني الثانوي',
+    description: 'اشتراك التوفير لطلاب الصف الثاني بكالوريا',
     price: 300,
     features: [
       'جميع المحاضرات والمستندات',
@@ -460,10 +460,10 @@ export const books: Book[] = [
   },
   {
     id: 3,
-    title: 'مذكرة الشرح - الصف الثاني الثانوي',
+    title: 'مذكرة الشرح - الصف الثاني بكالوريا',
     academicYearId: 3,
     imageUrl: '/images/book-3.jpg',
-    description: 'مذكرة شرح شاملة لمنهج الصف الثاني الثانوي',
+    description: 'مذكرة شرح شاملة لمنهج الصف الثاني بكالوريا',
     price: 120,
     stock: 40,
     category: 'مذكرات',
@@ -582,7 +582,7 @@ export const testimonials: Testimonial[] = [
   {
     id: 2,
     studentName: 'سارة أحمد',
-    academicYear: 'الصف الثاني الثانوي',
+    academicYear: 'الصف الثاني بكالوريا',
     text: 'المذكرات والتدريبات ساعدتني كتير في فهم المنهج.',
     rating: 5,
   },

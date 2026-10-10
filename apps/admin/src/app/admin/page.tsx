@@ -131,7 +131,7 @@ export default function AdminDashboardOverviewPage() {
     },
     {
       id: '3',
-      name_ar: 'الصف الثاني الثانوي',
+      name_ar: 'الصف الثاني بكالوريا',
       name_en: 'Second Secondary Year',
       code: 'SEC_2',
       student_count: studentsData?.by_academic_year?.[2]?.count || 0,
