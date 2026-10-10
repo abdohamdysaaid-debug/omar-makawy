@@ -226,9 +226,9 @@ function CoursesContent() {
 
         // Numerical / text fallbacks for grades 1..4
         if (selectedStr === '1' && (courseYearId.endsWith('0001') || course.academic_year_name_ar?.includes('الإعدادي'))) isMatch = true;
-        if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول الثانوي'))) isMatch = true;
-        if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني الثانوي'))) isMatch = true;
-        if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث الثانوي'))) isMatch = true;
+        if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول'))) isMatch = true;
+        if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني') || course.academic_year_name_ar?.includes('بكالوريا'))) isMatch = true;
+        if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث'))) isMatch = true;
       }
 
       if (!isMatch) {

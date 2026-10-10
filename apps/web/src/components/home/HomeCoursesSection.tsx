@@ -99,9 +99,9 @@ export default function HomeCoursesSection({ selectedAcademicYearId = null }: Ho
     if (GRADE_UUID_MAP[Number(selectedAcademicYearId)] === courseYearId) return true;
 
     if (selectedStr === '1' && (courseYearId.endsWith('0001') || course.academic_year_name_ar?.includes('الإعدادي'))) return true;
-    if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول الثانوي'))) return true;
-    if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني الثانوي'))) return true;
-    if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث الثانوي'))) return true;
+    if (selectedStr === '2' && (courseYearId.endsWith('0002') || course.academic_year_name_ar?.includes('الأول'))) return true;
+    if (selectedStr === '3' && (courseYearId.endsWith('0003') || course.academic_year_name_ar?.includes('الثاني') || course.academic_year_name_ar?.includes('بكالوريا'))) return true;
+    if (selectedStr === '4' && (courseYearId.endsWith('0004') || course.academic_year_name_ar?.includes('الثالث'))) return true;
 
     return false;
   });
