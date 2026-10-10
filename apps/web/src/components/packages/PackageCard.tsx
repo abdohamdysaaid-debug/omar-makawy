@@ -61,12 +61,12 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
   return (
     <div
       onClick={handleCardClick}
-      className={`group cursor-pointer rounded-3xl bg-white dark:bg-[#131b2e] border ${
+      className={`group cursor-pointer rounded-3xl bg-white dark:bg-[#0d0d0d] border ${
         isPurchased
           ? 'border-emerald-500/80 dark:border-emerald-500 shadow-md'
           : isPopular
           ? 'border-[#0d6e4f] dark:border-emerald-500 shadow-xl shadow-[#0d6e4f]/10'
-          : 'border-stone-200/80 dark:border-gray-800/80 shadow-xs'
+          : 'border-stone-200/80 dark:border-stone-800 shadow-xs'
       } hover:shadow-xl hover:shadow-[#0d6e4f]/10 dark:hover:shadow-emerald-500/10 hover:border-[#0d6e4f] dark:hover:border-emerald-500/60 transition-all duration-300 flex flex-col overflow-hidden hover:-translate-y-1 font-cairo ${className}`}
     >
       {/* Top Banner / Image Box */}
@@ -140,7 +140,7 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
         </div>
 
         {/* Meta Row - Academic Year and Lectures count */}
-        <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-100 dark:border-stone-800/80">
           <div className="flex items-center gap-1.5 font-black text-sm text-[#0d6e4f] dark:text-emerald-400">
             <GraduationCap className="w-4 h-4 text-[#0d6e4f] dark:text-emerald-400 shrink-0" />
             <span className="font-bold tracking-tight">{yearTitle}</span>
@@ -168,7 +168,7 @@ export default function PackageCard({ pkg, onOpenDetails, className = '' }: Pack
             className={`w-full py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer ${
               isPurchased
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
-                : 'bg-[#e2ede5] dark:bg-stone-800 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-[#0d6e4f] dark:hover:text-white'
+                : 'bg-[#e2ede5] dark:bg-stone-900 group-hover:bg-[#0d6e4f] text-[#0d6e4f] dark:text-emerald-400 group-hover:text-white hover:bg-[#0d6e4f] hover:text-white dark:hover:bg-[#0d6e4f] dark:hover:text-white border border-transparent dark:border-stone-800'
             }`}
           >
             {isPurchased ? (
