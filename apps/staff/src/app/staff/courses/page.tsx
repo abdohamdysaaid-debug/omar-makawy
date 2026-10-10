@@ -405,13 +405,17 @@ export default function StaffCoursesPage() {
 
                       {/* Statistics: Students and Lectures */}
                       <td className="py-3.5 px-4">
-                        <div className="flex flex-col gap-1 text-[11px]">
-                          <span className="inline-flex items-center gap-1.5 font-bold text-neutral-800 dark:text-neutral-200">
-                            <Users className="h-3.5 w-3.5 text-blue-500" />
+                        <div className="flex flex-col gap-1.5 text-xs">
+                          <span className="inline-flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                            <span className="p-1 rounded-md bg-amber-500/10 dark:bg-amber-400/10">
+                              <Users className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                            </span>
                             <span>{(course.student_count ?? course.students_count ?? 0)} {isAr ? 'طالب مشترك' : 'students'}</span>
                           </span>
-                          <span className="inline-flex items-center gap-1.5 font-semibold text-neutral-600 dark:text-neutral-400">
-                            <PlayCircle className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="inline-flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                            <span className="p-1 rounded-md bg-emerald-500/10 dark:bg-emerald-400/10">
+                              <PlayCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                            </span>
                             <span>{(course.lecture_count ?? course.lectures_count ?? 0)} {isAr ? 'محاضرة' : 'lectures'}</span>
                           </span>
                         </div>
@@ -542,12 +546,12 @@ export default function StaffCoursesPage() {
 
                       {/* Stats badges */}
                       <div className="flex items-center gap-3 mt-1.5 text-[11px]">
-                        <span className="inline-flex items-center gap-1 font-bold text-neutral-800 dark:text-neutral-200">
-                          <Users className="h-3 w-3 text-blue-500" />
+                        <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
+                          <Users className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                           <span>{(course.student_count ?? course.students_count ?? 0)} {isAr ? 'مشترك' : 'students'}</span>
                         </span>
-                        <span className="inline-flex items-center gap-1 font-semibold text-neutral-600 dark:text-neutral-400">
-                          <PlayCircle className="h-3 w-3 text-emerald-500" />
+                        <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
+                          <PlayCircle className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                           <span>{(course.lecture_count ?? course.lectures_count ?? 0)} {isAr ? 'محاضرة' : 'lectures'}</span>
                         </span>
                       </div>

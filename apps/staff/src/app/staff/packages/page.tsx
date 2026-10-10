@@ -362,13 +362,17 @@ export default function StaffPackagesPage() {
                     </h3>
 
                     {/* Statistics Row: Enrolled Students & Included Lectures */}
-                    <div className="flex items-center justify-between p-2 rounded-xl bg-neutral-50 dark:bg-neutral-850/70 border border-neutral-100 dark:border-neutral-800 text-xs">
-                      <div className="flex items-center gap-1.5 font-bold text-neutral-800 dark:text-neutral-200">
-                        <Users className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-neutral-100/90 dark:bg-neutral-950/80 border border-neutral-200 dark:border-neutral-800 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
+                        <div className="p-1 rounded-md bg-amber-500/10 dark:bg-amber-400/10">
+                          <Users className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                        </div>
                         <span>{studentsCount} {isAr ? 'طالب مشترك' : 'students'}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 font-semibold text-neutral-600 dark:text-neutral-400">
-                        <PlayCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                        <div className="p-1 rounded-md bg-emerald-500/10 dark:bg-emerald-400/10">
+                          <PlayCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        </div>
                         <span>{lecturesCount} {isAr ? 'محاضرة' : 'lectures'}</span>
                       </div>
                     </div>
