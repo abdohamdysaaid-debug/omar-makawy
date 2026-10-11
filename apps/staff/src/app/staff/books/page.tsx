@@ -75,12 +75,17 @@ export default function StaffBooksPage() {
     is_active: true,
     is_featured: false,
     is_public: true,
+    pdf_file_url: '',
+    is_pdf_downloadable: true,
+    pdf_file_name: '',
+    pdf_file_size_bytes: 0,
   });
 
-  // Image Crop & Upload State
+  // Image & PDF Upload State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   // --- TAB 2: INVENTORY STATE ---
   const [inventoryBook, setInventoryBook] = useState<any | null>(null);
@@ -213,6 +218,37 @@ export default function StaffBooksPage() {
     }
   };
 
+  // Handle PDF Upload to Bunny via StorageService
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPdf(true);
+    setActionError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadRes: any = await apiClient.post('/api/v1/books/upload-pdf', formData);
+      const url = uploadRes?.url || uploadRes?.data?.url;
+      const fileName = uploadRes?.fileName || uploadRes?.data?.fileName || file.name;
+      const fileSizeBytes = uploadRes?.fileSizeBytes || uploadRes?.data?.fileSizeBytes || file.size;
+
+      if (url) {
+        setBookForm((prev) => ({
+          ...prev,
+          pdf_file_url: url,
+          pdf_file_name: fileName,
+          pdf_file_size_bytes: fileSizeBytes,
+        }));
+      }
+    } catch (err: any) {
+      setActionError(err?.response?.data?.message || err?.message || 'فشل رفع ملف الـ PDF إلى Bunny');
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
+
   // Submit Book Add/Edit Form
   const handleBookSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,6 +272,10 @@ export default function StaffBooksPage() {
         is_active: Boolean(bookForm.is_active),
         is_featured: Boolean(bookForm.is_featured),
         is_public: Boolean(bookForm.is_public),
+        pdf_file_url: bookForm.pdf_file_url || undefined,
+        is_pdf_downloadable: Boolean(bookForm.is_pdf_downloadable),
+        pdf_file_name: bookForm.pdf_file_name || undefined,
+        pdf_file_size_bytes: bookForm.pdf_file_size_bytes ? Number(bookForm.pdf_file_size_bytes) : undefined,
       };
 
       if (editingBook) {
@@ -480,6 +520,10 @@ export default function StaffBooksPage() {
                     is_active: true,
                     is_featured: false,
                     is_public: true,
+                    pdf_file_url: '',
+                    is_pdf_downloadable: true,
+                    pdf_file_name: '',
+                    pdf_file_size_bytes: 0,
                   });
                   setImagePreviewUrl(null);
                   setShowBookModal(true);
@@ -528,6 +572,12 @@ export default function StaffBooksPage() {
                         {b.is_featured && (
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 backdrop-blur-md">
                             مميز
+                          </span>
+                        )}
+                        {b.pdf_file_url && (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 backdrop-blur-md flex items-center gap-1">
+                            <FileText className="w-2.5 h-2.5" />
+                            PDF
                           </span>
                         )}
                       </div>
@@ -603,6 +653,10 @@ export default function StaffBooksPage() {
                           is_active: b.is_active,
                           is_featured: b.is_featured || false,
                           is_public: b.is_public || false,
+                          pdf_file_url: b.pdf_file_url || '',
+                          is_pdf_downloadable: b.is_pdf_downloadable !== undefined ? b.is_pdf_downloadable : true,
+                          pdf_file_name: b.pdf_file_name || '',
+                          pdf_file_size_bytes: Number(b.pdf_file_size_bytes || 0),
                         });
                         setImagePreviewUrl(b.cover_image_url || null);
                         setShowBookModal(true);
@@ -1052,10 +1106,79 @@ export default function StaffBooksPage() {
                     />
                     <label className="h-10 px-3 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold text-xs flex items-center gap-1 cursor-pointer hover:bg-emerald-600/30">
                       <Upload className="w-4 h-4" />
-                      {uploadingImage ? 'جاري...' : 'رفع'}
+                      {uploadingImage ? 'جاري...' : 'رفع الغلاف'}
                       <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                     </label>
                   </div>
+                </div>
+
+                {/* PDF Attachment Upload (Bunny Storage) */}
+                <div className="p-3.5 rounded-2xl bg-[#141b16] border border-emerald-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-emerald-400" />
+                      <label className="block text-white font-bold text-xs">ملف المذكرة الرقمي (PDF):</label>
+                    </div>
+                    <span className="text-[10px] text-emerald-300/80 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      يُحفظ في سيرفر Bunny
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={bookForm.pdf_file_url}
+                      onChange={(e) => setBookForm({ ...bookForm, pdf_file_url: e.target.value })}
+                      placeholder="رابط ملف الـ PDF أو قم برفعه مباشرة..."
+                      className="flex-1 h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white text-[11px]"
+                    />
+                    <label className="h-10 px-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm">
+                      <Upload className="w-4 h-4" />
+                      {uploadingPdf ? 'جاري الرفع...' : 'رفع PDF'}
+                      <input type="file" accept="application/pdf" onChange={handlePdfUpload} className="hidden" />
+                    </label>
+                  </div>
+
+                  {bookForm.pdf_file_url && (
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-xs">
+                      <div className="flex items-center gap-2 text-emerald-300 font-medium truncate">
+                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                        <span className="truncate">{bookForm.pdf_file_name || 'ملف PDF جاهز للتحميل'}</span>
+                        {bookForm.pdf_file_size_bytes ? (
+                          <span className="text-[10px] text-neutral-400 shrink-0">
+                            ({(Number(bookForm.pdf_file_size_bytes) / (1024 * 1024)).toFixed(2)} MB)
+                          </span>
+                        ) : null}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setBookForm((prev) => ({
+                            ...prev,
+                            pdf_file_url: '',
+                            pdf_file_name: '',
+                            pdf_file_size_bytes: 0,
+                          }))
+                        }
+                        className="text-neutral-400 hover:text-red-400 text-xs px-2 py-1 rounded"
+                        title="إزالة الملف"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  <label className="flex items-center gap-2 cursor-pointer pt-1">
+                    <input
+                      type="checkbox"
+                      checked={bookForm.is_pdf_downloadable}
+                      onChange={(e) => setBookForm({ ...bookForm, is_pdf_downloadable: e.target.checked })}
+                      className="w-4 h-4 rounded accent-emerald-600"
+                    />
+                    <span className="text-[11px] text-neutral-300 font-medium">
+                      السماح للطلاب بتحميل ملف الـ PDF مباشرة من المنصة
+                    </span>
+                  </label>
                 </div>
 
                 <div>

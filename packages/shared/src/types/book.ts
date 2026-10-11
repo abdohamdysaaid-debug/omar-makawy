@@ -13,6 +13,13 @@ export interface BookItem {
   cover_image_url?: string | null;
   weight_kg: number | string;
   is_active: boolean;
+  type?: 'BOOK' | 'NOTE' | string;
+  is_featured?: boolean;
+  is_public?: boolean;
+  pdf_file_url?: string | null;
+  is_pdf_downloadable?: boolean;
+  pdf_file_name?: string | null;
+  pdf_file_size_bytes?: number | string | null;
   created_at: string;
   updated_at: string;
   academic_year_name_ar?: string;
@@ -38,7 +45,7 @@ export interface PaginatedBooksResponse {
 export interface CreateBookPayload {
   academic_year_id: string;
   title_ar: string;
-  title_en: string;
+  title_en?: string;
   sku: string;
   price: number;
   discount_price?: number | null;
@@ -47,9 +54,19 @@ export interface CreateBookPayload {
   weight_kg?: number;
   cover_image_url?: string;
   is_active?: boolean;
+  type?: string;
+  is_featured?: boolean;
+  is_public?: boolean;
+  stock_quantity?: number;
+  pdf_file_url?: string;
+  is_pdf_downloadable?: boolean;
+  pdf_file_name?: string;
+  pdf_file_size_bytes?: number;
 }
 
 export interface UpdateBookPayload {
+  academic_year_id?: string;
+  sku?: string;
   title_ar?: string;
   title_en?: string;
   description_ar?: string;
@@ -59,6 +76,14 @@ export interface UpdateBookPayload {
   weight_kg?: number;
   cover_image_url?: string;
   is_active?: boolean;
+  type?: string;
+  is_featured?: boolean;
+  is_public?: boolean;
+  stock_quantity?: number;
+  pdf_file_url?: string;
+  is_pdf_downloadable?: boolean;
+  pdf_file_name?: string;
+  pdf_file_size_bytes?: number;
 }
 
 export type InventoryLedgerType =

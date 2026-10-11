@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Book as BookType } from '@/types';
 import { academicYears } from '@/data/mock';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Download, FileText } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { resolveMediaUrl } from '@/lib/api';
 
@@ -56,9 +56,17 @@ export default function BookCard({ book }: BookCardProps) {
           <BookOpen className="w-14 h-14 text-emerald-400 opacity-60 group-hover:scale-110 transition-transform duration-300" />
         )}
         <div className="absolute top-3 start-3 end-3 flex items-center justify-between gap-1.5 flex-wrap z-10">
-          <span className="bg-emerald-950/80 backdrop-blur-md text-emerald-200 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20">
-            {category}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="bg-emerald-950/80 backdrop-blur-md text-emerald-200 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20">
+              {category}
+            </span>
+            {(book as any).pdf_file_url && (
+              <span className="bg-blue-950/80 backdrop-blur-md text-blue-200 text-[10px] px-2 py-0.5 rounded-full font-bold border border-blue-500/30 flex items-center gap-1">
+                <FileText className="w-2.5 h-2.5" />
+                PDF
+              </span>
+            )}
+          </div>
           {academicYear && (
             <span className="bg-black/70 backdrop-blur-md text-emerald-300 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-white/10">
               {academicYear.title}
@@ -93,13 +101,28 @@ export default function BookCard({ book }: BookCardProps) {
           )}
         </div>
 
-        <button
-          onClick={() => addItem({ ...book, title, description, price, stock, category }, 1)}
-          disabled={stock === 0}
-          className="w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
-        >
-          أضف إلى السلة
-        </button>
+        <div className="space-y-2 pt-1">
+          {(book as any).pdf_file_url && (book as any).is_pdf_downloadable !== false && (
+            <a
+              href={resolveMediaUrl((book as any).pdf_file_url) || (book as any).pdf_file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="w-full py-2 px-3 rounded-xl text-xs font-bold transition-all bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>تحميل المذكرة PDF</span>
+            </a>
+          )}
+
+          <button
+            onClick={() => addItem({ ...book, title, description, price, stock, category }, 1)}
+            disabled={stock === 0}
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
+          >
+            أضف إلى السلة
+          </button>
+        </div>
       </div>
     </div>
   );

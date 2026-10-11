@@ -142,6 +142,36 @@ export function createBooksApi(client = defaultApiClient) {
 
       return client.get<PaginatedInventoryLedgerResponse>(endpoint, options);
     },
+
+    async uploadCover(
+      file: File | Blob,
+      academicYearId?: string
+    ): Promise<{ url: string }> {
+      const formData = new FormData();
+      formData.append('file', file);
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.post<{ url: string }>('/books/upload-cover', formData, options);
+    },
+
+    async uploadPdf(
+      file: File | Blob,
+      academicYearId?: string
+    ): Promise<{ url: string; fileName: string; fileSizeBytes: number }> {
+      const formData = new FormData();
+      formData.append('file', file);
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.post<{ url: string; fileName: string; fileSizeBytes: number }>(
+        '/books/upload-pdf',
+        formData,
+        options
+      );
+    },
   };
 }
 

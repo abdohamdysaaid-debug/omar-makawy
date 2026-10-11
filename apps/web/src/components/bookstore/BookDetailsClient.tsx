@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { books, academicYears } from '@/data/mock';
-import { BookOpen, Minus, Plus, ShoppingCart, ArrowLeft } from 'lucide-react';
+import { BookOpen, Minus, Plus, ShoppingCart, ArrowLeft, Download, FileText } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { apiClient, resolveMediaUrl } from '@/lib/api';
 import Link from 'next/link';
@@ -188,13 +188,46 @@ export default function BookDetailsClient({ bookId }: BookDetailsClientProps) {
               </div>
             )}
 
+            {bookData.pdf_file_url && bookData.is_pdf_downloadable !== false && (
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 mb-6 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-emerald-600 text-white">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs text-gray-900 dark:text-white">
+                        {bookData.pdf_file_name || 'ملف المذكرة الإلكتروني (PDF)'}
+                      </h4>
+                      {bookData.pdf_file_size_bytes ? (
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                          الحجم: {(Number(bookData.pdf_file_size_bytes) / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href={resolveMediaUrl(bookData.pdf_file_url) || bookData.pdf_file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>تحميل المذكرة الآن (PDF)</span>
+                </a>
+              </div>
+            )}
+
             <button
               onClick={handleAdd}
               disabled={stock === 0}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20"
             >
               <ShoppingCart className="w-5 h-5" />
-              <span>أضف إلى السلة</span>
+              <span>أضف إلى السلة (نسخة مطبوعة)</span>
             </button>
           </div>
         </div>
