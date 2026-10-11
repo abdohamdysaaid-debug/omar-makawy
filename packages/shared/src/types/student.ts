@@ -110,3 +110,31 @@ export interface PasswordResetLinkResponse {
   expires_in: number;
 }
 
+export interface StudentSubscription {
+  id: string;
+  item_type: 'PACKAGE' | 'COURSE';
+  item_id: string;
+  item_title_ar: string;
+  item_title_en: string | null;
+  package_type: 'MONTHLY' | 'TERM' | null;
+  thumbnail_url: string | null;
+  status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+  starts_at: string;
+  expires_at: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AdminGrantAccessPayload {
+  item_type: 'PACKAGE' | 'COURSE';
+  item_id: string;
+  custom_duration_days?: number;
+  reason?: string;
+}
+
+export interface AdminGrantAccessResponse {
+  success: boolean;
+  message: string;
+  subscription: StudentSubscription;
+}
+

@@ -43,6 +43,7 @@ import { EditStudentModal } from '@/components/students/EditStudentModal';
 import { ChangeStatusModal } from '@/components/students/ChangeStatusModal';
 import { ResetPasswordModal } from '@/components/students/ResetPasswordModal';
 import { StudentDevicesCard } from '@/components/students/StudentDevicesCard';
+import { StudentSubscriptionsCard } from '@/components/students/StudentSubscriptionsCard';
 
 const staffStudentsApi = createStudentsApi(staffApiClient);
 
@@ -439,6 +440,13 @@ export function StudentDetailClient({ studentId: propStudentId }: { studentId?: 
           </div>
         </div>
       </div>
+
+      {/* Subscriptions & Direct Grant Section */}
+      <StudentSubscriptionsCard
+        student={student}
+        canManage={canManage}
+        isArabic={isAr}
+      />
 
       {/* Devices & Active Sessions Section */}
       <StudentDevicesCard

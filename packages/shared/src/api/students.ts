@@ -12,6 +12,9 @@ import {
   UpdateStudentStatusResponse,
   UpdateStudentPayload,
   PasswordResetLinkResponse,
+  StudentSubscription,
+  AdminGrantAccessPayload,
+  AdminGrantAccessResponse,
 } from '../types/student';
 
 export function createStudentsApi(client = defaultApiClient) {
@@ -142,6 +145,36 @@ export function createStudentsApi(client = defaultApiClient) {
       return client.put<{ require_approval: boolean }>('/admin/students/settings/approval', {
         require_approval: requireApproval,
       });
+    },
+
+    async getStudentSubscriptions(
+      studentId: string,
+      academicYearId?: string
+    ): Promise<StudentSubscription[]> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.get<StudentSubscription[]>(
+        `/admin/students/${studentId}/subscriptions`,
+        options
+      );
+    },
+
+    async grantStudentAccess(
+      studentId: string,
+      payload: AdminGrantAccessPayload,
+      academicYearId?: string
+    ): Promise<AdminGrantAccessResponse> {
+      const options: RequestOptions = {};
+      if (academicYearId) {
+        options.academicYearId = academicYearId;
+      }
+      return client.post<AdminGrantAccessResponse>(
+        `/admin/students/${studentId}/subscriptions`,
+        payload,
+        options
+      );
     },
   };
 }
