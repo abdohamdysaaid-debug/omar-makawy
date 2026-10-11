@@ -127,6 +127,7 @@ export default function StaffExamsPage() {
   const [isRequiredForNext, setIsRequiredForNext] = useState<boolean>(false);
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [showInStudentMenu, setShowInStudentMenu] = useState<boolean>(true);
+  const [isPublished, setIsPublished] = useState<boolean>(true);
 
   // Retake & Availability states
   const [allowRetake, setAllowRetake] = useState<boolean>(true);
@@ -151,6 +152,7 @@ export default function StaffExamsPage() {
   const [aiAcademicYearId, setAiAcademicYearId] = useState<string>('');
   const [aiCourseId, setAiCourseId] = useState<string>('');
   const [aiLectureId, setAiLectureId] = useState<string>('');
+  const [aiDifficulty, setAiDifficulty] = useState<string>('MIXED');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
 
   // Student Results Dashboard State
@@ -437,7 +439,7 @@ export default function StaffExamsPage() {
         results_release_policy: resultsReleasePolicy,
         results_release_at: resultsReleasePolicy === 'SCHEDULED' && resultsReleaseAt ? resultsReleaseAt : null,
         are_results_released: areResultsReleased,
-        is_published: true,
+        is_published: isPublished,
         questions,
       };
 
@@ -469,17 +471,25 @@ export default function StaffExamsPage() {
       const res = await apiClient.post<any>('/exams/ai-generate', {
         topic_or_lesson: aiTopic,
         question_count: aiQuestionCount,
+        academic_year_id: aiAcademicYearId || undefined,
+        course_id: aiCourseId || undefined,
+        lecture_id: aiLectureId || undefined,
+        difficulty: aiDifficulty,
       });
 
       if (res && Array.isArray(res.questions)) {
-        setTitleAr(`امتحان ذكاء اصطناعي: ${aiTopic}`);
+        setTitleAr(`امتحان: ${aiTopic}`);
         setDescriptionAr(
-          `تم توليد هذا الامتحان تلقائياً عن درس "${aiTopic}" بعدد ${res.questions.length} أسئلة اختيار من متعدد.`
+          `تم إنشاء مسودة هذا الامتحان بواسطة الذكاء الاصطناعي (Gemini) عن درس "${aiTopic}" بعدد ${res.questions.length} أسئلة اختيار من متعدد. يرجى مراجعتها وتعديلها قبل الاعتماد والنشر.`
         );
-        setSelectedAcademicYearId(aiAcademicYearId);
+        if (res.academic_year_id || aiAcademicYearId) {
+          setSelectedAcademicYearId(res.academic_year_id || aiAcademicYearId);
+        }
         if (aiCourseId) setSelectedCourseIds([aiCourseId]);
         if (aiLectureId) setSelectedLectureIds([aiLectureId]);
         setQuestions(res.questions);
+        setIsPublished(false); // Kept strictly as draft for teacher review
+        setEditingExamId(null);
         setIsAiModalOpen(false);
         setIsManualModalOpen(true);
       }
@@ -1565,6 +1575,67 @@ export default function StaffExamsPage() {
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1.5">
+                <label className="font-bold block">المرحلة / الصف الدراسي (اختياري لضبط سياق الأسئلة)</label>
+                <select
+                  value={aiAcademicYearId}
+                  onChange={(e) => {
+                    setAiAcademicYearId(e.target.value);
+                    setAiCourseId('');
+                    setAiLectureId('');
+                  }}
+                  className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-semibold"
+                >
+                  <option value="">جميع المراحل / غير محدد</option>
+                  {academicYears.map((ay) => (
+                    <option key={ay.id} value={ay.id}>
+                      {ay.name_ar}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="font-bold block">الكورس / المادة</label>
+                  <select
+                    value={aiCourseId}
+                    onChange={(e) => {
+                      setAiCourseId(e.target.value);
+                      setAiLectureId('');
+                    }}
+                    className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-semibold"
+                  >
+                    <option value="">اختياري...</option>
+                    {courses
+                      .filter((c) => !aiAcademicYearId || c.academic_year_id === aiAcademicYearId)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.title_ar}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-bold block">المحاضرة (للربط بمحتواها الفعلي)</label>
+                  <select
+                    value={aiLectureId}
+                    onChange={(e) => setAiLectureId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-semibold"
+                  >
+                    <option value="">اختياري...</option>
+                    {lectures
+                      .filter((l) => !aiCourseId || l.course_id === aiCourseId)
+                      .map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.title_ar}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="font-bold block">الدرس أو الموضوع المطلوب *</label>
                 <input
                   type="text"
@@ -1576,18 +1647,35 @@ export default function StaffExamsPage() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="font-bold block">عدد الأسئلة المطلوب توليدها</label>
-                <select
-                  value={aiQuestionCount}
-                  onChange={(e) => setAiQuestionCount(Number(e.target.value))}
-                  className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-bold text-amber-600"
-                >
-                  <option value={5}>5 أسئلة</option>
-                  <option value={10}>10 أسئلة (الافتراضي)</option>
-                  <option value={15}>15 سؤالاً</option>
-                  <option value={20}>20 سؤالاً</option>
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="font-bold block">مستوى الصعوبة</label>
+                  <select
+                    value={aiDifficulty}
+                    onChange={(e) => setAiDifficulty(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-bold"
+                  >
+                    <option value="MIXED">متنوع ومتدرج (شامل)</option>
+                    <option value="EASY">سهل وتأسيسي</option>
+                    <option value="MEDIUM">متوسط ونمطي</option>
+                    <option value="HARD">متقدم ومهارات عليا</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="font-bold block">عدد الأسئلة</label>
+                  <select
+                    value={aiQuestionCount}
+                    onChange={(e) => setAiQuestionCount(Number(e.target.value))}
+                    className="w-full p-2.5 rounded-xl bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 font-bold text-amber-600"
+                  >
+                    <option value={5}>5 أسئلة</option>
+                    <option value={10}>10 أسئلة (الافتراضي)</option>
+                    <option value={15}>15 سؤالاً</option>
+                    <option value={20}>20 سؤالاً</option>
+                    <option value={30}>30 سؤالاً</option>
+                  </select>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3">
