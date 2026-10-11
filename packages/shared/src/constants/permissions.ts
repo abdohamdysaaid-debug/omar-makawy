@@ -32,6 +32,12 @@ export const SystemPermissions = {
   // Financial & Wallet
   WALLET_READ: 'wallet.read',
   WALLET_MANAGE: 'wallet.manage',
+  WALLET_TOPUP_MANAGE: 'wallet.topup_manage',
+
+  // Codes Generation
+  CODES_GENERATE: 'codes.generate',
+  ACTIVATION_CODES_GENERATE: 'activation_codes.generate',
+  RECHARGE_CODES_GENERATE: 'recharge_codes.generate',
 
   // Bookstore & Inventory
   BOOKS_READ: 'books.read',
@@ -223,16 +229,46 @@ export const ALL_SYSTEM_PERMISSIONS: PermissionDefinition[] = [
   {
     code: SystemPermissions.WALLET_READ,
     name_en: 'View Wallets',
-    name_ar: 'عرض المحافظ',
+    name_ar: 'عرض المحافظ وطلبات الشحن',
     module: 'WALLET',
-    description: 'View student balances and transactions',
+    description: 'View student balances, transactions, and top-up requests',
+  },
+  {
+    code: SystemPermissions.WALLET_TOPUP_MANAGE,
+    name_en: 'Manage Top-Up Requests',
+    name_ar: 'اعتماد ورفض طلبات شحن المحفظة',
+    module: 'WALLET',
+    description: 'Approve or reject student wallet top-up requests and credit wallets',
   },
   {
     code: SystemPermissions.WALLET_MANAGE,
-    name_en: 'Manage Wallets',
-    name_ar: 'إدارة المحافظ',
+    name_en: 'Manage Wallets & Financials',
+    name_ar: 'إدارة الخزنة والحسابات والتسويات المالية',
     module: 'WALLET',
-    description: 'Manual credit/debit adjustments',
+    description: 'Full treasury administration: manual credit/debit adjustments, ledger, receiving accounts, and top-up approvals',
+  },
+
+  // Codes Generation
+  {
+    code: SystemPermissions.CODES_GENERATE,
+    name_en: 'Generate All Codes',
+    name_ar: 'توليد جميع الأكواد والكروت (شحن، تفعيل، كوبونات)',
+    module: 'CODES',
+    description: 'Generate batches of wallet recharge cards, package/course activation vouchers, and discount coupons',
+  },
+  {
+    code: SystemPermissions.ACTIVATION_CODES_GENERATE,
+    name_en: 'Generate Activation Codes',
+    name_ar: 'توليد أكواد تفعيل الباقات والكورسات',
+    module: 'CODES',
+    description: 'Generate batch vouchers for course and package access',
+  },
+  {
+    code: SystemPermissions.RECHARGE_CODES_GENERATE,
+    name_en: 'Generate Recharge Cards',
+    name_ar: 'توليد كروت شحن المحفظة',
+    module: 'CODES',
+    description: 'Generate physical/digital top-up cards to credit student wallet balances',
   },
 
   // Bookstore & Inventory

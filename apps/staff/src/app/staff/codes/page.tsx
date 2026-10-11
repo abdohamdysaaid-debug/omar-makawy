@@ -116,11 +116,30 @@ export default function StaffCodesManagementPage() {
   const { isTeacher, hasPermission } = usePermissions();
   const { availableYears, activeAcademicYearId } = useAcademicYearScope();
 
-  const canManage =
+  const canGenerateActivation =
     isTeacher ||
-    hasPermission(SystemPermissions.WALLET_MANAGE) ||
+    hasPermission(SystemPermissions.CODES_GENERATE) ||
+    hasPermission(SystemPermissions.ACTIVATION_CODES_GENERATE) ||
     hasPermission(SystemPermissions.PACKAGES_MANAGE) ||
     hasPermission(SystemPermissions.COURSES_MANAGE);
+
+  const canGenerateRecharge =
+    isTeacher ||
+    hasPermission(SystemPermissions.CODES_GENERATE) ||
+    hasPermission(SystemPermissions.RECHARGE_CODES_GENERATE) ||
+    hasPermission(SystemPermissions.WALLET_MANAGE);
+
+  const canGenerateDiscounts =
+    isTeacher ||
+    hasPermission(SystemPermissions.CODES_GENERATE) ||
+    hasPermission(SystemPermissions.PACKAGES_MANAGE) ||
+    hasPermission(SystemPermissions.COURSES_MANAGE) ||
+    hasPermission(SystemPermissions.WALLET_MANAGE);
+
+  const canManage =
+    canGenerateActivation ||
+    canGenerateRecharge ||
+    canGenerateDiscounts;
 
   // Active Tab & View Mode
   const [activeTab, setActiveTab] = useState<TabType>('wallet');
@@ -1113,70 +1132,68 @@ export default function StaffCodesManagementPage() {
         </div>
 
         {/* Primary Action Buttons */}
-        {canManage && (
-          <div className="flex flex-wrap items-center gap-2.5">
-            {activeTab === 'packages' && (
+        <div className="flex flex-wrap items-center gap-2.5">
+          {activeTab === 'packages' && canGenerateActivation && (
+            <button
+              onClick={() => {
+                setPkgConfirmStep(false);
+                setIsPkgModalOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{isAr ? 'توليد أكواد باقة' : 'Generate Package Codes'}</span>
+            </button>
+          )}
+
+          {activeTab === 'courses' && canGenerateActivation && (
+            <button
+              onClick={() => {
+                setCourseConfirmStep(false);
+                setIsCourseModalOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{isAr ? 'توليد أكواد كورس' : 'Generate Course Codes'}</span>
+            </button>
+          )}
+
+          {activeTab === 'wallet' && canGenerateRecharge && (
+            <button
+              onClick={() => {
+                setRechargeConfirmStep(false);
+                setIsRechargeModalOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{isAr ? 'توليد دفعة كروت شحن' : 'Generate Top-Up Batch'}</span>
+            </button>
+          )}
+
+          {activeTab === 'discounts' && canGenerateDiscounts && (
+            <>
               <button
-                onClick={() => {
-                  setPkgConfirmStep(false);
-                  setIsPkgModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+                onClick={() => setIsSingleDiscModalOpen(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-all"
               >
                 <Plus className="w-4 h-4" />
-                <span>{isAr ? 'توليد أكواد باقة' : 'Generate Package Codes'}</span>
+                <span>{isAr ? 'إنشاء كوبون مخصص' : 'Create Single Coupon'}</span>
               </button>
-            )}
-
-            {activeTab === 'courses' && (
               <button
                 onClick={() => {
-                  setCourseConfirmStep(false);
-                  setIsCourseModalOpen(true);
+                  setBulkDiscConfirmStep(false);
+                  setIsBulkDiscModalOpen(true);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm transition-all shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                <span>{isAr ? 'توليد أكواد كورس' : 'Generate Course Codes'}</span>
+                <span>{isAr ? 'توليد دفعة كوبونات مجمعة' : 'Generate Bulk Coupons'}</span>
               </button>
-            )}
-
-            {activeTab === 'wallet' && (
-              <button
-                onClick={() => {
-                  setRechargeConfirmStep(false);
-                  setIsRechargeModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{isAr ? 'توليد دفعة كروت شحن' : 'Generate Top-Up Batch'}</span>
-              </button>
-            )}
-
-            {activeTab === 'discounts' && (
-              <>
-                <button
-                  onClick={() => setIsSingleDiscModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>{isAr ? 'إنشاء كوبون مخصص' : 'Create Single Coupon'}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setBulkDiscConfirmStep(false);
-                    setIsBulkDiscModalOpen(true);
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm transition-all shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>{isAr ? 'توليد دفعة كوبونات مجمعة' : 'Generate Bulk Coupons'}</span>
-                </button>
-              </>
-            )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Tabs & View Mode Selector */}

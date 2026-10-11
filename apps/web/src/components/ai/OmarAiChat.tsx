@@ -44,6 +44,7 @@ export default function OmarAiChat() {
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -61,8 +62,9 @@ export default function OmarAiChat() {
 
   const sendMessage = async (textToSend: string) => {
     const query = textToSend.trim();
-    if (!query || isTyping) return;
+    if (!query || isTyping || isSubmittingRef.current) return;
 
+    isSubmittingRef.current = true;
     const userMsg: Message = {
       id: `usr_${Date.now()}`,
       sender: 'user',
@@ -105,8 +107,8 @@ export default function OmarAiChat() {
       }
     } catch (err: any) {
       const errorMsg =
-        err?.message ||
         err?.response?.data?.message ||
+        err?.message ||
         'حدث خطأ أثناء التواصل مع المساعد الذكي. يرجى المحاولة مرة أخرى.';
 
       const errorReply: Message = {
@@ -121,20 +123,24 @@ export default function OmarAiChat() {
       setLastFailedMessage(query);
     } finally {
       setIsTyping(false);
+      isSubmittingRef.current = false;
     }
   };
 
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isTyping || isSubmittingRef.current) return;
     sendMessage(inputText);
   };
 
   const handlePresetClick = (q: string) => {
+    if (isTyping || isSubmittingRef.current) return;
     setInputText(q);
     inputRef.current?.focus();
   };
 
   const handleRetry = () => {
+    if (isTyping || isSubmittingRef.current) return;
     if (lastFailedMessage) {
       sendMessage(lastFailedMessage);
     }

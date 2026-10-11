@@ -18,6 +18,7 @@ export default function FloatingAiWidget() {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const isDraggingRef = useRef(false);
   const hasMovedRef = useRef(false);
@@ -103,8 +104,9 @@ export default function FloatingAiWidget() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isTyping) return;
+    if (!input.trim() || isTyping || isSubmittingRef.current) return;
 
+    isSubmittingRef.current = true;
     const userText = input.trim();
     setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
     setInput('');
@@ -133,8 +135,8 @@ export default function FloatingAiWidget() {
       }
     } catch (err: any) {
       const errorMsg =
-        err?.message ||
         err?.response?.data?.message ||
+        err?.message ||
         'حدث خطأ في الاتصال بالمساعد الذكي، يرجى المحاولة مرة أخرى.';
       setMessages((prev) => [
         ...prev,
@@ -142,6 +144,7 @@ export default function FloatingAiWidget() {
       ]);
     } finally {
       setIsTyping(false);
+      isSubmittingRef.current = false;
     }
   };
 

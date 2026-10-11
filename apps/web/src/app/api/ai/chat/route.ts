@@ -18,13 +18,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Forward to NestJS API backend
+    // Forward to NestJS API backend with client IP and authentication context
     const authHeader = req.headers.get('authorization') || '';
+    const forwardedFor =
+      req.headers.get('x-forwarded-for') ||
+      req.headers.get('x-real-ip') ||
+      req.ip ||
+      '';
+    const deviceId = req.headers.get('x-device-id') || '';
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
     if (authHeader) {
       headers['Authorization'] = authHeader;
+    }
+    if (forwardedFor) {
+      headers['x-forwarded-for'] = forwardedFor;
+    }
+    if (deviceId) {
+      headers['x-device-id'] = deviceId;
     }
 
     const backendRes = await fetch(`${API_BASE_URL}/ai/chat`, {

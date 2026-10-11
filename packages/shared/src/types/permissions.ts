@@ -15,6 +15,7 @@ export type PermissionModule =
   | 'PACKAGES'
   | 'SUBSCRIPTIONS'
   | 'WALLET'
+  | 'CODES'
   | 'BOOKSTORE'
   | 'INVENTORY'
   | 'ORDERS'

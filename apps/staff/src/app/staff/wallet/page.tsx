@@ -38,6 +38,15 @@ export default function StaffWalletPage() {
   const { t, language } = useLanguage();
   const { hasPermission, isTeacher } = usePermissions();
 
+  const canManageTopup =
+    isTeacher ||
+    hasPermission(SystemPermissions.WALLET_TOPUP_MANAGE) ||
+    hasPermission(SystemPermissions.WALLET_MANAGE);
+
+  const canManageAccounts =
+    isTeacher ||
+    hasPermission(SystemPermissions.WALLET_MANAGE);
+
   const [activeTab, setActiveTab] = useState<'requests' | 'accounts' | 'ledger' | 'revenue'>('requests');
 
   // Summary state
@@ -698,25 +707,27 @@ export default function StaffWalletPage() {
             <p className="text-xs text-neutral-400">
               الحسابات والأرقام المتاحة للطلاب للتحويل إليها أثناء طلب شحن المحفظة
             </p>
-            <button
-              onClick={() => {
-                setEditingAccount(null);
-                setAccountForm({
-                  type: 'INSTAPAY',
-                  provider_name: 'InstaPay',
-                  display_name: 'InstaPay - مستر عمر مكاوي',
-                  account_number: '',
-                  account_holder_name: 'عمر مكاوي',
-                  instructions: 'قم بتحويل المبلغ ثم ارفع صورة إيصال التحويل.',
-                  sort_order: accounts.length + 1,
-                });
-                setShowAccountModal(true);
-              }}
-              className="h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              إضافة حساب استلام جديد
-            </button>
+            {canManageAccounts && (
+              <button
+                onClick={() => {
+                  setEditingAccount(null);
+                  setAccountForm({
+                    type: 'INSTAPAY',
+                    provider_name: 'InstaPay',
+                    display_name: 'InstaPay - مستر عمر مكاوي',
+                    account_number: '',
+                    account_holder_name: 'عمر مكاوي',
+                    instructions: 'قم بتحويل المبلغ ثم ارفع صورة إيصال التحويل.',
+                    sort_order: accounts.length + 1,
+                  });
+                  setShowAccountModal(true);
+                }}
+                className="h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                إضافة حساب استلام جديد
+              </button>
+            )}
           </div>
 
           {accountsLoading ? (
@@ -743,16 +754,28 @@ export default function StaffWalletPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => toggleAccountActive(acc)}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${
-                        acc.is_active
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
-                          : 'bg-neutral-800 text-neutral-400 border-neutral-700 hover:bg-neutral-700'
-                      }`}
-                    >
-                      {acc.is_active ? 'مفعل' : 'معطل'}
-                    </button>
+                    {canManageAccounts ? (
+                      <button
+                        onClick={() => toggleAccountActive(acc)}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${
+                          acc.is_active
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                            : 'bg-neutral-800 text-neutral-400 border-neutral-700 hover:bg-neutral-700'
+                        }`}
+                      >
+                        {acc.is_active ? 'مفعل' : 'معطل'}
+                      </button>
+                    ) : (
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                          acc.is_active
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                        }`}
+                      >
+                        {acc.is_active ? 'مفعل' : 'معطل'}
+                      </span>
+                    )}
                   </div>
 
                   <div className="mt-4 p-3 rounded-xl bg-neutral-900 border border-neutral-800 space-y-1.5 text-xs">
@@ -772,26 +795,28 @@ export default function StaffWalletPage() {
                     <p className="mt-3 text-[11px] text-neutral-400">{acc.instructions}</p>
                   )}
 
-                  <div className="mt-4 flex items-center justify-end gap-2 pt-3 border-t border-neutral-800/60">
-                    <button
-                      onClick={() => {
-                        setEditingAccount(acc);
-                        setAccountForm({
-                          type: acc.type || 'INSTAPAY',
-                          provider_name: acc.provider_name || '',
-                          display_name: acc.display_name || '',
-                          account_number: acc.account_number || '',
-                          account_holder_name: acc.account_holder_name || '',
-                          instructions: acc.instructions || '',
-                          sort_order: acc.sort_order || 1,
-                        });
-                        setShowAccountModal(true);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs transition-colors"
-                    >
-                      تعديل الحساب
-                    </button>
-                  </div>
+                  {canManageAccounts && (
+                    <div className="mt-4 flex items-center justify-end gap-2 pt-3 border-t border-neutral-800/60">
+                      <button
+                        onClick={() => {
+                          setEditingAccount(acc);
+                          setAccountForm({
+                            type: acc.type || 'INSTAPAY',
+                            provider_name: acc.provider_name || '',
+                            display_name: acc.display_name || '',
+                            account_number: acc.account_number || '',
+                            account_holder_name: acc.account_holder_name || '',
+                            instructions: acc.instructions || '',
+                            sort_order: acc.sort_order || 1,
+                          });
+                          setShowAccountModal(true);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs transition-colors"
+                      >
+                        تعديل الحساب
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1167,7 +1192,7 @@ export default function StaffWalletPage() {
             </div>
 
             {/* Actions Footer */}
-            {selectedRequest.status === 'PENDING' && (
+            {selectedRequest.status === 'PENDING' && canManageTopup && (
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-800">
                 <button
                   type="button"
