@@ -35,7 +35,7 @@ export default function OmarAiChat() {
     {
       id: 'welcome',
       sender: 'ai',
-      text: 'أهلاً بك يا بطل! 🚀 أنا المساعد الذكي المدعوم بنموذج Google Gemini.\n\nأنا هنا للإجابة على جميع أسئلتك واستفساراتك في شتى المجالات والعلوم، وشرح قواعد ومفردات اللغة الإنجليزية ومساعدتك في المذاكرة وحل الأسئلة وتوجيهك في المنصة. تفضل بسؤالك وسأجيبك بدقة وذكاء! 🎓',
+      text: 'أهلاً بك يا بطل! 🚀 أنا المساعد الذكي لمنصة مستر عمر مكاوي.\n\nأنا هنا للإجابة على جميع أسئلتك واستفساراتك في شتى المجالات والعلوم، وشرح قواعد ومفردات اللغة الإنجليزية ومساعدتك في المذاكرة وحل الأسئلة وتوجيهك في المنصة. تفضل بسؤالك وسأجيبك بدقة وذكاء! 🎓',
       timestamp: 'الآن',
     },
   ]);
@@ -167,7 +167,7 @@ export default function OmarAiChat() {
                 <h1 className="text-lg sm:text-xl font-black tracking-tight">مساعد مستر عمر مكاوي AI</h1>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 font-extrabold text-[10px] border border-emerald-400/30 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span>Gemini AI</span>
+                  <span>متصل الآن</span>
                 </span>
               </div>
               <p className="text-xs text-emerald-100/90 mt-0.5">مساعدك الذكي للإجابة عن أسئلة الإنجليزي، القواعد، والشرح الدراسي على مدار 24 ساعة</p>
