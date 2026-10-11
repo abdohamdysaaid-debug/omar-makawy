@@ -428,9 +428,21 @@ export default function StaffCodesManagementPage() {
 
       const grp = map.get(bKey)!;
       grp.totalCodes += 1;
-      if (item.status === 'ACTIVE') grp.activeCount += 1;
-      else if (item.status === 'USED') grp.usedCount += 1;
-      else if (item.status === 'DISABLED') grp.disabledCount += 1;
+      const isItemUsed =
+        item.status === 'USED' ||
+        item.status === 'EXHAUSTED' ||
+        (item.used_count !== undefined &&
+          item.used_count !== null &&
+          Number(item.used_count) > 0 &&
+          Number(item.used_count) >= (Number(item.max_uses) || 1));
+      const isItemDisabled = item.status === 'DISABLED';
+      const isItemActive =
+        !isItemUsed && !isItemDisabled && (item.status === 'ACTIVE' || !item.status);
+
+      if (isItemUsed) grp.usedCount += 1;
+      else if (isItemActive) grp.activeCount += 1;
+      else if (isItemDisabled) grp.disabledCount += 1;
+      else grp.activeCount += 1;
 
       // Check if we have cached raw plaintext codes for this batch
       const cachedList = rawBatchesMap[item.batch_id || ''] || rawBatchesMap[bKey];
@@ -951,8 +963,28 @@ export default function StaffCodesManagementPage() {
               ...prev,
               codes: batchCodes,
               totalCodes: Math.max(prev.totalCodes, batchCodes.length),
-              activeCount: batchCodes.filter((c: any) => c.status === 'ACTIVE').length,
-              usedCount: batchCodes.filter((c: any) => c.status === 'USED').length,
+              activeCount: batchCodes.filter(
+                (c: any) =>
+                  (c.status === 'ACTIVE' || !c.status) &&
+                  c.status !== 'EXHAUSTED' &&
+                  c.status !== 'USED' &&
+                  c.status !== 'DISABLED' &&
+                  !(
+                    c.used_count !== undefined &&
+                    c.used_count !== null &&
+                    Number(c.used_count) > 0 &&
+                    Number(c.used_count) >= (Number(c.max_uses) || 1)
+                  ),
+              ).length,
+              usedCount: batchCodes.filter(
+                (c: any) =>
+                  c.status === 'USED' ||
+                  c.status === 'EXHAUSTED' ||
+                  (c.used_count !== undefined &&
+                    c.used_count !== null &&
+                    Number(c.used_count) > 0 &&
+                    Number(c.used_count) >= (Number(c.max_uses) || 1)),
+              ).length,
               disabledCount: batchCodes.filter((c: any) => c.status === 'DISABLED').length,
             };
           });
@@ -1637,14 +1669,27 @@ export default function StaffCodesManagementPage() {
 
                       {/* Status Badge */}
                       <td className="py-3.5 px-4">
-                        <StatusBadge status={row.status} />
+                        <StatusBadge
+                          status={
+                            row.status === 'USED' ||
+                            row.status === 'EXHAUSTED' ||
+                            (Number(row.used_count) > 0 &&
+                              Number(row.used_count) >= (Number(row.max_uses) || 1))
+                              ? 'USED'
+                              : row.status
+                          }
+                        />
                       </td>
 
                       {/* Actions */}
                       {canManage && (
                         <td className="py-3.5 px-4 text-center">
                           <div className="flex items-center justify-center gap-1.5">
-                            {row.status === 'ACTIVE' && (
+                            {row.status === 'ACTIVE' &&
+                              !(
+                                Number(row.used_count) > 0 &&
+                                Number(row.used_count) >= (Number(row.max_uses) || 1)
+                              ) && (
                               <button
                                 onClick={() =>
                                   confirmDisableItem(
@@ -1890,7 +1935,16 @@ export default function StaffCodesManagementPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <StatusBadge status={codeItem.status} />
+                        <StatusBadge
+                          status={
+                            codeItem.status === 'USED' ||
+                            codeItem.status === 'EXHAUSTED' ||
+                            (Number(codeItem.used_count) > 0 &&
+                              Number(codeItem.used_count) >= (Number(codeItem.max_uses) || 1))
+                              ? 'USED'
+                              : codeItem.status
+                          }
+                        />
 
                         <button
                           onClick={() => handleCopyCode(codeStr, cIdx)}
@@ -1903,7 +1957,12 @@ export default function StaffCodesManagementPage() {
                           )}
                         </button>
 
-                        {canManage && codeItem.status === 'ACTIVE' && (
+                        {canManage &&
+                          codeItem.status === 'ACTIVE' &&
+                          !(
+                            Number(codeItem.used_count) > 0 &&
+                            Number(codeItem.used_count) >= (Number(codeItem.max_uses) || 1)
+                          ) && (
                           <button
                             onClick={() =>
                               confirmDisableItem(

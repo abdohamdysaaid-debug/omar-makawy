@@ -60,6 +60,28 @@ export function StatusBadge({ status, isArabic = true }: StatusBadgeProps) {
           {isArabic ? 'محظور' : 'Blocked'}
         </span>
       );
+    case 'USED':
+    case 'EXHAUSTED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+          <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+          {isArabic ? 'مستخدم' : 'Used'}
+        </span>
+      );
+    case 'DISABLED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+          {isArabic ? 'معطل' : 'Disabled'}
+        </span>
+      );
+    case 'EXPIRED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
+          {isArabic ? 'منتهي الصلاحية' : 'Expired'}
+        </span>
+      );
     case 'INACTIVE':
     default:
       return (
