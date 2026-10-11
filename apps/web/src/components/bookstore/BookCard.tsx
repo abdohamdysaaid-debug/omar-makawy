@@ -88,18 +88,27 @@ export default function BookCard({ book }: BookCardProps) {
           </p>
         ) : null}
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-          <span className="font-extrabold text-base text-gray-900 dark:text-white">
-            <span className="text-emerald-600 dark:text-emerald-400">{price.toLocaleString()}</span>{' '}
-            <span className="text-xs text-gray-500 font-normal">جنيه</span>
-          </span>
+        {/* Price & Stock only if for sale */}
+        {(book as any).is_for_sale !== false ? (
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+            <span className="font-extrabold text-base text-gray-900 dark:text-white">
+              <span className="text-emerald-600 dark:text-emerald-400">{price.toLocaleString()}</span>{' '}
+              <span className="text-xs text-gray-500 font-normal">جنيه</span>
+            </span>
 
-          {stock > 0 ? (
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">متوفر</span>
-          ) : (
-            <span className="text-xs font-bold text-red-500">غير متوفر حالياً</span>
-          )}
-        </div>
+            {stock > 0 ? (
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">متوفر</span>
+            ) : (
+              <span className="text-xs font-bold text-red-500">غير متوفر حالياً</span>
+            )}
+          </div>
+        ) : (
+          <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+            <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
+              تحميل مجاني للطلاب
+            </span>
+          </div>
+        )}
 
         <div className="space-y-2 pt-1">
           {(book as any).pdf_file_url && (book as any).is_pdf_downloadable !== false && (
@@ -108,20 +117,22 @@ export default function BookCard({ book }: BookCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               download
-              className="w-full py-2 px-3 rounded-xl text-xs font-bold transition-all bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 px-3 rounded-xl text-xs font-bold transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               <span>تحميل المذكرة PDF</span>
             </a>
           )}
 
-          <button
-            onClick={() => addItem({ ...book, title, description, price, stock, category }, 1)}
-            disabled={stock === 0}
-            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
-          >
-            أضف إلى السلة
-          </button>
+          {(book as any).is_for_sale !== false && (
+            <button
+              onClick={() => addItem({ ...book, title, description, price, stock, category }, 1)}
+              disabled={stock === 0}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
+            >
+              أضف إلى السلة
+            </button>
+          )}
         </div>
       </div>
     </div>

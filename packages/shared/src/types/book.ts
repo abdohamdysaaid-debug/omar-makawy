@@ -16,6 +16,7 @@ export interface BookItem {
   type?: 'BOOK' | 'NOTE' | string;
   is_featured?: boolean;
   is_public?: boolean;
+  is_for_sale?: boolean;
   pdf_file_url?: string | null;
   is_pdf_downloadable?: boolean;
   pdf_file_name?: string | null;
@@ -47,7 +48,7 @@ export interface CreateBookPayload {
   title_ar: string;
   title_en?: string;
   sku: string;
-  price: number;
+  price?: number;
   discount_price?: number | null;
   description_ar?: string;
   description_en?: string;
@@ -58,6 +59,7 @@ export interface CreateBookPayload {
   is_featured?: boolean;
   is_public?: boolean;
   stock_quantity?: number;
+  is_for_sale?: boolean;
   pdf_file_url?: string;
   is_pdf_downloadable?: boolean;
   pdf_file_name?: string;
@@ -80,6 +82,7 @@ export interface UpdateBookPayload {
   is_featured?: boolean;
   is_public?: boolean;
   stock_quantity?: number;
+  is_for_sale?: boolean;
   pdf_file_url?: string;
   is_pdf_downloadable?: boolean;
   pdf_file_name?: string;

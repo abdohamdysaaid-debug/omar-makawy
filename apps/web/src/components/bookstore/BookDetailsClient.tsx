@@ -153,38 +153,48 @@ export default function BookDetailsClient({ bookId }: BookDetailsClientProps) {
               </p>
             ) : null}
 
-            <div className="flex items-center gap-4 mb-8">
-              <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                {price.toLocaleString()} <span className="text-base text-gray-500 font-normal">جنيه</span>
-              </span>
-              {discountPrice > 0 && discountPrice < rawPrice ? (
-                <span className="text-sm text-gray-400 line-through">{rawPrice.toLocaleString()} جنيه</span>
-              ) : null}
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${stock > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'}`}>
-                {stock > 0 ? `متوفر (${stock} قطعة)` : 'نفد المخزون'}
-              </span>
-            </div>
-
-            {stock > 0 && (
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-gray-700 dark:text-gray-300 font-bold text-sm">الكمية:</span>
-                <div className="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    className="p-2.5 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors text-gray-700 dark:text-gray-300"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-10 text-center font-bold text-gray-900 dark:text-white text-sm">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(Math.min(stock, quantity + 1))}
-                    disabled={quantity >= stock}
-                    className="p-2.5 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors text-gray-700 dark:text-gray-300"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
+            {bookData.is_for_sale !== false ? (
+              <>
+                <div className="flex items-center gap-4 mb-8">
+                  <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                    {price.toLocaleString()} <span className="text-base text-gray-500 font-normal">جنيه</span>
+                  </span>
+                  {discountPrice > 0 && discountPrice < rawPrice ? (
+                    <span className="text-sm text-gray-400 line-through">{rawPrice.toLocaleString()} جنيه</span>
+                  ) : null}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${stock > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400'}`}>
+                    {stock > 0 ? `متوفر للشحن (${stock} قطعة)` : 'نفد المخزون'}
+                  </span>
                 </div>
+
+                {stock > 0 && (
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="text-gray-700 dark:text-gray-300 font-bold text-sm">الكمية:</span>
+                    <div className="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        className="p-2.5 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors text-gray-700 dark:text-gray-300"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-10 text-center font-bold text-gray-900 dark:text-white text-sm">{quantity}</span>
+                      <button
+                        onClick={() => setQuantity(Math.min(stock, quantity + 1))}
+                        disabled={quantity >= stock}
+                        className="p-2.5 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors text-gray-700 dark:text-gray-300"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="mb-6">
+                <span className="inline-block px-3.5 py-1.5 rounded-full text-sm font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40">
+                  مذكرة إلكترونية مجانية للتحميل (غير معروضة للبيع الورقي)
+                </span>
               </div>
             )}
 
@@ -221,14 +231,16 @@ export default function BookDetailsClient({ bookId }: BookDetailsClientProps) {
               </div>
             )}
 
-            <button
-              onClick={handleAdd}
-              disabled={stock === 0}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              <span>أضف إلى السلة (نسخة مطبوعة)</span>
-            </button>
+            {bookData.is_for_sale !== false && (
+              <button
+                onClick={handleAdd}
+                disabled={stock === 0}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                <span>أضف إلى السلة (نسخة مطبوعة)</span>
+              </button>
+            )}
           </div>
         </div>
       </main>

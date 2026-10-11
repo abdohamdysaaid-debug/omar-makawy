@@ -75,6 +75,7 @@ export default function StaffBooksPage() {
     is_active: true,
     is_featured: false,
     is_public: true,
+    is_for_sale: true,
     pdf_file_url: '',
     is_pdf_downloadable: true,
     pdf_file_name: '',
@@ -264,9 +265,10 @@ export default function StaffBooksPage() {
         description_ar: bookForm.description_ar || undefined,
         description_en: bookForm.description_en || undefined,
         sku: bookForm.sku ? bookForm.sku.trim() : `BK-${Date.now().toString().slice(-6)}`,
-        price: Number(bookForm.price),
-        discount_price: bookForm.discount_price ? Number(bookForm.discount_price) : 0,
-        stock_quantity: Number(bookForm.stock_quantity),
+        is_for_sale: Boolean(bookForm.is_for_sale),
+        price: bookForm.is_for_sale ? Number(bookForm.price || 0) : 0,
+        discount_price: bookForm.is_for_sale && bookForm.discount_price ? Number(bookForm.discount_price) : 0,
+        stock_quantity: bookForm.is_for_sale ? Number(bookForm.stock_quantity || 0) : 0,
         weight_kg: Number(bookForm.weight_kg || 0.5),
         cover_image_url: bookForm.cover_image_url || undefined,
         is_active: Boolean(bookForm.is_active),
@@ -520,6 +522,7 @@ export default function StaffBooksPage() {
                     is_active: true,
                     is_featured: false,
                     is_public: true,
+                    is_for_sale: true,
                     pdf_file_url: '',
                     is_pdf_downloadable: true,
                     pdf_file_name: '',
@@ -602,33 +605,43 @@ export default function StaffBooksPage() {
                     </div>
 
                     <div className="flex items-baseline justify-between pt-2 border-t border-neutral-800/60">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="font-black text-emerald-400 text-base">
-                          {(() => {
-                            const disc = Number(b.discount_price || 0);
-                            const pr = Number(b.price || 0);
-                            return (disc > 0 && disc < pr ? disc : pr).toLocaleString();
-                          })()}{' '}
-                          ج.م
-                        </span>
-                        {Number(b.discount_price || 0) > 0 && Number(b.discount_price) < Number(b.price) && (
-                          <span className="text-xs text-neutral-500 line-through">
-                            {Number(b.price).toLocaleString()} ج.م
-                          </span>
-                        )}
-                      </div>
+                      {b.is_for_sale !== false ? (
+                        <>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-black text-emerald-400 text-base">
+                              {(() => {
+                                const disc = Number(b.discount_price || 0);
+                                const pr = Number(b.price || 0);
+                                return (disc > 0 && disc < pr ? disc : pr).toLocaleString();
+                              })()}{' '}
+                              ج.م
+                            </span>
+                            {Number(b.discount_price || 0) > 0 && Number(b.discount_price) < Number(b.price) && (
+                              <span className="text-xs text-neutral-500 line-through">
+                                {Number(b.price).toLocaleString()} ج.م
+                              </span>
+                            )}
+                          </div>
 
-                      <span
-                        className={`text-[11px] font-bold ${
-                          Number(b.stock_quantity) > 5
-                            ? 'text-neutral-400'
-                            : Number(b.stock_quantity) > 0
-                            ? 'text-amber-400'
-                            : 'text-red-400'
-                        }`}
-                      >
-                        المخزون: {b.stock_quantity}
-                      </span>
+                          <span
+                            className={`text-[11px] font-bold ${
+                              Number(b.stock_quantity) > 5
+                                ? 'text-neutral-400'
+                                : Number(b.stock_quantity) > 0
+                                ? 'text-amber-400'
+                                : 'text-red-400'
+                            }`}
+                          >
+                            المخزون: {b.stock_quantity}
+                          </span>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs font-bold text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded-lg border border-blue-500/20">
+                            تحميل مجاني (غير معروض للبيع)
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -653,6 +666,7 @@ export default function StaffBooksPage() {
                           is_active: b.is_active,
                           is_featured: b.is_featured || false,
                           is_public: b.is_public || false,
+                          is_for_sale: b.is_for_sale !== false,
                           pdf_file_url: b.pdf_file_url || '',
                           is_pdf_downloadable: b.is_pdf_downloadable !== undefined ? b.is_pdf_downloadable : true,
                           pdf_file_name: b.pdf_file_name || '',
@@ -1040,55 +1054,84 @@ export default function StaffBooksPage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-neutral-400 mb-1">السعر الأصل (ج.م): *</label>
-                    <input
-                      type="number"
-                      value={bookForm.price}
-                      onChange={(e) => setBookForm({ ...bookForm, price: Number(e.target.value) })}
-                      required
-                      min="0"
-                      className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-neutral-400 mb-1">سعر الخصم (اختر 0 إن لم يوجد):</label>
-                    <input
-                      type="number"
-                      value={bookForm.discount_price}
-                      onChange={(e) => setBookForm({ ...bookForm, discount_price: Number(e.target.value) })}
-                      min="0"
-                      className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
-                    />
+                {/* For Sale vs PDF Only Switch */}
+                <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-white text-xs block">متاح للبيع والشحن الورقي (طلب مطبوع)</span>
+                      <span className="text-[10px] text-neutral-400 block">
+                        إذا تم إلغاء هذا الخيار، ستكون المذكرة للتحميل الرقمي فقط (مجانية) ولن يظهر لها سعر أو زر شراء أو شحن.
+                      </span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={bookForm.is_for_sale}
+                        onChange={(e) => setBookForm({ ...bookForm, is_for_sale: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-neutral-400 mb-1 font-bold">كمية المخزون (الاستوك): *</label>
-                    <input
-                      type="number"
-                      value={bookForm.stock_quantity}
-                      onChange={(e) => setBookForm({ ...bookForm, stock_quantity: Number(e.target.value) })}
-                      required
-                      min="0"
-                      placeholder="مثال: 50"
-                      className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-bold text-sm focus:border-emerald-500"
-                    />
-                  </div>
+                {bookForm.is_for_sale ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-neutral-400 mb-1">السعر الأصل (ج.م): *</label>
+                        <input
+                          type="number"
+                          value={bookForm.price}
+                          onChange={(e) => setBookForm({ ...bookForm, price: Number(e.target.value) })}
+                          required={bookForm.is_for_sale}
+                          min="0"
+                          className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-neutral-400 mb-1">كود المذكرة (SKU):</label>
-                    <input
-                      type="text"
-                      value={bookForm.sku}
-                      onChange={(e) => setBookForm({ ...bookForm, sku: e.target.value })}
-                      className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono"
-                    />
+                      <div>
+                        <label className="block text-neutral-400 mb-1">سعر الخصم (اختر 0 إن لم يوجد):</label>
+                        <input
+                          type="number"
+                          value={bookForm.discount_price}
+                          onChange={(e) => setBookForm({ ...bookForm, discount_price: Number(e.target.value) })}
+                          min="0"
+                          className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-neutral-400 mb-1 font-bold">كمية المخزون (الاستوك): *</label>
+                        <input
+                          type="number"
+                          value={bookForm.stock_quantity}
+                          onChange={(e) => setBookForm({ ...bookForm, stock_quantity: Number(e.target.value) })}
+                          required={bookForm.is_for_sale}
+                          min="0"
+                          placeholder="مثال: 50"
+                          className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-bold text-sm focus:border-emerald-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-neutral-400 mb-1">كود المذكرة (SKU):</label>
+                        <input
+                          type="text"
+                          value={bookForm.sku}
+                          onChange={(e) => setBookForm({ ...bookForm, sku: e.target.value })}
+                          className="w-full h-10 px-3 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono"
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-3 rounded-xl bg-blue-950/30 border border-blue-500/20 text-blue-300 text-xs">
+                    💡 هذه المذكرة مخصصة للتحميل فقط (غير معروضة للبيع) — لن يُطلب سعر أو مخزون ولن يتمكن الطلاب من إرسال طلبات شراء لها.
                   </div>
-                </div>
+                )}
 
                 {/* Cover Upload */}
                 <div>
