@@ -292,12 +292,26 @@ export default function PackagesClient() {
           item_id: selectedPackage.id,
         });
 
-        if (discountRes && typeof discountRes.final_price !== 'undefined') {
-          const finalVal = Number(discountRes.final_price);
+        const finalVal =
+          typeof discountRes?.final_price !== 'undefined'
+            ? Number(discountRes.final_price)
+            : typeof discountRes?.finalPriceDecimal !== 'undefined'
+            ? Number(discountRes.finalPriceDecimal)
+            : undefined;
+
+        if (discountRes && typeof finalVal !== 'undefined') {
+          const discountPercent =
+            discountRes.discount_percent ?? discountRes.discountPercent;
+          const discountAmount =
+            discountRes.discount_amount ??
+            (discountRes.discountAmountDecimal
+              ? Number(discountRes.discountAmountDecimal)
+              : undefined);
+
           setAppliedDiscount({
             code: cleanCode,
-            percent: discountRes.discount_percent,
-            amount: discountRes.discount_amount,
+            percent: discountPercent,
+            amount: discountAmount,
             finalPrice: finalVal,
           });
           setCodeFeedback({
