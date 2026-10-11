@@ -256,11 +256,13 @@ export default function PackagesClient() {
       try {
         const redeemRes: any = await apiClient.post('/api/v1/activation/redeem', {
           code: cleanCode,
+          item_type: 'PACKAGE',
+          item_id: selectedPackage.id,
         });
         if (redeemRes) {
           setCodeFeedback({
             type: 'success',
-            message: redeemRes.message || '🎉 تم تفعيل الباقة بنجاح والاشتراك فيها مجاناً!',
+            message: redeemRes.message_ar || redeemRes.message || '🎉 تم تفعيل الباقة بنجاح والاشتراك فيها مجاناً!',
             isActivation: true,
           });
           setPurchaseSuccess(true);
@@ -314,6 +316,53 @@ export default function PackagesClient() {
             amount: discountAmount,
             finalPrice: finalVal,
           });
+
+          // إذا كانت نسبة الخصم 100% والسعر صفر: يتم تفعيل وشراء الباقة فوراً دون الحاجة لضغط زر الشراء
+          if (finalVal === 0) {
+            try {
+              setPurchasing(true);
+              await apiClient.post('/api/v1/purchases', {
+                item_type: 'PACKAGE',
+                item_id: selectedPackage.id,
+                discount_code: cleanCode,
+              });
+              setPurchaseSuccess(true);
+              setCodeFeedback({
+                type: 'success',
+                message: '🎉 تم استخدام كود الخصم 100% وتفعيل الاشتراك في الباقة بنجاح!',
+                isActivation: true,
+              });
+              await refreshSubscriptions();
+              return;
+            } catch (purchaseErr: any) {
+              const pMsg =
+                purchaseErr?.response?.data?.message ||
+                purchaseErr?.data?.message ||
+                purchaseErr?.message;
+              if (
+                pMsg?.includes('ALREADY_HAS_ACCESS') ||
+                pMsg?.includes('مشترك بالفعل') ||
+                pMsg?.includes('already own')
+              ) {
+                setPurchaseSuccess(true);
+                setCodeFeedback({
+                  type: 'success',
+                  message: 'أنت مشترك بالفعل في هذه الباقة!',
+                  isActivation: true,
+                });
+                await refreshSubscriptions();
+                return;
+              }
+              setCodeFeedback({
+                type: 'error',
+                message: pMsg || 'حدث خطأ أثناء إتمام الاشتراك المجاني.',
+              });
+              return;
+            } finally {
+              setPurchasing(false);
+            }
+          }
+
           setCodeFeedback({
             type: 'success',
             message: `تم تطبيق كود الخصم بنجاح! السعر بعد الخصم: ${finalVal} ج.م`,
